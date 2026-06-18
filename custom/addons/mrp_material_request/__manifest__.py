@@ -10,8 +10,8 @@
     "category": "Stock",
     "depends": ['stock', 'fnet_mrp', 'hr', 'material_purchase_requisitions','customers_vendors_configuration'],
     "data": [
-        "security/ir.model.access.csv",
         "security/security.xml",
+        "security/ir.model.access.csv",
         "data/data.xml",
         "views/mrp_request.xml",
         "views/stock_picking.xml",

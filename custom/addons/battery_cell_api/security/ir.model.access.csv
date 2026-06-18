@@ -2,6 +2,3 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_battery_cell_log_user,battery.cell.log,model_battery_cell_log,base.group_user,1,1,1,1
 access_injection_cell_log_user,injection.cell.log,model_injection_cell_log,base.group_user,1,1,1,1
 access_cell_clamp_baking_log_user,cell.clamp.baking.log,model_cell_clamp_baking_log,base.group_user,1,1,1,1
-
-
-access_dummy_partner_user,dummy.partner.user,model_dummy_partner,base.group_user,1,1,1,1

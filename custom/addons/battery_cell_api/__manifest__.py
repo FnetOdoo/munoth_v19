@@ -11,7 +11,6 @@
     "data": [
         "security/ir.model.access.csv",
         "views/battery_cell_log_view.xml",
-        "views/res_partner_views.xml",
     ],
     "assets": {},
     "installable": True,

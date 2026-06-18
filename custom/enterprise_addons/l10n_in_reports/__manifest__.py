@@ -8,6 +8,7 @@ Accounting reports for India
     'category': 'Accounting/Localizations/Reporting',
     'depends': [
         'l10n_in',
+        'apex_einvoice',
         'account_reports',
         'account_accountant',
         'account_batch_payment',

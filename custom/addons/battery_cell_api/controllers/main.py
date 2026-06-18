@@ -73,17 +73,3 @@ class CellClampBakingAPI(http.Controller):
                 print("'data' key is present but list is empty.")
         else:
             print("No data found in request.")
-
-
-class DummyPartnerAPI(http.Controller):
-
-    @http.route('/create_dummy_partner', type='json', auth='public', methods=['POST'], csrf=False)
-    def create_dummy_partner(self, **kwargs):
-        partner_data_list = kwargs.get('data', [])
-        if partner_data_list:
-            for partner_data in partner_data_list:
-                request.env['dummy.partner'].sudo().create(partner_data)
-            return {"status": "success", "created": len(partner_data_list)}
-        else:
-            print("\n ---------------------Data Not Found In DummyPartnerAPI------------------------- \n")
-            return {"status": "error", "message": "Data Not Found"}

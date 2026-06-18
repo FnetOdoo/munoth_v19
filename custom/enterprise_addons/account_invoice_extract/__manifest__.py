@@ -5,7 +5,7 @@
     'name': 'Account Invoice Extract',
     'version': '1.0',
     'category': 'Accounting/Accounting',
-    'summary': 'Extract data from invoice scans to fill them automatically',
+    'summary': 'Extract data from invoice scans to fill enable_einvthem automatically',
     'depends': ['account_extract'],
     'data': [
         'data/crons.xml',

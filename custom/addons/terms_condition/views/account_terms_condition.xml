@@ -84,7 +84,7 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-              <xpath expr="//field[@name='enable_einv']" position="after">
+              <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="terms_conditions_template_id" readonly="state != 'draft'" string="Terms &amp; Conditions"/>
                 </xpath>
             <xpath expr="//field[@name='invoice_date']" position="after">

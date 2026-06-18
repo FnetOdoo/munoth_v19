@@ -9,7 +9,7 @@ Accounting reports for India
     'depends': [
         'l10n_in',
         'account_reports',
-        'accountant',
+        'account_accountant',
         'account_batch_payment',
         'barcodes',
         'account_invoice_extract',

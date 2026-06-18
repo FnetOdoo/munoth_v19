@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="action_dynamic_process_menu" model="ir.actions.client">
+            <field name="name">Production Process Menu</field>
+            <field name="tag">dynamic_process_menu</field>
+        </record>
+
+        <menuitem id="base.menu_board_root" name="Dashboards" sequence="0" web_icon="base,static/description/board.png" groups="base.group_user"/>
+        <menuitem id="menu_manufacturing_root" name="Manufacturing" web_icon="fnet_mrp,static/description/logo.png" sequence="50"/>
+        <menuitem id="menu_manufacturing_plan_main" name="Production Plan" parent="fnet_mrp.menu_manufacturing_root" sequence="-10"/>
+        <menuitem id="menu_manufacturing_plan" name="Plan" action="manufacturing_plan_form_action" parent="fnet_mrp.menu_manufacturing_plan_main" sequence="1"/>
+        <menuitem id="menu_manufacturing_main" name="Production Process" parent="fnet_mrp.menu_manufacturing_root" action="action_dynamic_process_menu" sequence="4"/>
+        <menuitem id="menu_manufacturing_anode_main" name="Anode" parent="fnet_mrp.menu_manufacturing_main" sequence="1"/>
+        <menuitem id="menu_manufacturing_cathode_main" name="Cathode" parent="fnet_mrp.menu_manufacturing_main" sequence="2"/>
+        <menuitem id="menu_manufacturing_diaphragm_main" name="Diaphragm" parent="fnet_mrp.menu_manufacturing_main" sequence="3"/>
+
+        <menuitem id="menu_mrp_quality" name="Quality" parent="fnet_mrp.menu_manufacturing_root" sequence="5"/>
+        <menuitem id="menu_mrp_quality_check" name="Quality Check" parent="menu_mrp_quality" sequence="1" action="action_mrp_quality"/>
+        <menuitem id="menu_process_quality_check_injection" name="In Process Quality Check" parent="fnet_mrp.menu_mrp_quality" sequence="8" action="action_process_quality_check"/>
+        <menuitem id="menu_mrp_first_article_inspection" name="Process/FAI/FPA Inspection" parent="fnet_mrp.menu_mrp_quality" sequence="2" action="view_first_article_inspection_action"/>
+        <menuitem id="menu_stock_inspection" name="IN/OUT/Audit Inspection" parent="fnet_mrp.menu_mrp_quality" action="stock_inspection_action" sequence="7"/>
+        <menuitem id="menu_complaint_register" name="Customer Complaint Register" parent="fnet_mrp.menu_mrp_quality" sequence="9" action="action_customer_complaint_register"/>
+        <!-- <menuitem id="menu_deviation_note" name="Deviation Notes" parent="fnet_mrp.menu_mrp_quality" action="action_deviation_note" sequence="10"/> -->
+        <!-- <menuitem id="menu_quality_check_injection" name="Process Quality Check" parent="menu_mrp_quality" sequence="3" action="view_process_quality_check_injection"/> -->
+
+        <menuitem id="menu_manufacturing_product" name="Product" parent="fnet_mrp.menu_manufacturing_root" sequence="6"/>
+        <menuitem id="menu_products" name="Products" action="stock.product_template_action_product" parent="fnet_mrp.menu_manufacturing_product" sequence="1"/>
+        <menuitem id="menu_products_variant" name="Product Variant" action="stock.stock_product_normal_action" parent="menu_manufacturing_product" sequence="2"/>
+        <menuitem id="menu_products_lot_serial_number" name="Lot/Serial Number" action="stock.action_production_lot_form" parent="menu_manufacturing_product" sequence="3"/>
+        <menuitem id="menu_bill_of_material" name="Bill of Material" action="manufacturing_bom_form_action" parent="fnet_mrp.menu_manufacturing_product" sequence="4"/>
+
+        <menuitem id="menu_manufacturing_report" name="Reporting" sequence="6" parent="fnet_mrp.menu_manufacturing_root"/>
+        <menuitem name="MTTR MTBF Reporting" id="menu_mttr_mtbf_report" sequence="2" action="action_mttr_mtbf_report" parent="fnet_mrp.menu_manufacturing_report"/>
+        <menuitem name="Availability Reporting" id="menu_availability_report" sequence="3" action="action_availability_report" parent="fnet_mrp.menu_manufacturing_report"/>
+
+        <menuitem id="menu_mrp_powerbank" name="Power Bank" parent="fnet_mrp.menu_manufacturing_root" sequence="6" action="mrp_powerbank_form_action"/>
+        <menuitem id="monthly_plan_menu" name="Monthly Plan" action="monthly_plan_action" parent="fnet_mrp.menu_manufacturing_plan_main" sequence="12"/>
+
+        <!-- Configuration -->
+        <menuitem id="menu_manufacturing_configuration" name="Configuration" parent="fnet_mrp.menu_manufacturing_root" sequence="7"/>
+
+        <menuitem id="menu_manufacturing_stages" name="Manufacturing Stages" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_stages" sequence="1"/>
+
+        <menuitem id="menu_manufacturing_process" name="Manufacturing Process" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_process" sequence="2"/>
+
+        <menuitem id="menu_manufacturing_batch" name="Manufacturing Batch" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_batch" sequence="3"/>
+
+        <menuitem id="menu_product_model" name="Product Model" action="product_model_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="4"/>
+
+        <menuitem id="menu_manufacturing_machine" name="Machine" action="action_mrp_machine_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="5"/>
+
+        <menuitem id="menu_manufacturing_operation" name="Operation" action="manufacturing_operation_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="6"/>
+
+        <menuitem id="menu_inspection_team" name="Inspection Team" parent="fnet_mrp.menu_manufacturing_configuration" action="inspection_team_action" sequence="7"/>
+
+        <menuitem id="menu_inspection_template" name="Inspection Template" parent="fnet_mrp.menu_manufacturing_configuration" action="inspection_template_action" sequence="8"/>
+
+        <menuitem id="menu_product_tray" name="Product Tray" action="product_tray_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="9"/>
+
+        <menuitem id="menu_tray_type" name="Tray Type" action="product_tray_type_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="10"/>
+
+        <menuitem id="menu_mrp_shift" name="Shift" action="mrp_shift_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="11"/>
+
+        <menuitem id="menu_mrp_stage" name="Stage" action="mrp_stage_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="12"/>
+
+        <menuitem id="menu_mrp_estimation" name="Manufacturing Estimation" action="mrp_estimation_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="13"/>
+
+        <menuitem id="menu_type_change_duration" name="Type Change Duration" action="product_type_change_duration_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="14"/>
+
+        <menuitem id="menu_products_location" name="Locations" action="stock.action_location_form" parent="fnet_mrp.menu_manufacturing_configuration" sequence="15"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- equipment : views inheritance -->
+    <record id="hr_equipment_view_form" model="ir.ui.view">
+        <field name="name">equipment.form.inherit</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="model">maintenance.equipment</field>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="%(maintenance_plan_equipment_action)d" type="action"
+                        class="oe_stat_button" icon="fa-list">
+                    <field string="Plans" name="search_maintenance_plan_count" widget="statinfo"/>
+                </button>
+            </div>
+            <xpath expr="//group[@name='statistics']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='statistics']" position="after">
+                <group name="maintenance_plans" colspan="4">
+                    <field name="maintenance_plan_ids" nolabel="1"
+                           context="{'default_equipment_id': id, 'hide_equipment_id': 1}">
+                        <list>
+                            <field name="maintenance_kind_id" string="Kind"/>
+                            <field name="maintenance_team_id" string="Team"/>
+                            <field name="name"/>
+                            <field name="start_maintenance_date" string="Start Date"/>
+                            <field name="interval"/>
+                            <field name="interval_step"/>
+                            <field name="duration"/>
+                            <field name="next_maintenance_date"/>
+                            <field name="maintenance_plan_horizon" string="P. Horizon period"/>
+                            <field name="planning_step" string="P. Horizon step"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+            <field name="maintenance_team_id" position="after">
+                <field name="maintenance_team_required" invisible="1"/>
+            </field>
+            <field name="maintenance_team_id" position="attributes">
+                <attribute name="required">maintenance_team_required == True</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_equipment_view_search" model="ir.ui.view">
+        <field name="name">equipment.search-oxigen</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_user_id']" position="after">
+                <field name="maintenance_team_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- request : views inheritance -->
+    <record id="hr_equipment_request_view_form" model="ir.ui.view">
+        <field name="name">equipment.request.form.inherit</field>
+        <field name="model">maintenance.request</field>
+        <field name="priority" eval="999"/>
+        <field name="inherit_id" ref="base_maintenance.equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <field name="maintenance_type" position="after">
+                <field name="maintenance_kind_id"/>
+            </field>
+            <!-- TODO: Use position="move" instead -->
+            <xpath expr="//notebook/page[@name='description_page']" position="before">
+                <page string="Instructions">
+                    <field name="note" placeholder="Describe the maintenance to do..."/>
+                </page>
+            </xpath>
+            <xpath expr="//notebook/page[@name='description_page']" position="attributes">
+                <attribute name="string">Notes</attribute>
+            </xpath>
+            <field name="request_date" position="after">
+                <field name="is_calibration" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="maintenance.hr_equipment_action" model="ir.actions.act_window">
+        <field name="context">{'hide_equipment_id': 1}</field>
+    </record>
+
+    <record id="hr_equipment_request_view_list" model="ir.ui.view">
+        <field name="name">equipment.request.list</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="field[@name='request_date']" position="attributes">
+                <attribute name="groups"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_equipment_request_action_calibration" model="ir.actions.act_window">
+        <field name="name">Calibration Requests</field>
+        <field name="res_model">maintenance.request</field>
+        <field name="view_mode">kanban,list,form,pivot,graph,calendar</field>
+        <field name="view_id" ref="maintenance.hr_equipment_request_view_kanban"/>
+        <field name="context">{'default_user_id': uid, 'default_is_calibration': 1}</field>
+        <field name="domain">[('is_calibration', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new maintenance request
+            </p>
+            <p>
+                Follow the process of the request and communicate with the collaborator.
+            </p>
+        </field>
+    </record>
+
+    <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
+        <field name="domain">[('is_calibration', '!=', True)]</field>
+    </record>
+
+    <menuitem id="menu_maintenance_calibration" name="Calibration"
+              parent="maintenance.menu_m_request"
+              action="hr_equipment_request_action_calibration"/>
+
+</odoo>

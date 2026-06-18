@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_order_approval_rule,access_purchase_order_approval_rule,model_purchase_order_approval_rule,,1,1,1,1
+access_purchase_order_approval_rule_lines,access_purchase_order_approval_rule_lines,model_purchase_order_approval_rule_lines,,1,1,1,1
+access_approval_role,access_approval_role,model_purchase_approval_role,,1,1,1,1
+access_approval_category,access_approval_category,model_purchase_approval_category,,1,1,1,1
+access_purchase_order_approval_rules,access_purchase_order_approval_rules,model_purchase_order_approval_rules,,1,1,1,1
+access_purchase_order_approval_history,access_purchase_order_approval_history,model_purchase_order_approval_history,,1,1,1,1
+access_purchase_order_first_approval,access.purchase.order.first.approval,model_purchase_order,group_first_approval_user,1,1,1,1
+access_purchase_order_second_approval,access.purchase.order.second.approval,model_purchase_order,group_second_approval_user,1,1,1,1
+access_purchase_order_confirm_order,access.purchase.order.confirm.order,model_purchase_order,group_confirm_order_user,1,1,1,1
+access_purchase_custom_warning,access.purchase.custom.warning,model_purchase_custom_warning,,1,1,1,1
+access_rfq_rejection_reason,access.rfq.rejection.reason,model_rfq_rejection_reason,,1,1,1,1

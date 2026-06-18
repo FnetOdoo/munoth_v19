@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_equipment_checklist_base_user,equipment_checklist_base_user,model_equipment_checklist,base.group_user,1,1,1,1
+access_checklist_material_base_user,checklist_material_base_user,model_checklist_material,base.group_user,1,1,1,1
+access_work_order_base_user,work_order_base_user,model_work_order,base.group_user,1,1,1,1
+access_maintenance_material_request_base_user,maintenance_material_request_base_user,model_maintenance_material_request,base.group_user,1,1,1,1
+access_material_request_line_base_user,material_request_line_base_user,model_material_request_line,base.group_user,1,1,1,1
+access_maintenance_instrument,maintenance_instrument,model_maintenance_instrument,base.group_user,1,1,1,1
+access_engineering_change_request,engineering_change_request,model_engineering_change_request,base.group_user,1,1,1,1
+

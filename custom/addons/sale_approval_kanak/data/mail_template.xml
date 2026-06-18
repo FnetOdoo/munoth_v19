@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--Quotation approval request -->
+        <record id="email_template_quotation_approval_request" model="mail.template">
+            <field name="name">Quotation approval request</field>
+            <field name="email_from">{{user.email or ''}}</field>
+            <field name="subject">Quotation Approval Request</field>
+            <field name="email_to">{{object.get_user_emails() or ''}}</field>
+            <field name="model_id" ref="sale.model_sale_order" />
+            <field name="auto_delete" eval="True" />
+            <field name="body_html" type="html">
+                <div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+                    <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
+                        <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
+                            Quotation approval request
+                        </strong>
+                    </div>
+                    <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
+                        <p>Hello Approvers,</p>
+
+                        <p>Quotation approval <t t-out="object.name or ''"/> has been raised by <t t-out="user.name or ''"/>. Please review and approve or reject (with reason given) this quotation. </p>
+                    </div>
+                </div>
+            </field>
+        </record>
+        <!--quotation approved-->
+        <record id="email_template_sale_quotation_approved" model="mail.template">
+            <field name="name">Quotation Approved</field>
+            <field name="email_from">{{user.email or ''}}</field>
+            <field name="subject">Quotation Approved</field>
+            <field name="email_to">{{object.sale_order_approval_history[-1].user.email or ''}}</field>
+            <field name="model_id" ref="sale.model_sale_order" />
+            <field name="auto_delete" eval="True" />
+            <field name="body_html" type="html">
+                <div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+                    <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
+                        <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
+                            Quotation Approved
+                        </strong>
+                    </div>
+                    <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
+                        <p>Hello <t t-out="object.sale_order_approval_history[-1].user.name or ''"/>,</p>
+
+                        <p>Quotation <t t-out="object.name or ''"/> has been approved by <t t-out="object.env.user.name or ''"/>. You may proceed further. </p>
+                    </div>
+                </div>
+            </field>
+        </record>
+        <!--quotation rejection-->
+        <record id="email_template_sale_quotation_rejected" model="mail.template">
+            <field name="name">Quotation Rejected</field>
+            <field name="email_from">{{user.email or ''}}</field>
+            <field name="subject">Quotation Rejected</field>
+            <field name="email_to">{{object.sale_order_approval_history[-1].user.email or ''}}</field>
+            <field name="model_id" ref="sale.model_sale_order" />
+            <field name="auto_delete" eval="True" />
+            <field name="body_html" type="html">
+                <div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+                    <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
+                        <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
+                            Quotation Rejected
+                        </strong>
+                    </div>
+                    <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
+                        <p>Hello <t t-out="object.sale_order_approval_history[-1].user.name or ''"/>,</p>
+
+                        <p>Quotation <t t-out="object.name or ''"/> has been rejected by <t t-out="object.user_id.name or ''"/>. Please review this with the approver and make changes to the record, then re-send for approval. </p>
+                    </div>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

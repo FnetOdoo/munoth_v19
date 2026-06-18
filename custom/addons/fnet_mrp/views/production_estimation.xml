@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mrp_shift_form_view" model="ir.ui.view">
+        <field name="name">mrp.shift.form</field>
+        <field name="model">mrp.shift</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Shift">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" invisible="0" required="1"/>
+                            <field name="code" invisible="0" required="1"/>
+
+                        </group>
+                        <group>
+                            <field name="start_time" widget="float_time" required="1"/>
+                            <field name="end_time" widget="float_time" required="1"/>
+                            <field name="total_duration" widget="float_time"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_shift_list_view" model="ir.ui.view">
+        <field name="name">mrp.shift.list</field>
+        <field name="model">mrp.shift</field>
+        <field name="arch" type="xml">
+            <list string="Mrp Shift" sample="1">
+                <field name="name" invisible="0"/>
+                <field name="code"/>
+                <field name="total_duration" widget="float_time"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="mrp_shift_form_action" model="ir.actions.act_window">
+        <field name="name">Mrp Shift</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.shift</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No operation found. Let's create one!
+            </p>
+
+        </field>
+    </record>
+
+
+
+    <record id="mrp_stage_form_view" model="ir.ui.view">
+        <field name="name">mrp.stage.form</field>
+        <field name="model">mrp.stage</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Stage">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" invisible="0" required="1"/>
+                            <field name="choose_stage" required="1"/>
+                            <field name="qty" invisible="1"/>
+                            <field name="product_id" required="1"/>
+                        </group>
+                        <group>
+
+                            <field name="shift_id" required="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Stage Line">
+                            <field name="stage_ids">
+                                <list editable="bottom">
+                                    <field name="type"/>
+                                    <field name="machine_id" domain="[('type', '=', type)]" widget="many2many_tags"/>
+                                    <field name="qty" column_invisible="0"/>
+                                    <field name="stage_id" column_invisible="1"/>
+                                    <field name="based_ppm" column_invisible="0"/>
+                                    <field name="duration" widget="float_time" force_save="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Material" name="materials">
+                            <group>
+                                <group>
+                                    <field name="qty" string="Production Plan Qty"/>
+                                </group>
+                                <group></group>
+                            </group>
+                            <field name="component_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="product_uom_id" string="Unit of Measure"/>
+                                    <field name="product_uom_category_id" column_invisible="1"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                    <field name="plan_qty" string="Stage Plan Qty" column_invisible="1"/>
+                                    <field name="product_qty" string="Required Qty"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_stage_list_view" model="ir.ui.view">
+        <field name="name">mrp.stage.list</field>
+        <field name="model">mrp.stage</field>
+        <field name="arch" type="xml">
+            <list string="Mrp Stage" sample="1">
+                <field name="name" column_invisible="0"/>
+                <field name="product_id" column_invisible="0"/>
+                <field name="qty"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="mrp_stage_form_action" model="ir.actions.act_window">
+        <field name="name">Mrp Stage</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.stage</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No operation found. Let's create one!
+            </p>
+
+        </field>
+    </record>
+
+
+
+    <record id="mrp_estimation_form_view" model="ir.ui.view">
+        <field name="name">mrp.estimation.form</field>
+        <field name="model">mrp.estimation</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Estimation">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,delivery_date_sent" readonly="0" clickable="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_production_pan" icon="fa-building" type="object" invisible="production_plan_count == 0" class="oe_stat_button">
+                            <field name="production_plan_count" widget="statinfo" string="Production"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+
+                        <label for="name" string="Reference"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Planning Qty">
+                            <field name="product_id" invisible="0"/>
+                            <field name="qty" string="Required Qty"/>
+                        </group>
+                        <group string="Stock">
+                            <field name="company_id" invisible="1"/>
+                            <field name="location_id"/>
+                            <label for="fg_qty" string="Finished Good"/>
+                            <div class="o_row">
+                                <field name="fg_qty"/>
+                                <button name="action_update_stock_qty" type="object" class="btn btn-primary fa fa-refresh" aria-label="Update Qty" title="Update Qty" role="img"/>
+                            </div>
+                            <label for="in_process_qty" string="In Production Process Qty"/>
+                            <div class="o_row">
+                                <field name="in_process_qty"/>
+                                <button name="%(fnet_mrp.action_inventory_stock_location)d" type="action" class="btn btn-primary fa fa-refresh" aria-label="Update Qty" title="Update Qty" role="img"/>
+                            </div>
+                            <field name="balance_required_qty"/>
+                            <field name="stock_status" readonly="1"/>
+                            <field name="production_date_reserved"/>
+                        </group>
+                    </group>
+
+
+                    <!--                        <group string="Production Plan">-->
+                    <!--                            <group>-->
+                    <!--                                 <field name="ppm"/>-->
+                    <!--                                <field name="product_id" invisible="0"/>-->
+                    <!--                                <field name="stage_id" domain="[('product_id', '=', product_id)]"/>-->
+                    <!--                            </group>-->
+                    <!--                            <group>-->
+                    <!--                                <field name="shift_ids"  widget="many2many_tags" invisible="0" required="1"/>-->
+                    <!--                                <field name="production_qty"/>-->
+                    <!--                                <field name="start_date"/>-->
+                    <!--                            </group>-->
+                    <!--                        </group>-->
+
+                    <notebook>
+                        <page string="Stage">
+                            <!--                                <button name="update_stage_value" string="Update" type="object" class="btn-primary"/>-->
+                            <!--                                <button style="padding-left:20px;" name="clear_all_stage_value" string="Clear"-->
+                            <!--                                        type="object" class="btn-danger"/>-->
+                            <button name="action_estimate_duration" type="object" string="Total Duration" class="btn-primary"/>
+                            <field name="stage_ids">
+                                <list editable="bottom" create="1">
+                                    <field name="stage_id" required="1"/>
+                                    <field name="shift_ids" widget="many2many_tags" required="1"/>
+                                    <field name="production_qty" required="1"/>
+                                    <field name="ppm" required="1"/>
+                                    <field name="start_date" required="1"/>
+                                    <field name="expected_end_date" readonly="1"/>
+                                    <field name="days" readonly="1" sum="Total"/>
+                                    <field name="row_material_stock_status" string="Raw Material Stock" readonly="1"/>
+                                    <field name="production_date_reserved"/>
+                                </list>
+                            </field>
+                            <group col="12">
+                                <group colspan="4">
+                                    <!-- left side content -->
+                                </group>
+                                <group colspan="4">
+                                    <!-- empty spacer -->
+                                </group>
+                                <group colspan="4">
+                                    <field name="start_date"/>
+                                    <field name="total_days"/>
+                                    <field name="expected_end_date"/>
+                                </group>
+                            </group>
+
+                        </page>
+                        <page string="Stage Lines">
+                            <field name="mrp_stage_ids">
+                                <list editable="bottom">
+                                    <field name="stage" column_invisible="0"/>
+                                    <field name="type"/>
+                                    <field name="machine_id" domain="[('type', '=', type)]" widget="many2many_tags"/>
+                                    <field name="qty" column_invisible="1"/>
+                                    <field name="stage_id" column_invisible="1"/>
+                                    <field name="stage_duration" widget="float_time" sum="duration" column_invisible="1"/>
+                                    <field name="based_ppm" column_invisible="1"/>
+                                    <field name="required_qty" sum="required_qty" column_invisible="0"/>
+                                    <field name="required_time" widget="float_time" column_invisible="1"/>
+                                    <field name="required_days" sum="Total" string="Days"/>
+                                    <field name="estimation_stage_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Raw Material" name="materials">
+                            <field name="component_ids">
+                                <list editable="bottom" decoration-bf="1" decoration-success="stock_availability == 'ok'" decoration-danger="stock_availability == 'not_ok' ">
+                                    <field name="stage"/>
+                                    <field name="product_id"/>
+                                    <field name="product_uom_id" string="Unit of Measure"/>
+                                    <field name="product_uom_category_id" column_invisible="1"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                    <field name="plan_qty" string="Stage Plan Qty" column_invisible="1"/>
+                                    <field name="stage_require_qty" string="Require Plan Qty" column_invisible="1"/>
+                                    <field name="planned_qty" string="Planned Qty" column_invisible="1"/>
+                                    <field name="product_qty" string="Required Qty"/>
+                                    <field name="available_qty" string="Available Qty"/>
+                                    <field name="delivery_lead_days" string="Lead time"/>
+                                    <field name="stock_availability" column_invisible="1"/>
+                                    <field name="check_available" column_invisible="1"/>
+                                    <field name="estimation_stage_id" column_invisible="1"/>
+                                    <field name="state" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_estimation_list_view" model="ir.ui.view">
+        <field name="name">mrp.estimation.list</field>
+        <field name="model">mrp.estimation</field>
+        <field name="arch" type="xml">
+            <list string="Mrp Estimation" sample="1">
+                <field name="name" column_invisible="0"/>
+                <field name="ppm" column_invisible="0"/>
+                <field name="product_id" column_invisible="0"/>
+                <field name="qty"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="mrp_estimation_form_action" model="ir.actions.act_window">
+        <field name="name">Mrp Estimation</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.estimation</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Mrp Estimation
+            </p>
+
+        </field>
+    </record>
+
+
+
+    <!--    <record id="bom_operation_type_list_view" model="ir.ui.view">-->
+    <!--            <field name="name">Operation Type</field>-->
+    <!--            <field name="model">bom.operation.type</field>-->
+    <!--            <field name="arch" type="xml">-->
+    <!--                <list string="Mrp Estimation" editable="bottom">-->
+    <!--                    <field name="sequence" widget="handle"/>-->
+    <!--                    <field name="name"/>-->
+    <!--                </list>-->
+    <!--            </field>-->
+    <!--        </record>-->
+
+
+    <!--        <record id="bom_operation_type_action" model="ir.actions.act_window">-->
+    <!--            <field name="name">Operation Type</field>-->
+    <!--            <field name="type">ir.actions.act_window</field>-->
+    <!--            <field name="res_model">bom.operation.type</field>-->
+    <!--            <field name="domain">[]</field> &lt;!&ndash; force empty &ndash;&gt;-->
+    <!--            <field name="view_mode">list,form</field>-->
+    <!--            <field name="help" type="html">-->
+    <!--                <p class="o_view_nocontent_smiling_face">-->
+    <!--                    Create Your Operation Type-->
+    <!--                </p>-->
+    <!--            </field>-->
+    <!--        </record>-->
+
+    <!--        <menuitem id="bom_operation_type_menu" name="Operation Type" action="bom_operation_type_action"-->
+    <!--                  parent="menu_manufacturing_configuration" sequence="100"/>-->
+</odoo>

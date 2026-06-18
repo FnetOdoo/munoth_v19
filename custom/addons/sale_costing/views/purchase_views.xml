@@ -1,0 +1,32 @@
+<odoo>
+    <data>
+        <!--<record id="view_purchase_requisition_form_inherit_costing_inherit" model="ir.ui.view">
+            <field name="name">purchase.requisition.form.costing.inherit</field>
+            <field name="model">purchase.requisition</field>
+            <field name="inherit_id" ref="fnet_crm_tender.view_purchase_requisition_form_inherit"/>
+            <field name="arch" type="xml">
+                <button name="make_quotation" position="before">
+                    <field name="salecost_count" invisible="1"/>
+                </button>
+                <button name="make_quotation" position="attributes">
+                    <attribute name="attrs">{'invisible':['|',('salecost_count', '!=', 0),('state','not in' ,['in_progress','open'])] }</attribute>
+                </button>
+            </field>
+        </record>-->
+        <record id="view_purchase_requisition_form_costing_inherit" model="ir.ui.view">
+            <field name="name">purchase.requisition.form.costing.inherit</field>
+            <field name="model">purchase.requisition</field>
+            <field name="inherit_id" ref="purchase_requisition.view_purchase_requisition_form"/>
+            <field name="arch" type="xml">
+                <button name="action_cancel" position="after">
+                    <button name="create_sale_costing" string="Create Costing" type="object" class="oe_highlight" invisible="state not in ('confirmed', 'open') or salecost_count > 0"/>
+                </button>
+                <div class="oe_button_box" position="inside">
+                    <button name="action_view_costing" type="object" class="oe_stat_button" invisible="salecost_count == 0" icon="fa-pencil-square-o">
+                        <field string="Costing" name="salecost_count" widget="statinfo"/>
+                    </button>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

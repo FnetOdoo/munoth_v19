@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sale_approval" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.sale</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="25"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='module_sale_margin']//..//.." position="after">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                        <field name="sale_order_approval"/>
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <span class="o_form_label">Sale Approval Rule</span>
+                        <div class="text-muted">
+                            Set Sale Approval Rule
+                        </div>
+                        <div class="text-muted">
+                            <field name="sale_order_approval_rule_id" invisible="not sale_order_approval" required="sale_order_approval"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_order_apporval_rule_form_view" model="ir.ui.view">
+        <field name="name">sale.order.approval.rule.form</field>
+        <field name="model">sale.order.approval.rule</field>
+        <field name="arch" type="xml">
+            <form string="Approval Rule">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <notebook>
+
+                        <page string="Approval Rules" name="page_approval_rules">
+                            <group>
+                                <field name="approval_rule_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="approval_role"/>
+                                        <field name="approval_category"/>
+                                        <field name="quotation_lower_limit"/>
+                                        <field name="quotation_upper_limit"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sale_order_approval_rule_form_action" model="ir.actions.act_window">
+        <field name="name">Approval Rules</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order.approval.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to add a new Approval Rule.
+            </p>
+        </field>
+    </record>
+    <menuitem action="sale_order_approval_rule_form_action" id="menu_sale_order_approval_rule_form_action" parent="sale.menu_sale_config" sequence="103" groups="base.group_no_one"/>
+</odoo>

@@ -1,0 +1,187 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="renewal_list_form">
+            <field name="name">renewal list</field>
+            <field name="model">renewal.renewal</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="not show_vendor"/>
+                        <button name="action_renewal" string="Renewal" type="object" invisible="state not in ('to_renewal', 'expired') or show_renewal_button == True"/>
+                        <button name="action_approved" string="Manage Approve" type="object" class="oe_highlight" invisible="not show_renewal_button"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submit,approved"/>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="agency" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="employee_id" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="file" invisible="1"/>
+                                <field name="show_renewal_button" invisible="1"/>
+                                <field name="show_vendor" invisible="1"/>
+                                <field name="renewal" invisible="1"/>
+
+                                <field name="attachment" filename="file" widget="many2many_binary" readonly="state in ('approved', 'to_renewal', 'expired')"/>
+                                <field name="description" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="details_of_act" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="retention_period" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="company_id" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                            </group>
+
+                            <group>
+                                <field name="renewal_id" options="{'no_create': True}" readonly="state in ('approved', 'to_renewal', 'expired')"/>
+                                <field name="department" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="form" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="remarks" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="nature_id" options="{'no_create': True}" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                                <field name="from_date" readonly="state in ('approved', 'to_renewal', 'expired')"/>
+                                <field name="to_date" invisible="1"/>
+                                <field name="check_date" readonly="1"/>
+                                <field name="amount" readonly="state in ('approved', 'to_renewal', 'expired') or renewal == True"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Renewal History">
+                                <field name="renewal_history_ids" create="0" delete="1" readonly="1" nolabel="1" widget="one2many">
+                                    <list editable="bottom">
+                                        <field name="main_id" column_invisible="1"/>
+                                        <field name="agency"/>
+                                        <field name="employee_id"/>
+                                        <field name="file" column_invisible="1"/>
+                                        <field name="attachment" filename="file" widget="many2many_binary"/>
+                                        <field name="renewal_id"/>
+                                        <field name="from_date"/>
+                                        <field name="to_date"/>
+                                        <field name="amount"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="renewal_list_list">
+            <field name="name">renewal list</field>
+            <field name="model">renewal.renewal</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="agency"/>
+                    <field name="description"/>
+                    <field name="department"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="amount"/>
+                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'" decoration-warning="state == 'submit'" decoration-danger="state == 'to_renewal'" decoration-primary="state == 'expired'"/>
+                </list>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="renewal_action_window">
+            <field name="name">Renewal</field>
+            <field name="res_model">renewal.renewal</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record model="ir.ui.view" id="department_config_form">
+            <field name="name">Hr Config</field>
+            <field name="model">renewal.department.config</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="department_config_action_window">
+            <field name="name">Department Configuration window</field>
+            <field name="res_model">renewal.department.config</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record model="ir.ui.view" id="nature_config_form">
+            <field name="name">nature Configuration</field>
+            <field name="model">nature.config</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="nature_config_action_window">
+            <field name="name">Nature Config window</field>
+            <field name="res_model">nature.config</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="sale_subscription_template_view_form" model="ir.ui.view">
+            <field name="name">renewal.form.view</field>
+            <field name="model">renewal.template</field>
+            <field name="arch" type="xml">
+                <form string="Subscription">
+                    <sheet string="Subscription">
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="e.g. Monthly Subscription"/>
+                            </h1>
+                        </div>
+                        <notebook>
+                            <page string="Invoicing" name="invoicing">
+                                <group name="invoicing">
+                                    <group>
+                                        <label for="recurring_interval"/>
+                                        <div class="o_row">
+                                            <span class="mr-1">Every</span>
+                                            <field name="recurring_interval" required="1"/>
+                                            <field name="recurring_rule_type" class="field_rule_type" required="1"/>
+                                        </div>
+                                    </group>
+                                    <group>
+                                        <label for="auto_close_limit"/>
+                                        <div class="o_row">
+                                            <field name="auto_close_limit"/>
+                                            <span class="ml-1">days</span>
+                                        </div>
+                                        <field name="code" string="Code"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="renewal_template_template_action_window">
+            <field name="name">Renewal Template window</field>
+            <field name="res_model">renewal.template</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem name="Renewal" id="renewal_menu_root" web_icon="renewal,static/src/description/renewal.png" groups="group_renewal_user"/>
+        <menuitem name="Renewal" id="renewal_menu_1" parent="renewal_menu_root" action="renewal_action_window" sequence="1"/>
+        <menuitem name="Configuration" id="menu_config_submenu" parent="renewal_menu_root" sequence="2"/>
+
+        <menuitem name="Nature Type" id="menu_nature_config" parent="menu_config_submenu" action="nature_config_action_window" sequence="4"/>
+        <menuitem name="Renewal Template" id="menu_renewal_config" parent="menu_config_submenu" action="renewal_template_template_action_window" sequence="6"/>
+
+    </data>
+</odoo>

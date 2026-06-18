@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+        Demo data intentionally empty.
+        v15 demo referenced hr.contract records which no longer exist in v19.
+        Add employee-based demo data here if needed.
+        -->
+    </data>
+</odoo>

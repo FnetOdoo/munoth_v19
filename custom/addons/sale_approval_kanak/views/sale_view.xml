@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_quotation_tree_approcal_rules" model="ir.ui.view">
+        <field name="name">sale.order.onboarding.tree.approval.rules</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name='ready_for_so' invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_order_tree_approcal_rules" model="ir.ui.view">
+        <field name="name">sale.order.tree.approval.rules</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name='ready_for_so' invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_order_form_approcal_rules" model="ir.ui.view">
+        <field name="name">sale.order.form.approval.rules</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pricelist_id']" position="after">
+                <field name='user_ids' widget="many2many_tags" invisible="1" readonly="1"/>
+            </xpath>
+            <xpath expr="//notebook//page[last()]" position="after">
+
+                <page string="Approval Hierarchy" invisible="not sale_order_approval or not sale_order_approval_rule_id">
+
+                    <field name="sale_order_approval_rule_ids" nolabel="1">
+                        <list editable="bottom">
+                            <field name="sequence"/>
+                            <field name="approval_role"/>
+                            <field name="users" widget="many2many_tags"/>
+                            <field name="date"/>
+                            <field name="is_approved" invisible="1"/>
+                            <field name="user_id"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Approval History" invisible="not sale_order_approval or not sale_order_approval_rule_id">
+                    <field name="sale_order_approval_history" nolabel="1">
+                        <list>
+                            <field name="user"/>
+                            <field name="date"/>
+                            <field name="state"/>
+                            <field name="rejection_reason"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            <!-- Confirm Buttons -->
+            <xpath expr="//button[@name='action_confirm'][1]" position="attributes">
+                <attribute name="invisible">state != 'draft' or not ready_for_so</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_confirm'][2]" position="attributes">
+                <attribute name="invisible">state != 'sent' or not ready_for_so</attribute>
+            </xpath>
+
+            <!-- Hidden Field -->
+            <xpath expr="//header" position="inside">
+                <field name="send_approve_process" invisible="1"/>
+            </xpath>
+
+            <!-- Send Quotation Buttons -->
+            <xpath expr="//button[@name='action_quotation_send'][1]" position="attributes">
+                <attribute name="invisible">state != 'draft' or not ready_for_so</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_quotation_send'][2]" position="attributes">
+                <attribute name="invisible">state != 'draft' or not ready_for_so</attribute>
+            </xpath>
+
+            <!-- Approve / Reject Buttons -->
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="action_button_approve" string="Approve Quotation" type="object" groups="base.group_user" invisible="state not in ['draft','sent'] or not approve_button"/>
+
+                <button name="reject_quotation" type="object" string="Reject Quotation" groups="base.group_user" invisible="state not in ['draft','sent'] or not approve_button"/>
+
+                <field name="approve_button" invisible="1"/>
+                <field name="ready_for_so" invisible="1"/>
+                <field name="send_for_approval" invisible="1"/>
+                <field name="is_rejected" invisible="1"/>
+                <field name="dummy_compute" invisible="1"/>
+                <field name="sale_order_approval_rule_id" invisible="1"/>
+                <field name="sale_order_approval" invisible="1"/>
+            </xpath>
+
+            <!-- Send for Approval Button -->
+            <xpath expr="//button[@name='action_cancel']" position="before">
+                <button name="action_send_for_approval" type="object" string="Send For Approval" groups="base.group_user" invisible="
+                sale_order_approval == False
+                or not sale_order_approval_rule_id
+                or not sale_order_approval_rule_ids
+                or send_for_approval
+            "/>
+            </xpath>
+
+            <!-- Warning Label -->
+            <xpath expr="//button[last()]" position="after">
+                <span class="label label-danger" invisible="ready_for_so or not send_for_approval">
+                    Quotation is not fully approved yet!
+                </span>
+            </xpath>
+
+            <!-- Fields Readonly -->
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">send_for_approval and not is_rejected</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">send_for_approval</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="readonly">send_for_approval</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tax_totals']" position="after">
+                <div class="oe_subtotal_footer_separator oe_inline">
+                    <label for="amount_in_company_currency" class="oe_inline"/>
+                </div>
+                <field name="amount_in_company_currency" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'company_currency'}"/>
+                <field name="company_currency" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_to_approve_orders" model="ir.actions.act_window">
+        <field name="name">Quotations to Approve</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form,calendar,graph</field>
+        <field name="search_view_id" ref="sale.sale_order_view_search_inherit_sale"/>
+        <field name="domain">[('approve_button', '=', True),('state','not in',['cancel'])]</field>
+        <field name="context">{'sale_approve': True}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a quotation that can be converted into a sales
+                order.
+            </p>
+            <p>
+                Odoo will help you efficiently handle the complete sales flow:
+                quotation, sales order, delivery, invoicing and payment.
+            </p>
+        </field>
+    </record>
+    <record id="view_quotation_rejection_reason_form" model="ir.ui.view">
+        <field name="name">quotation.rejection.reason.form</field>
+        <field name="model">quotation.rejection.reason</field>
+        <field name="arch" type="xml">
+            <form string="Rejection Reason">
+                <group>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button string='Reject' name="button_reject" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <menuitem action="action_to_approve_orders" id="menu_to_approve_sale_orders" name='Quotations to Approve' parent="sale.sale_order_menu" sequence="1" groups="sales_team.group_sale_salesman,sales_team.group_sale_manager"/>
+</odoo>

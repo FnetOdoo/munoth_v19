@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="rfq_report" model="ir.actions.report">
+            <field name="name">RFQ report</field>
+            <field name="model">purchase.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.rfq_purchase_munoth_report</field>
+            <field name="report_file">munoth_reports.rfq_purchase_munoth_report</field>
+            <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- Specific Layout for RFQ to match the provided design exactly -->
+        <template id="external_layout_striped_rfq">
+            <t t-if="not o" t-set="o" t-value="doc"/>
+            <t t-if="not company">
+                <t t-if="company_id">
+                    <t t-set="company" t-value="company_id"/>
+                </t>
+                <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                    <t t-set="company" t-value="o.company_id.sudo()"/>
+                </t>
+                <t t-else="else">
+                    <t t-set="company" t-value="res_company"/>
+                </t>
+            </t>
+
+            <div t-attf-class="o_company_#{company.id}_layout header" t-att-style="report_header_style">
+                <div class="o_background_header">
+                    <div class="row">
+                        <!-- Left: Logo -->
+                        <div class="col-2">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:100px;"
+                                 alt="Logo"/>
+                        </div>
+                        <!-- Center: Company Info and GSTIN -->
+                        <div class="col-7"
+                             style="padding-left: 20px; font-size: 15px; color:#636363; line-height: 1.2;">
+                            <strong style="font-size: 16px; text-transform: uppercase;">
+                                <span t-field="company.name"/>
+                            </strong>
+                            <br/>
+                            <span t-if="company.street" t-field="company.street"/>, <br/>
+                            <span t-if="company.street2" t-field="company.street2"/>
+                            <br/>
+                            <span t-if="company.city" t-field="company.city"/>
+                            <t t-if="company.zip">-
+                                <span t-field="company.zip"/>
+                            </t>
+                            <br/>
+                            <span t-if="company.state_id" t-field="company.state_id"/>,
+                            <span t-if="company.country_id" t-field="company.country_id"/>
+                            <br/>
+                            <br/>
+                            <strong>GSTIN:
+                                <span t-field="company.vat"/>
+                            </strong>
+                        </div>
+                        </div>
+                    <br/>
+                    <div style="border-bottom: 1px solid #dee2e6;"/>
+                </div>
+            </div>
+
+            <div t-attf-class="o_company_#{company.id}_layout article o_report_layout_striped {{  'o_layout_background' if company.layout_background in ['Geometric', 'Custom']  else  '' }}"
+                 t-attf-style="background-image: url({{ 'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/bg_background_template.jpg' if company.layout_background == 'Geometric' else ''}});"
+                 t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+                 t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <main>
+                    <t t-out="0"/>
+                </main>
+            </div>
+
+            <div t-attf-class="o_company_#{company.id}_layout footer o_background_footer">
+                <div class="text-center"
+                     style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 5px; color: black;">
+                    <t t-if="company.phone">
+                        <strong>Phone:</strong>
+                        <span t-field="company.phone"/>
+                        |
+                    </t>
+                    <t t-if="company.email">
+                        <strong>Email:</strong>
+                        <span t-field="company.email"/>
+                        |
+                    </t>
+                    <t t-if="company.website">
+                        <strong>Website:</strong>
+                        <span t-field="company.website"/>
+                    </t>
+                </div>
+                <div t-if="report_type == 'pdf'" class="text-center"
+                     style="margin-top: 5px; font-size: 14px; color: grey;">
+                    Page:
+                    <span class="page"/>
+                    of
+                    <span class="topage"/>
+                </div>
+            </div>
+        </template>
+
+        <template id="rfq_munoth_report_new">
+            <t t-call="munoth_reports.external_layout_striped_rfq">
+                <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                <div class="page" style="font-size: 15px;">
+                    <div class="oe_structure"/>
+
+                    <!-- Addresses Row -->
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <strong>Shipping address:</strong>
+                            <div t-field="o.company_id.partner_id"
+                                 t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                            <p t-if="o.company_id.vat">
+                                <strong>GSTIN:
+                                    <span t-field="o.company_id.vat"/>
+                                </strong>
+                            </p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Vendor:</strong>
+                            <div t-field="o.partner_id"
+                                 t-options='{"widget": "contact", "fields": ["address", "name", "phone", "email"], "no_marker": True, "phone_icons": True}'/>
+                            <p t-if="o.partner_id.vat">
+                                <strong>GSTIN:
+                                    <span t-field="o.partner_id.vat"/>
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+                    <h2 class="mt-4">Request for Quotation #
+                        <span t-field="o.name"/>
+                    </h2>
+                    <table class="table table-borderless" style="border-top:1px solid #dee2e6;">
+                        <thead style="display: table-row-group">
+                            <tr>
+                                <th name="th_description">
+                                    <strong>Description</strong>
+                                </th>
+                                <th name="th_expected_date" class="text-center">
+                                    <strong>Expected Date</strong>
+                                </th>
+                                <th name="th_quantity" class="text-right">
+                                    <strong>Qty</strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="o.order_line" t-as="order_line">
+                                <tr t-att-class="'bg-200 font-weight-bold o_line_section' if order_line.display_type == 'line_section' else 'font-italic o_line_note' if order_line.display_type == 'line_note' else ''">
+                                    <t t-if="not order_line.display_type">
+                                        <t t-set="row_bg"
+                                           t-value="'background-color:#f0f0f5;' if order_line_index % 2 == 0 else ''"/>
+                                        <td id="product" t-att-style="row_bg">
+                                            <span t-field="order_line.name"/>
+                                        </td>
+                                        <td class="text-center" t-att-style="row_bg">
+                                            <span t-field="order_line.date_planned"/>
+                                        </td>
+                                        <td class="text-right" t-att-style="row_bg">
+                                            <span t-field="order_line.product_qty"/>
+                                            <span t-field="order_line.product_uom_id" groups="uom.group_uom"/>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <p t-field="o.note"/>
+
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </template>
+
+        <template id="rfq_purchase_munoth_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="munoth_reports.rfq_munoth_report_new" t-lang="o.partner_id.lang"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

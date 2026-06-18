@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="1">
+        <record id="sequence_manufacturing_request" model="ir.sequence">
+            <field name="name">Mrp Request</field>
+            <field name="code">mrp.request</field>
+            <field name="prefix">MR</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_mrp_material_request" model="ir.sequence">
+            <field name="name">Mrp Material Request</field>
+            <field name="code">mrp.material.request</field>
+            <field name="prefix">MPR/</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

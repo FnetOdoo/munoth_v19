@@ -1,0 +1,92 @@
+<odoo>
+    <record model="ir.ui.view" id="pallet_product_wizard">
+        <field name="name">pallet_product</field>
+        <field name="model">pallet.product</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="pallet_product_ids" widget="many2many_tags"/>
+<!--                    <field name="product_ids">-->
+<!--                        <tree editable="bottom">-->
+<!--                            <field name="product_ids_domain" invisible="1"/>-->
+<!--                            <field name="move_line_ids" widget="many2many_tags" domain="product_ids_domain"/>-->
+<!--                            <field name="pallets"/>-->
+<!--                        </tree>-->
+<!--                    </field>-->
+                </group>
+                <footer>
+                <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                <button name="Cancel" string="Cancel"  special="cancel" class="btn-secondary"/>
+            </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_pallet_product_wizard">
+        <field name="name">Pallet Product</field>
+        <field name="res_model">pallet.product</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="pallet_product_wizard"/>
+        <field name="context">{}</field>
+        <field name="domain">[]</field>
+        <field name="target">new</field>
+    </record>
+
+    <!--    <record model="ir.ui.view" id="stock_move_wizard_product_wizard">-->
+    <!--        <field name="name">stock_move_wizard_product</field>-->
+    <!--        <field name="model">stock.move.wizard.product</field>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <form>-->
+    <!--                <sheet>-->
+    <!--                    <group style="width:50%;">-->
+    <!--                        <field name="boxes"/>-->
+    <!--                    </group>-->
+    <!--                </sheet>-->
+    <!--                <footer>-->
+    <!--                    <button name="update_box_list" string="Update" type="object" class="btn-primary" data-hotkey="q"/>-->
+    <!--                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z" />-->
+    <!--                </footer>-->
+    <!--            </form>-->
+    <!--        </field>-->
+    <!--    </record>-->
+
+    <!--    <record model="ir.actions.act_window" id="action_stock_move_wizard_product_wizard">-->
+    <!--        <field name="name">stock_move_wizard_product</field>-->
+    <!--        <field name="res_model">stock.move.wizard.product</field>-->
+    <!--        <field name="type">ir.actions.act_window</field>-->
+    <!--        <field name="view_mode">form</field>-->
+    <!--        <field name="view_id" ref="stock_move_wizard_product_wizard"/>-->
+    <!--        <field name="context">{}</field>-->
+    <!--        <field name="domain">[]</field>-->
+    <!--        <field name="target">new</field>-->
+    <!--    </record>-->
+
+    <record model="ir.ui.view" id="gate_pass_boxes_wizard">
+        <field name="name">Gate Pass Boxes</field>
+        <field name="model">gate.pass.boxes</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group style="width:50%;">
+                        <field name="boxes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="update_box_list" string="Update" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z" />
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="action_gate_pass_boxes_wizard">
+        <field name="name">Gate Pass Boxes</field>
+        <field name="res_model">gate.pass.boxes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="gate_pass_boxes_wizard"/>
+        <field name="context">{}</field>
+        <field name="domain">[]</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

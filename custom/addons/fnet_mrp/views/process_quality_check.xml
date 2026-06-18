@@ -1,0 +1,178 @@
+<odoo>
+    <data>
+        <record id="process_quality_check_view" model="ir.ui.view">
+            <field name="name">process.quality.check.form</field>
+            <field name="model">process.quality.check</field>
+            <field name="arch" type="xml">
+                <form string="Process Quality Check">
+                    <header>
+                        <!--                        <button name="action_notify_production" type="object" string="Send Alert to Production" attrs="{'invisible': [('is_sent_alert', '!=', False)]}"/>-->
+                        <button name="action_request" type="object" string="Submit" class="oe_highlight" invisible="state != 'draft'"/>
+                        <button name="action_cancel" type="object" string="Cancel" invisible="state != 'draft'"/>
+                        <button name="action_validate" type="object" string="Approve" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_reject" type="object" string="Reject" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_reset" type="object" string="Set to Draft" invisible="state != 'cancel'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,validate"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="doc" string="Reference"/>
+                            <h1>
+                                <field name="doc" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <!--                                <field name="product_model_id"/>-->
+                                <field name="is_sent_alert" invisible="1"/>
+                                <field name="opt_id"/>
+                                <field name="shift_process"/>
+                                <field name="process_date"/>
+                                <field name="process_template_id"/>
+                                <field name="origin"/>
+                            </group>
+                            <group>
+                                <label for="quality_time_start" string="Time"/>
+                                <div>
+                                    <div class="o_row o_row_readonly">
+                                        <field name="quality_time_start" class="oe_inline" nolabel="1" widget="float_time"/>
+                                        <span class="oe_inline">
+                                            to
+                                        </span>
+
+                                        <field name="quality_time_end" class="oe_inline" nolabel="1" widget="float_time"/>
+
+                                    </div>
+                                </div>
+                                <field name="part_no"/>
+                                <field name="part_desc"/>
+                                <field name="other"/>
+                                <field name="overall_quality_check"/>
+
+
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Process Quality Check">
+                                <field name="numeric_process_line_ids">
+                                    <list editable="bottom" decoration-bf="1" decoration-success="(min_value != 0.0 and min_value &gt;= from_value) or (max_value != 0.0 and max_value &lt;= to_value)" decoration-danger="(min_value != 0.0 and min_value &lt; from_value) or (max_value != 0.0 and max_value &gt; to_value)">
+                                        <field name="name"/>
+                                        <field name="field_type"/>
+                                        <field name="parameter"/>
+                                        <field name="from_value"/>
+                                        <field name="to_value"/>
+                                        <field name="sort"/>
+                                        <field name="test_method"/>
+                                        <field name="sample_1"/>
+                                        <field name="sample_2"/>
+                                        <field name="sample_3"/>
+                                        <field name="sample_4"/>
+                                        <field name="sample_5"/>
+                                        <field name="min_value"/>
+                                        <field name="max_value"/>
+                                        <field name="state"/>
+                                        <field name="remark"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="parameter"/>
+                                                <field name="sort"/>
+                                                <field name="test_method"/>
+                                                <field name="sample_1"/>
+                                                <field name="sample_2"/>
+                                            </group>
+                                            <group>
+                                                <field name="sample_3"/>
+                                                <field name="sample_4"/>
+                                                <field name="sample_5"/>
+                                                <field name="state"/>
+                                                <field name="remark"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                                <field name="text_process_line_ids" editable='bottom'>
+                                    <list editable="bottom" decoration-bf="1">
+                                        <field name="name"/>
+                                        <field name="field_type"/>
+                                        <field name="parameter"/>
+                                        <field name="from_value"/>
+                                        <field name="to_value"/>
+                                        <field name="sort"/>
+                                        <field name="test_method"/>
+                                        <field name="sample_1"/>
+                                        <field name="sample_2"/>
+                                        <field name="sample_3"/>
+                                        <field name="sample_4"/>
+                                        <field name="sample_5"/>
+                                        <field name="state"/>
+                                        <field name="remark"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="parameter"/>
+                                                <field name="sort"/>
+                                                <field name="test_method"/>
+                                                <field name="sample_1"/>
+                                                <field name="sample_2"/>
+                                            </group>
+                                            <group>
+                                                <field name="sample_3"/>
+                                                <field name="sample_4"/>
+                                                <field name="sample_5"/>
+                                                <field name="state"/>
+                                                <field name="remark"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page string="Revision Details">
+                                <group>
+                                    <group>
+                                        <field name="no_doc"/>
+                                        <field name="revision_no"/>
+                                        <field name="revision_date"/>
+                                    </group>
+                                    <group>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+        <record id="process_quality_check_list" model="ir.ui.view">
+            <field name="name">process.quality.check.list</field>
+            <field name="model">process.quality.check</field>
+            <field name="arch" type="xml">
+                <list default_order="process_date">
+                    <field name="doc"/>
+                    <field name="opt_id"/>
+                    <field name="process_date"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_process_quality_check" model="ir.actions.act_window">
+            <field name="name">Process Quality Check</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">process.quality.check</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create Process Quality Check
+                </p>
+            </field>
+        </record>
+
+
+
+    </data>
+</odoo>

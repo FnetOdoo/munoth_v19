@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_engineering_change_request_report" model="report.paperformat">
+            <field name="name">A4 Engineering Change Request Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">60</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">37</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="engineering_change_request_munoth_report" model="ir.actions.report">
+            <field name="name">Engineering Change Request Report</field>
+            <field name="model">engineering.change.request</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.engineering_change_request_report</field>
+            <field name="report_file">munoth_reports.engineering_change_request_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_engineering_change_request_report"/>
+            <field name="binding_model_id" ref="maintenance_extended.model_engineering_change_request"/>
+            <field name="binding_type">report</field>
+        </record>
+        <template id="engineering_change_request_report_new">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+                    <t t-foreach="docs" t-as="o">
+                        <div class="header">
+                            <table style="height:100px;">
+                                <div>
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td rowspan="2" style="border:1px solid black;">
+                                            <center><img src="/web/binary/company_logo" style='height:90px;' class="center"/></center>
+                                        </td>
+                                        <td style="width:70%;border:1px solid black;vertical-align:middle;">
+                                            <h3 style="text-align:center;color:purple!important;"><strong><h3 style="font-weight:bold;font-size:25px;">Engineering Change Request Cume Note (ECR / ECN)</h3></strong></h3>
+                                        </td>
+                                        <td style="width:20%;border:1px solid black;">
+                                            <span t-esc="o.name"/><br/>
+                                            Rev No:<span t-esc="o.revision_no"/><br/>
+                                            ECN #:<span t-field="o.doc_no"/><br/>
+                                        </td>
+                                    </tr>
+                                </div>
+                                <div style="float:right;">
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td style="width:70%;border:1px solid black;height:30px;text-align:center;vertical-align:left;">
+                                            Products Affected:<span t-esc="o.doc_no"/><br/>
+                                            Customer:<span t-esc="o.revision_no"/>
+                                            Model:<span t-field="o.date_revision" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                            Line:<span t-esc="o.revision_no"/>
+                                        </td>
+                                        <td style="width:20%;border:1px solid black;">
+                                            Date :<span t-esc="o.date_revision" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                        </td>
+                                    </tr>
+                                </div>
+                            </table>
+                        </div>
+                        <br/>
+                        <div class="page" style="height:100%;">
+                            <table style="width: 100%;  border-collapse: collapse;">
+                                <!-- Engineering Change Details -->
+                                <tr>
+                                    <td style="border: 1px solid black; width: 25%;"><b>Engineering Change Details:</b></td>
+                                    <td style="border: 1px solid black; width: 75%;" t-esc="o.eng_change_detail or 'N/A'" />
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Initiated By:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.partner_id.name or 'N/A'" />
+                                </tr>
+
+                                <!-- Implementation Section -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Implementation:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.implement or 'N/A'" />
+                                </tr>
+
+                                <!-- Action on Existing Stock -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Action on Existing Stock:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.existing_stock or 'N/A'" />
+                                </tr>
+
+                                <!-- Testing Section -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Testing Done:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.testing_done or 'N/A'" />
+                                </tr>
+
+                                <!-- Deliverables -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Deliverables:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.deliverables or 'N/A'" />
+                                </tr>
+
+                                <!-- Process Revalidation -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Process Revalidation:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.process or 'N/A'" />
+                                </tr>
+
+                                <!-- Backward Compatibility -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Backward Compatibility:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.backward_compatibility or 'N/A'" />
+                                </tr>
+
+                                <!-- Review Section -->
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>CFT Reviewers:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.cft_reviewers.name or 'N/A'" />
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>Signing Authority:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.signing or 'N/A'" />
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>CFT Decision:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.cft_decision or 'N/A'" />
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>CFT Comments:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.cft_comment or 'N/A'" />
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid black;"><b>ECN Distribution:</b></td>
+                                    <td style="border: 1px solid black;" t-esc="o.ecn or 'N/A'" />
+                                </tr>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+                <t t-call="web.basic_layout">
+                    <t t-foreach="docs" t-as="o">
+                        <div class="header">
+                            <table style="height:100px;">
+                                <div>
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td rowspan="2" style="border:1px solid black;">
+                                            <center><img src="/web/binary/company_logo" style='height:90px;' class="center"/></center>
+                                        </td>
+                                        <td style="width:70%;border:1px solid black;vertical-align:middle;">
+                                            <h3 style="text-align:center;color:purple!important;"><strong><h3 style="font-weight:bold;font-size:25px;">Engineering Change Request Cume Note (ECR / ECN)</h3></strong></h3>
+                                        </td>
+                                        <td style="width:20%;border:1px solid black;">
+                                            <span t-esc="o.name"/><br/>
+                                            Rev No:<span t-esc="o.revision_no"/><br/>
+                                            ECN #:<span t-field="o.doc_no"/><br/>
+                                        </td>
+                                    </tr>
+                                </div>
+                                <div style="float:right;">
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td style="width:70%;border:1px solid black;height:30px;text-align:center;vertical-align:middle;">
+                                            Products Affected:<span t-esc="o.doc_no"/><br/>
+                                            Customer:<span t-esc="o.revision_no"/>
+                                            Model:<span t-field="o.date_revision" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                            Line:<span t-esc="o.revision_no"/>
+                                        </td>
+                                        <td style="width:20%;border:1px solid black;">
+                                            Date :<span t-esc="o.date_revision" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                        </td>
+                                    </tr>
+                                </div>
+                            </table>
+                        </div>
+                        <div class="page">
+                            <div>
+                                <center>
+                                    <u>
+                                        <strong style="font-size:20px;">ECN Approval Sheet</strong>
+                                    </u>
+                                </center>
+                                <br/>
+                                <p>Your signature below indicates your acceptance for the decisions taken during the review and the approval for releasing this ECN.</p>
+                                <br/>
+                                <div style="float:left;width:50%;text-align:center;">
+                                    <strong>CFT</strong>
+                                    <p style='height:50px;'>Engineering</p>
+                                    <p style='height:50px;'>Manufacturing</p>
+                                    <p style='height:50px;'>Supply Chain</p>
+                                    <p style='height:50px;'>QC</p>
+
+                                </div>
+                                <div style="float:right;width:50%;text-align:center;">
+                                    <strong>CFT</strong>
+                                    <p style='height:50px;'>Date</p>
+                                    <p style='height:50px;'>Date</p>
+                                    <p style='height:50px;'>Date</p>
+                                    <p style='height:50px;'>Date</p>
+
+                                </div>
+
+                                <br/>
+                               Note: Modify the above signing authorities as decided by CFT for this ECN.
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+            </t>
+        </template>
+        <template id="engineering_change_request_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="docs">
+                    <t t-call="munoth_reports.engineering_change_request_report_new"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

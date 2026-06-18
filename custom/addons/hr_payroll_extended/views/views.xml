@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ── 1. hr.payslip form: add lop_days / tot_month_days ─────────── -->
+        <record model="ir.ui.view" id="hr_payslip_inherit">
+            <field name="name">hr.payslip.inherit</field>
+            <field name="model">hr.payslip</field>
+            <!-- Updated: hr_payroll (not hr_payroll_community) -->
+            <field name="inherit_id" ref="hr_payroll_community.hr_payslip_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="lop_days"/>
+                    <field name="tot_month_days"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- ── 2. hr.employee form: salary allowance/deduction tab ──────── -->
+        <!--
+            REPLACES the old hr.contract form extensions.
+            Adds a dedicated "Salary Config" tab on the employee form so HR
+            can configure allowances and deductions directly on the employee.
+        -->
+        <record id="hr_employee_form_salary_config" model="ir.ui.view">
+            <field name="name">hr.employee.form.salary.config</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='structure_type_id']" position="after">
+                    <field name="struct_id"/>
+                </xpath>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Salary Config" name="salary_config">
+                        <group>
+
+                            <group string="Allowances" name="allowances">
+                                <field name="basic_percentage"/>
+                                <field name="is_hra"/>
+                                <field name="is_conveyance"/>
+                                <field name="conveyance"/>
+                                <field name="earning_alw"/>
+                                <field name="ot_allowance"/>
+                                <field name="data_card_alw"/>
+                                <field name="is_bonus"/>
+                                <field name="bonus"/>
+                                <field name="is_medical"/>
+                                <field name="medical"/>
+                                <field name="is_travel_added"/>
+                                <field name="is_other"/>
+                                <field name="other_allowance"/>
+                                <field name="consolidate_pay"/>
+                                <field name="salary_arrears"/>
+                                <field name="arrears"/>
+                                <field name="is_arrear"/>
+                                <field name="non_cash"/>
+                            </group>
+
+                            <group string="Deductions" name="deductions">
+                                <field name="tds"/>
+                                <field name="is_pf"/>
+                                <field name="pf_amount"/>
+                                <field name="vpf_amount"/>
+                                <field name="epf_amount"/>
+                                <field name="other_deduction"/>
+                                <field name="is_esi"/>
+                                <field name="mobile_deduction"/>
+                                <field name="advance_salary"/>
+                                <field name="pt"/>
+                                <field name="is_ap"/>
+                                <field name="pt_amount"/>
+                                <field name="pt_amount_ap"/>
+                            </group>
+
+                        </group>
+
+                        <group string="New Employee">
+                            <field name="is_new_emp"/>
+                            <field name="new_employee" invisible="is_new_emp  == False"/>
+                        </group>
+
+                        <group string="Statutory IDs">
+                            <field name="esi_no"/>
+                            <field name="pf_no"/>
+                            <field name="pf_uan_no"/>
+                            <field name="emp_code"/>
+                            <field name="joining_date"/>
+                        </group>
+
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- ── 4. hr.payslip.run form: Excel & NEFT buttons ─────────────── -->
+        <record id="hr_payslip_run_inherit" model="ir.ui.view">
+            <field name="name">hr.payslip.run.inherit</field>
+            <field name="model">hr.payslip.run</field>
+            <!-- Updated: hr_payroll (not hr_payroll_community) -->
+            <field name="inherit_id" ref="hr_payroll_community.hr_payslip_run_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header/button[@name='action_payslip_run']" position="after">
+                    <button name="action_xls_report_generate" type="object" class="btn-secondary" string="Print Excel"/>
+                    <button name="bank_acc_details" type="object" class="btn-secondary" string="Print NEFT Statement"/>
+                </xpath>
+                <xpath expr="//div[field[@name='date_start']]" position="after">
+                    <field name="filename" invisible="1"/>
+                    <field name="filedata" filename="filename"/>
+                </xpath>
+                <xpath expr="//div[field[@name='date_start']]" position="after">
+                    <field name="bank_details" filename="bank_details_name"/>
+                    <field name="bank_details_name" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- ── 5. res.partner.bank: IFSC code (unchanged) ────────────────── -->
+        <record id="res_partner_bank_inherit" model="ir.ui.view">
+            <field name="name">res.partner.bank.inherit</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="base.view_partner_bank_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="ifsc_code"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

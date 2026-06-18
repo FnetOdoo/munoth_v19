@@ -1,0 +1,178 @@
+<!-- Copyright 2020 - TODAY, Marcel Savegnago - Escodoo
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <template id="report_maintenance_request_document">
+        <t t-call="web.internal_layout">
+            <t t-set="doc" t-value="doc.with_context(lang=doc.user_id.partner_id.lang)"/>
+            <div class="page">
+                <div class="oe_structure"/>
+
+                <!-- Title -->
+                <h2 class="mt-4">
+                    <span>Maintenance Request</span>
+                </h2>
+                <h3 class="mt-4">
+                    <span t-out="doc.name"/>
+                </h3>
+
+                <!-- ===== REQUEST INFO ===== -->
+                <table style="width:100%; border-collapse:collapse; margin-top:16px; margin-bottom:8px;">
+                    <thead>
+                        <tr>
+                            <td colspan="4" style="background:#1a6b72; color:#ffffff; font-weight:bold; padding:6px 10px; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
+                                Request Information
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Requested By</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.owner_user_id"><span t-out="doc.owner_user_id.name"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Request Date</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.request_date"><span t-out="doc.request_date"/></t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Maintenance Type</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.maintenance_type"><span t-out="doc.maintenance_type"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Close Date</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.close_date"><span t-out="doc.close_date"/></t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Stage</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.stage_id"><span t-out="doc.stage_id.name"/></t>
+                            </td>
+                            <td style="padding:5px 8px; border:1px solid #ccc; background:#f7fbfc;"></td>
+                            <td style="padding:5px 8px; border:1px solid #ccc;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- ===== EQUIPMENT INFO ===== -->
+                <table style="width:100%; border-collapse:collapse; margin-top:8px; margin-bottom:8px;">
+                    <thead>
+                        <tr>
+                            <td colspan="4" style="background:#1a6b72; color:#ffffff; font-weight:bold; padding:6px 10px; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
+                                Equipment Information
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Category</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.category_id"><span t-out="doc.category_id.name"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Equipment</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.equipment_id"><span t-out="doc.equipment_id.name"/></t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Model</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.equipment_id.model"><span t-out="doc.equipment_id.model"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Serial</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.equipment_id.serial_no"><span t-out="doc.equipment_id.serial_no"/></t>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- ===== SCHEDULE INFO ===== -->
+                <table style="width:100%; border-collapse:collapse; margin-top:8px; margin-bottom:8px;">
+                    <thead>
+                        <tr>
+                            <td colspan="4" style="background:#1a6b72; color:#ffffff; font-weight:bold; padding:6px 10px; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
+                                Schedule Information
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Schedule Date</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.schedule_date"><span t-out="doc.schedule_date"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Duration</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.duration"><span t-out="doc.duration"/></t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Priority</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.priority"><span t-out="doc.priority"/></t>
+                            </td>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Team</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.maintenance_team_id"><span t-out="doc.maintenance_team_id.name"/></t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:18%; padding:5px 8px; border:1px solid #ccc; font-weight:600; background:#f7fbfc;">Responsible</td>
+                            <td style="width:32%; padding:5px 8px; border:1px solid #ccc;">
+                                <t t-if="doc.user_id"><span t-out="doc.user_id.name"/></t>
+                            </td>
+                            <td style="padding:5px 8px; border:1px solid #ccc; background:#f7fbfc;"></td>
+                            <td style="padding:5px 8px; border:1px solid #ccc;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- ===== DESCRIPTION ===== -->
+                <t t-if="doc.description">
+                    <table style="width:100%; border-collapse:collapse; margin-top:8px; margin-bottom:8px;">
+                        <thead>
+                            <tr>
+                                <td colspan="2" style="background:#1a6b72; color:#ffffff; font-weight:bold; padding:6px 10px; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
+                                    Description
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:8px 10px; border:1px solid #ccc;">
+                                    <span t-out="doc.description"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+
+            </div>
+        </t>
+    </template>
+
+    <template id="report_maintenance_request">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="base_maintenance.report_maintenance_request_document"
+                   t-lang="doc.user_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_maintenance_request" model="ir.actions.report">
+        <field name="name">Maintenance Request</field>
+        <field name="model">maintenance.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">base_maintenance.report_maintenance_request</field>
+        <field name="report_file">base_maintenance.report_maintenance_request</field>
+        <field name="print_report_name">'Maintenance Request - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_request"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

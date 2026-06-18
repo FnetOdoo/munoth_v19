@@ -1,0 +1,63 @@
+<odoo>
+    <data>
+        <record id="mrp_delivery_sale_inherit" model="ir.ui.view">
+            <field name="name">mrp.delivery.sale.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_delivery_date_request" icon="fa-building" type="object" class="oe_stat_button" invisible="delivery_date_request_count == 0">
+                        <field name="delivery_date_request_count" widget="statinfo" string="Delivery Request"/>
+                    </button>
+                </div>
+                <xpath expr="//page/field[@name='order_line']/list/field[@name='price_subtotal']" position="after">
+                    <field name="expected_delivery_date"/>
+                    <button name="estimate_delivery_date_calculation" string="Delivery Date Request" type="object" class="btn-primary" invisible="expected_delivery_date != False"/>
+                </xpath>
+                <field name="payment_term_id" position="after">
+                    <field name="quotation_sent_date"/>
+                    <field name="purchase_order_attachment_ids" widget="many2many_binary"/>
+                    <field name="stock_status"/>
+                    <field name="date_end" invisible="1"/>
+                </field>
+                <field name="partner_shipping_id" position="after">
+                    <field name="model_id"/>
+                    <field name="delivery_id" invisible="1"/>
+                    <field name="required_qty" invisible="1"/>
+                    <field name="date_start" invisible="1"/>
+                </field>
+                <xpath expr="//page[last()]" position="after">
+                    <page string="BOM's">
+                        <field name="bom_line_ids" readonly="1" force_save="1">
+                            <list>
+                                <field name="company_id" column_invisible="1"/>
+                                <field name="product_id"/>
+                                <field name="product_uom_category_id"/>
+                                <field name="product_uom_id"/>
+                                <field name="product_qty"/>
+                                <field name="available_qty"/>
+                                <field name="status"/>
+                            </list>
+                            <form>
+                                <group>
+                                    <group>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="product_id" readonly="1"/>
+                                        <field name="product_uom_category_id" invisible="1"/>
+                                        <field name="product_uom_id" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="product_qty"/>
+                                        <field name="available_qty"/>
+                                        <field name="status"/>
+                                    </group>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

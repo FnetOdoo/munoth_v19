@@ -1,0 +1,229 @@
+<odoo>
+    <data>
+
+        <record id="view_first_article_inspection_form" model="ir.ui.view">
+            <field name="name">first.article.inspection.form.view</field>
+            <field name="model">first.article.inspection</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_request" type="object" string="Submit" class="oe_highlight" invisible="state != 'draft'"/>
+                        <button name="action_cancel" type="object" string="Cancel" invisible="state != 'draft'"/>
+                        <button name="action_validate" type="object" string="Approve" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_reject" type="object" string="Reject" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_reset" type="object" string="Set to Draft" invisible="state != 'cancel'"/>
+                        <button name="action_open_deviation_note" type="object" string="Create Deviation Note" class="oe_highlight" invisible="state != 'request'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,validate"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                                <field name="inspect_state" invisible="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="company_id" invisible="1"/>
+                                <field name="date"/>
+                                <field name="operation_id"/>
+                                <field name="origin" required="1"/>
+                                <field name="user_id" required="1"/>
+                            </group>
+                            <group>
+                                <field name="inspection_type"/>
+                                <field name="lot_id" invisible="inspection_type == 'process'"/>
+                                <field name="model_id"/>
+                                <field name="part_number"/>
+                                <field name="template_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Inspection">
+                                <field name="line_ids" readonly="state == 'done'">
+                                    <list editable="bottom">
+                                        <field name="name" readonly="1" force_save="1"/>
+                                        <field name="parameter" readonly="1" force_save="1"/>
+                                        <field name="actual"/>
+                                        <field name="state"/>
+                                        <field name="remark"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <field name="name" readonly="1"/>
+                                            <field name="parameter" readonly="1"/>
+                                            <field name="actual"/>
+                                            <field name="state"/>
+                                            <field name="remark"/>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_first_article_inspection_list" model="ir.ui.view">
+            <field name="name">first.article.inspection.list.view</field>
+            <field name="model">first.article.inspection</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="inspection_type"/>
+                    <field name="model_id"/>
+                    <field name="date"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_first_article_inspection_action" model="ir.actions.act_window">
+            <field name="name">Process/FAI/FPA Inspection</field>
+            <field name="res_model">first.article.inspection</field>
+            <field name="domain">[]</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Process/FAI/FPA Inspection
+                </p>
+            </field>
+        </record>
+
+
+        <record id="fai_template_view_form" model="ir.ui.view">
+            <field name="name">fai.template.view.form</field>
+            <field name="model">fai.template</field>
+            <field name="arch" type="xml">
+                <form string="FAI">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <notebook>
+                            <page string="Items" name="item">
+                                <field name="item_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="parameter"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="parameter"/>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="fai_template_view_list" model="ir.ui.view">
+            <field name="name">fai.template.view.list</field>
+            <field name="model">fai.template</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                </list>
+            </field>
+        </record>
+        <record id="fai_template_action" model="ir.actions.act_window">
+            <field name="name">FAI Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inspection.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create Inspection
+                </p>
+            </field>
+        </record>
+
+        <record id="view_deviation_note_form" model="ir.ui.view">
+            <field name="name">deviation.note.form</field>
+            <field name="model">deviation.note</field>
+            <field name="arch" type="xml">
+                <form string="Deviation Note">
+                    <header>
+                        <button name="action_request" type="object" string="Request" class="oe_highlight" invisible="state != 'draft'"/>
+                        <button name="action_cancel" type="object" string="Cancel" invisible="state != 'draft'"/>
+                        <button name="action_validate" type="object" string="Approve" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_validate2" type="object" string="Approve" class="oe_highlight" invisible="state != 'request2'"/>
+                        <button name="action_reject" type="object" string="Reject" class="oe_highlight" invisible="state not in ['request', 'request2']"/>
+                        <button name="action_reset" type="object" string="Set to Draft" invisible="state != 'cancel'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,validate"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+
+                                <field name="operation_id"/>
+                                <field name="part_no"/>
+                                <field name="qty"/>
+                                <field name="first_approve"/>
+                                <field name="second_approve"/>
+                                <field name="user_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="requested_id"/>
+                                <field name="part"/>
+                                <field name="deviation_end"/>
+                                <field name="shift"/>
+                                <label for="from_date"/>
+                                <div>From
+                                    <field name="from_date" class="oe_inline"/>
+                                    to
+                                    <field name="to_date" class="oe_inline"/>
+                                </div>
+
+                                <field name="remarks"/>
+
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Description">
+                                <group>
+                                    <field name="description"/>
+                                </group>
+
+                            </page>
+                            <page string="Document Revision Details">
+                                <group>
+                                    <field name="doc_no"/>
+                                    <field name="rev"/>
+                                    <field name="date"/>
+                                    <field name="origin" invisible="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="action_deviation_note" model="ir.actions.act_window">
+            <field name="name">Deviation Notes</field>
+            <field name="res_model">deviation.note</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first Deviation Note
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

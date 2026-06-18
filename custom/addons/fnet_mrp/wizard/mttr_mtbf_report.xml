@@ -1,0 +1,37 @@
+<odoo>
+    <record model="ir.ui.view" id="mttr_mtbf_report_wizard_form_view">
+        <field name="name">mttr mtbf report</field>
+        <field name="model">mttr.mtbf</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="type"/>
+                    </group>
+
+
+                </sheet>
+                <footer>
+                    <button name="action_mttr_mtbf_report" string="Print" type="object" class="btn-primary"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" close="1"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_mttr_mtbf_report">
+        <field name="name">MTTR MTBF</field>
+        <field name="res_model">mttr.mtbf</field>
+        <field name="domain">[]</field>
+        <field name="view_id" ref="mttr_mtbf_report_wizard_form_view"/>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+
+
+
+
+</odoo>

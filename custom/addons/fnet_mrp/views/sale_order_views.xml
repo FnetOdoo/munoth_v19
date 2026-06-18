@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Sale Order Form — location + total weight at header ──────────── -->
+    <record id="view_sale_order_batch_header_inherit" model="ir.ui.view">
+        <field name="name">sale.order.batch.header.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="batch_location_id"
+                       string="Source Location"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="batch_total_cell_weight"
+                       string="Total Cell Weight (g)"
+                       readonly="1"
+                       digits="[16,4]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Sale Order Lines ─────────────────────────────────────────────── -->
+    <record id="view_sale_order_line_batch_inherit" model="ir.ui.view">
+        <field name="name">sale.order.line.batch.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_uom_qty']"
+                   position="after">
+                <field name="batch_id"
+                       string="Batch"
+                       optional="show"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="batch_available_qty"
+                       string="Available Qty"
+                       optional="show"
+                       readonly="1"
+                       column_invisible="not parent.batch_location_id"/>
+                <field name="batch_total_cell_weight"
+                       string="Total Cell Weight (g)"
+                       optional="show"
+                       readonly="1"
+                       column_invisible="not parent.batch_location_id"
+                       digits="[16,4]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Delivery Operations tab (move_ids) ───────────────────────────── -->
+  <record id="view_picking_move_batch_inherit" model="ir.ui.view">
+    <field name="name">stock.picking.move.batch.inherit</field>
+    <field name="model">stock.picking</field>
+    <field name="inherit_id" ref="stock.view_picking_form"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='move_ids']//list//field[@name='product_uom_qty']"
+               position="after">
+            <field name="sale_batch_id"
+                   string="Batch"
+                   optional="show"
+                   readonly="1"
+                   options="{'no_create': True, 'no_open': True}"
+                   column_invisible="parent.sale_id == False"/>
+            <field name="batch_available_qty"
+                   string="Available Qty"
+                   optional="show"
+                   readonly="1"
+                   column_invisible="parent.sale_id == False"/>
+            <field name="batch_total_cell_weight"
+                   string="Total Cell Weight (g)"
+                   optional="show"
+                   readonly="1"
+                   column_invisible="parent.sale_id == False"
+                   digits="[16,4]"/>
+        </xpath>
+    </field>
+</record>
+
+</odoo>

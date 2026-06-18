@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.manufacturing</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="15"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Manufacturing" string="Manufacturing" name="fnet_mrp" groups="mrp.group_mrp_manager">
+                    <block title="Maintenance">
+                        <setting string="Maintenance" help="Configure maintenance user">
+                            <field name="maintenance_user"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_maintenance_general_config" model="ir.actions.act_window">
+        <field name="name">Maintenance Config</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'fnet_mrp'}</field>
+    </record>
+
+
+</odoo>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<t t-name="hr_payroll_dashboard.Dashboard">
+    <div class="o_payroll_dashboard">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <span class="title-icon">💼</span>
+                <h1>Payroll Dashboard</h1>
+                <span class="dashboard-date" t-esc="state.today"/>
+            </div>
+            <button class="refresh-btn" t-on-click="loadData">
+                <span class="refresh-icon">⟳</span> Refresh
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <t t-if="state.loading">
+            <div class="dashboard-loading">
+                <div class="loading-spinner"/>
+                <p>Loading dashboard data...</p>
+            </div>
+        </t>
+
+        <!-- Error State -->
+        <t t-elif="state.error">
+            <div class="dashboard-error">
+                <span>⚠️</span>
+                <p>Failed to load dashboard data. Please refresh.</p>
+                <button t-on-click="loadData">Retry</button>
+            </div>
+        </t>
+
+        <!-- Dashboard Content -->
+        <t t-else="">
+            <!-- Row 1: KPI Cards -->
+            <div class="kpi-grid">
+                <!-- Attendances -->
+                <div class="kpi-card kpi-teal" t-on-click="() => this.openAttendance()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-calendar-check-o"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.attendance || 0"/>
+                        <div class="kpi-label">Attendances</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Leave Requests -->
+                <div class="kpi-card kpi-purple" t-on-click="() => this.openLeaveRequests()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-calendar-times-o"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.leave_requests || 0"/>
+                        <div class="kpi-label">Leave Requests</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Payslips -->
+                <div class="kpi-card kpi-green" t-on-click="() => this.openPayslips()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-money"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.payslips || 0"/>
+                        <div class="kpi-label">Payslips</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Running Contracts -->
+                <div class="kpi-card kpi-blue" t-on-click="() => this.openRunningContracts()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-handshake-o"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.running_contracts || 0"/>
+                        <div class="kpi-label">Running Contracts</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Expired Contracts -->
+                <div class="kpi-card kpi-red" t-on-click="() => this.openExpiredContracts()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-times-circle-o"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.expired_contracts || 0"/>
+                        <div class="kpi-label">Expired Contracts</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Salary Rules -->
+                <div class="kpi-card kpi-yellow" t-on-click="() => this.openSalaryRules()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-list-alt"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.salary_rules || 0"/>
+                        <div class="kpi-label">Salary Rules</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Salary Structures -->
+                <div class="kpi-card kpi-orange" t-on-click="() => this.openSalaryStructures()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-sitemap"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.salary_structures || 0"/>
+                        <div class="kpi-label">Salary Structures</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+
+                <!-- Total Employees -->
+                <div class="kpi-card kpi-indigo" t-on-click="() => this.openEmployees()">
+                    <div class="kpi-icon">
+                        <i class="fa fa-users"/>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-number" t-esc="state.kpis.employees || 0"/>
+                        <div class="kpi-label">Employees</div>
+                    </div>
+                    <div class="kpi-arrow">→</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Charts -->
+            <div class="charts-grid">
+                <!-- Monthly Expense Analysis -->
+                <div class="chart-card chart-wide">
+                    <div class="chart-header">
+                        <h3>Monthly Expense Analysis</h3>
+                        <span class="chart-badge">Last 6 Months</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="monthlyExpenseChart"/>
+                    </div>
+                </div>
+
+                <!-- My Leave Analysis -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Leave Distribution</h3>
+                        <span class="chart-badge">By Type</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="leaveDistChart"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Charts -->
+            <div class="charts-grid">
+                <!-- Monthly Leave Analysis (Dept) -->
+                <div class="chart-card chart-wide">
+                    <div class="chart-header">
+                        <h3>Monthly Leave Analysis</h3>
+                        <span class="chart-badge">By Department</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="deptChart"/>
+                    </div>
+                </div>
+
+                <!-- Attendance per Day -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Attendance per Day</h3>
+                        <span class="chart-badge">Last 7 Days</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="attendanceChart"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 4: Bottom Charts -->
+            <div class="charts-grid charts-three">
+                <!-- Payslips Analysis -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Payslips Analysis</h3>
+                    </div>
+                    <div class="chart-body chart-body-sm">
+                        <canvas id="payslipChart"/>
+                    </div>
+                </div>
+
+                <!-- Contract Analysis -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Contract Analysis</h3>
+                    </div>
+                    <div class="chart-body chart-body-sm">
+                        <canvas id="contractChart"/>
+                    </div>
+                </div>
+
+                <!-- Time Off Analysis -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Time Off Analysis</h3>
+                    </div>
+                    <div class="chart-body chart-body-sm">
+                        <canvas id="timeOffChart"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 5: Recent Leave Requests Table -->
+            <div class="table-section">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Recent Leave Requests</h3>
+                        <button class="view-all-btn" t-on-click="() => this.openLeaveRequests()">
+                            View All →
+                        </button>
+                    </div>
+                    <div class="table-body">
+                        <t t-if="state.recent_leaves.length === 0">
+                            <div class="table-empty">
+                                <span>📭</span>
+                                <p>No recent leave requests found.</p>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Leave Type</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.recent_leaves" t-as="leave" t-key="leave.id">
+                                        <tr class="table-row" t-on-click="() => this.openLeave(leave.id)">
+                                            <td><span class="employee-name" t-esc="leave.employee"/></td>
+                                            <td><span class="leave-type" t-esc="leave.type"/></td>
+                                            <td t-esc="leave.date_from"/>
+                                            <td t-esc="leave.date_to"/>
+                                            <td>
+                                                <span t-attf-class="status-badge status-#{leave.state}" t-esc="leave.state"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+        </t>
+    </div>
+</t>
+
+</templates>

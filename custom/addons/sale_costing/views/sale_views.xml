@@ -1,0 +1,23 @@
+<odoo>
+    <data>
+        <record id="order_view_form_sale_costing_inherit" model="ir.ui.view">
+            <field name="name">order.view.form.sale.costing.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <field name="date_order" position="after">
+                    <field name="sale_costing_id" groups="base.group_no_one"/>
+                </field>
+                <field name="order_line" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </field>
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="contact_name_id"/>
+                </xpath>
+                <xpath expr="//field[@name='team_id']" position="after">
+                    <field name="enquiry_id"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

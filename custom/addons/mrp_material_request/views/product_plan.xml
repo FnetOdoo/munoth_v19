@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="mrp_production_plan_inherit" model="ir.ui.view">
+        <field name="name">production.plan.inherit</field>
+        <field name="model">production.plan</field>
+        <field name="inherit_id" ref="fnet_mrp.manufacturing_plan_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Modify the Sale Order header -->
+            <div class="oe_button_box" name="button_box">
+                <button name="action_view_mrp_request" icon="fa-pencil-square" string="Mrp Request" type="object" invisible="mrp_request_id == False" class="oe_stat_button">
+                    <field name="mrp_request_id" invisible="1"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,137 @@
+<odoo>
+    <data>
+        <record id="view_stock_move_line_form_quality_inherit" model="ir.ui.view">
+            <field name="name">stock.move.line.form.quality.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_move_line_form"/>
+            <field name="arch" type="xml">
+                <field name="origin" position="after">
+                    <field name="quality_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_location_form_quality_inherit" model="ir.ui.view">
+            <field name="name">stock.location.form.quality.inherit</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_form"/>
+            <field name="arch" type="xml">
+                <field name="replenish_location" position="after">
+                    <field name="rejected_location"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_mrp_quality_form" model="ir.ui.view">
+            <field name="name">view.mrp.quality.form</field>
+            <field name="model">mrp.quality</field>
+            <field name="arch" type="xml">
+                <form string="Quality Check">
+
+                    <header>
+                        <button string="Submit" type="object" name="action_submit" class="btn-success" invisible="state != 'draft'"/>
+                        <button string="Rework" type="object" name="action_rework" class="btn-success" groups="fnet_mrp.group_mrp_quality_user" invisible="state != 'request'"/>
+                        <button string="Complete" type="object" name="action_rework_complete" groups="fnet_mrp.group_mrp_quality_manager" class="btn-success" invisible="state != 'rework'"/>
+                        <button string="Complete" type="object" name="action_scrap_complete" groups="fnet_mrp.group_mrp_quality_manager" class="btn-danger" invisible="state != 'scrap'"/>
+                        <button string="Scrap" type="object" name="action_scrap" groups="fnet_mrp.group_mrp_quality_user" class="btn-danger" invisible="state != 'request'"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" string="Production Process" name="action_open_manufacturing_process" invisible="not manufacturing_process_id" type="object" icon="fa-cogs"/>
+                            <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object" icon="fa-exchange"/>
+                        </div>
+                        <widget name="web_ribbon" title="Scrapped" bg_color="bg-danger" invisible="decision != 'scrap'"/>
+                        <widget name="web_ribbon" title="Rework" bg_color="bg-success" invisible="decision != 'rework'"/>
+                        <div class="oe_title">
+                            <h1 class="mt0">
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="manufacturing_process_id" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="decision" invisible="1"/>
+                                <field name="production_plan_id" required="1" readonly="state != 'request'"/>
+                                <field name="operation_id" required="1" readonly="state != 'request'"/>
+                                <field name="manufacturing_process_type_id" invisible="1"/>
+                                <field name="product_id" readonly="state != 'request'"/>
+                                <field name="quantity" readonly="state != 'request'"/>
+                                <field name="product_uom_id" readonly="state != 'request'"/>
+                                <!--                                <field name="max_value"/>-->
+                                <field name="mode" readonly="state != 'request'"/>
+                            </group>
+
+                            <group>
+                                <field name="product_uom_category_id" invisible="1"/>
+                                <field name="has_tracking" invisible="1"/>
+                                <field name="date" readonly="state != 'request'"/>
+                                <field name="location_src_id" readonly="state != 'request'"/>
+                                <field name="lot_id" readonly="state != 'request'"/>
+                                <field name="reason" readonly="state != 'request'"/>
+                                <!--                                <field name="scrap_date"/>-->
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="History">
+                                <field name="history_ids"/>
+                            </page>
+                            <!--                            <page string="Relations" groups="base.group_no_one">-->
+                            <!--                                <group>-->
+                            <!--                                    <group>-->
+                            <!--                                        <field name="qr_code_printing_id"/>-->
+                            <!--                                        <field name="cell_drying_id"/>-->
+                            <!--                                        <field name="injection_id"/>-->
+                            <!--                                        <field name="ht_cell_id"/>-->
+                            <!--                                        <field name="clamp_baking_id"/>-->
+                            <!--                                    </group>-->
+                            <!--                                    <group>-->
+                            <!--                                        <field name="degas_id"/>-->
+                            <!--                                        <field name="pad_printing_id"/>-->
+                            <!--                                        <field name="capacity_id"/>-->
+                            <!--                                        <field name="voltage_test_id"/>-->
+                            <!--                                    </group>-->
+                            <!--                                </group>-->
+                            <!--                            </page>-->
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_mrp_quality_list" model="ir.ui.view">
+            <field name="name">view.mrp.quality.list</field>
+            <field name="model">mrp.quality</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="operation_id"/>
+                    <field name="manufacturing_process_type_id" column_invisible="1"/>
+                    <field name="product_id"/>
+                    <field name="product_uom_id"/>
+                    <field name="quantity"/>
+                    <field name="product_uom_category_id" column_invisible="1"/>
+                    <field name="has_tracking" column_invisible="1"/>
+                    <field name="location_src_id"/>
+                    <field name="lot_id"/>
+                    <field name="decision"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_mrp_quality" model="ir.actions.act_window">
+            <field name="name">Quality Check</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.quality</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No records found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

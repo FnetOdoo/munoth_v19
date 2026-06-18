@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="product_model_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.model.inherit</field>
+        <field name="model">product.model</field>
+        <field name="inherit_id" ref="fnet_mrp.product_model_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='note']" position="before">
+                <field name="lead_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <field name="categ_id" position="after">
+                <field name="state_taxes_ids" widget="many2many_tags"/>
+                <field name="product_rack"/>
+            </field>
+        </field>
+    </record>
+</odoo>

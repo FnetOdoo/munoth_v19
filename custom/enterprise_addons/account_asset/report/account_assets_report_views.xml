@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_account_report_assets" model="ir.actions.client">
+            <field name="name">Depreciation Schedule</field>
+            <field name="tag">account_report</field>
+            <field name="context" eval="{'model': 'account.assets.report'}" />
+        </record>
+
+        <menuitem id="menu_action_account_report_assets" name="Depreciation Schedule"
+                  action="action_account_report_assets"
+                  parent="account.account_reports_management_menu"/>
+    </data>
+</odoo>

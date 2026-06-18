@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!-- Sequences -->
+        <record id="sequence_view_inherited" model="ir.ui.view">
+            <field name="model">ir.sequence</field>
+            <field name="inherit_id" ref="base.sequence_view"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='date_range_ids']/list/field[@name='date_to']" position="after">
+					<field name="prefix" />
+					<field name="suffix" />
+            	</xpath>
+            	
+            	<xpath expr="//group[@col='4']" position="inside">
+					  <group>
+	                       <span colspan="2">Prefix %%(prefix)s</span>
+	                       <span colspan="2">Suffix %%(suffix)s</span>
+	                   </group>
+            	</xpath>
+            </field>
+        </record>
+
+</odoo>

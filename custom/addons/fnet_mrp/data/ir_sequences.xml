@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="sequence_manufacturing_plan" model="ir.sequence">
+            <field name="name">Manufacturing Plan</field>
+            <field name="code">manufacturing.plan</field>
+            <field name="prefix">PP</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_mrp_quality" model="ir.sequence">
+            <field name="name">Quality</field>
+            <field name="code">mrp.quality</field>
+            <field name="prefix">MQ</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_estimation_plan" model="ir.sequence">
+            <field name="name">Estimation Plan</field>
+            <field name="code">estimation.plan</field>
+            <field name="prefix">EP</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_bom" model="ir.sequence">
+            <field name="name">Manufacturing Bom</field>
+            <field name="code">manufacturing.bom</field>
+            <field name="prefix">MB</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_slitting" model="ir.sequence">
+            <field name="name">Manufacturing Slitting</field>
+            <field name="code">manufacturing.slitting</field>
+            <field name="prefix">MS</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_anode_drying" model="ir.sequence">
+            <field name="name">Manufacturing Anode Drying</field>
+            <field name="code">manufacturing.anode.drying</field>
+            <field name="prefix">MAD</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_manufacturing_cathode_drying" model="ir.sequence">
+            <field name="name">Manufacturing Cathode Drying</field>
+            <field name="code">manufacturing.cathode.drying</field>
+            <field name="prefix">MCD</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_manufacturing_diaphragm_drying" model="ir.sequence">
+            <field name="name">Manufacturing Diaphragm Drying</field>
+            <field name="code">manufacturing.diaphragm.drying</field>
+            <field name="prefix">MDD</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_manufacturing_anode_electrode_making" model="ir.sequence">
+            <field name="name">Manufacturing Electrode Making</field>
+            <field name="code">manufacturing.anode.electrode.making</field>
+            <field name="prefix">MEM</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_cathode_electrode_making" model="ir.sequence">
+            <field name="name">Manufacturing Electrode Making</field>
+            <field name="code">manufacturing.cathode.electrode.making</field>
+            <field name="prefix">MEM</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_winding" model="ir.sequence">
+            <field name="name">Manufacturing Winding</field>
+            <field name="code">manufacturing.winding</field>
+            <field name="prefix">MW</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_manufacturing_hot_press" model="ir.sequence">
+            <field name="name">Manufacturing Hot Press</field>
+            <field name="code">manufacturing.hot.press</field>
+            <field name="prefix">MP</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_assembly" model="ir.sequence">
+            <field name="name">Manufacturing Assembly</field>
+            <field name="code">manufacturing.assembly</field>
+            <field name="prefix">MA</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_qr_code_printing" model="ir.sequence">
+            <field name="name">Manufacturing Qr Code Printing</field>
+            <field name="code">manufacturing.qr.code.printing</field>
+            <field name="prefix">MQP</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_cell_drying" model="ir.sequence">
+            <field name="name">Manufacturing Cell Drying</field>
+            <field name="code">manufacturing.cell.drying</field>
+            <field name="prefix">MCD</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_cell_injection" model="ir.sequence">
+            <field name="name">Manufacturing Cell Injection</field>
+            <field name="code">manufacturing.cell.injection</field>
+            <field name="prefix">MI</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_cell_drying" model="ir.sequence">
+            <field name="name">Manufacturing Cell Drying</field>
+            <field name="code">manufacturing.cell.drying</field>
+            <field name="prefix">MCD</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+        <record id="sequence_manufacturing_high_temperature_cell" model="ir.sequence">
+            <field name="name">Manufacturing HT Cell</field>
+            <field name="code">manufacturing.high.temperature.cell</field>
+            <field name="prefix">MHT</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+        <record id="sequence_manufacturing_formation_cell" model="ir.sequence">
+            <field name="name">Manufacturing Formation Cell</field>
+            <field name="code">manufacturing.formation.cell</field>
+            <field name="prefix">MFC</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+        <record id="sequence_manufacturing_aged_formation_cell" model="ir.sequence">
+            <field name="name">Manufacturing Aged Formation Cell</field>
+            <field name="code">manufacturing.aged.formation.cell</field>
+            <field name="prefix">MAF</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+        <record id="sequence_manufacturing_degas_cell" model="ir.sequence">
+            <field name="name">Manufacturing degas Cell</field>
+            <field name="code">manufacturing.degas.cell</field>
+            <field name="prefix">MDG</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_manufacturing_dsf_cell" model="ir.sequence">
+            <field name="name">Manufacturing dsf Cell</field>
+            <field name="code">manufacturing.dsf.cell</field>
+            <field name="prefix">MDG</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_pad_printing" model="ir.sequence">
+            <field name="name">Pad Printing</field>
+            <field name="code">pad.printing</field>
+            <field name="prefix">MPP</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_capacity_test" model="ir.sequence">
+            <field name="name">Capacity Test</field>
+            <field name="code">capacity.test</field>
+            <field name="prefix">MCT</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_voltage_test" model="ir.sequence">
+            <field name="name">Voltage Test</field>
+            <field name="code">voltage.test</field>
+            <field name="prefix">MVT</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+        <record id="sequence_packing" model="ir.sequence">
+            <field name="name">Packing</field>
+            <field name="code">packing.move</field>
+            <field name="prefix">MPM</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_powerbank" model="ir.sequence">
+            <field name="name">Power Bank Sequence</field>
+            <field name="code">mrp.powerbank</field>
+            <field name="prefix">PB</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_process_check" model="ir.sequence">
+            <field name="name">quality check injection</field>
+            <field name="code">quality.check.injection</field>
+            <field name="prefix">DOC/PQC/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_process_quality_check" model="ir.sequence">
+            <field name="name">process.quality.check</field>
+            <field name="code">process.quality.check</field>
+            <field name="prefix">DOC/PQC/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_customer_complaint_register" model="ir.sequence">
+            <field name="name">complaint.register</field>
+            <field name="code">complaint.register</field>
+            <field name="prefix">CCR</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+
+        <record id="sequence_inspection_report_receiving" model="ir.sequence">
+            <field name="name">Inspection Report Receiving</field>
+            <field name="code">inspection.report</field>
+            <field name="prefix">IQC/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="stock_inspection_incoming" model="ir.sequence">
+            <field name="name">Incoming Inspection</field>
+            <field name="code">stock.inspection.incoming</field>
+            <field name="prefix">IQC/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="stock_inspection_outgoing" model="ir.sequence">
+            <field name="name">Outgoing Inspection</field>
+            <field name="code">stock.inspection.outgoing</field>
+            <field name="prefix">OQC/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="stock_inspection_audit" model="ir.sequence">
+            <field name="name">Audit Inspection</field>
+            <field name="code">stock.inspection.audit</field>
+            <field name="prefix">DOCA/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sequence_first_article_inspection" model="ir.sequence">
+            <field name="name">First Article Inspection</field>
+            <field name="code">first.article</field>
+            <field name="prefix">DOC/FAI/</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="sequence_outgoing_quality_control" model="ir.sequence">
+            <field name="name">Outgoing Quality Control</field>
+            <field name="code">outgoing.quality</field>
+            <field name="prefix">FIR-</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="active">TRUE</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="deviation_note_seq" model="ir.sequence">
+            <field name="name">Deviation Note</field>
+            <field name="code">deviation.note</field>
+            <field name="prefix">DN/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

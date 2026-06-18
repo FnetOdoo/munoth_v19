@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="manufacturing_scrap_form_view2" model="ir.ui.view">
+        <field name="name">manufacturing.scrap.form</field>
+        <field name="model">manufacturing.scrap</field>
+        <field name="arch" type="xml">
+            <form string="Scrap">
+                <group>
+                    <group>
+                        <field name="cell_drying_id" invisible="1"/>
+                        <field name="injection_id" invisible="1"/>
+                        <field name="ht_cell_id" invisible="1"/>
+                        <field name="clamp_baking_id" invisible="1"/>
+                        <field name="degas_id" invisible="1"/>
+                        <field name="capacity_id" invisible="1"/>
+                        <field name="voltage_test_id" invisible="1"/>
+                        <field name="production_plan_id" options="{'no_create': True}"/>
+                        <field name="operation_id" options="{'no_create': True}"/>
+                        <field name="product_id" options="{'no_create': True}"/>
+                        <field name="product_uom_id" />
+                        <field name="scrap_qty" />
+                        <field name="product_uom_category_id"  invisible="1"/>
+                        <field name="location_src_id"/>
+                    </group>
+                    <group>
+                        <field name="mrp_lot_ids" widget="many2many_tags" groups="base.group_no_one" invisible="1"/>
+                        <field name="lot_file_name" invisible="1"/>
+                        <field name="lot_file" filename="lot_file_name"/>
+<!--                        <button name="action_upload_serial" class="oe_highlight" type="object" string="Upload Serial"/>-->
+                        <field name="lot_ids" widget="many2many_tags" domain="[('id', 'in', mrp_lot_ids), ('final_location_id', '=', location_src_id)]" options="{'no_create': True}"/>
+<!--                        <field name="lot_id" domain="[('id', 'in', mrp_lot_ids)]"/>-->
+                        <field name="company_id" invisible="1"/>
+                        <field name="location_reject_id" required="1" readonly="1"/>
+                        <field name="reason"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_create_scrap_product" string="Request" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_manufacturing_stock_scrap_in_production">
+            <field name="name">Scrap Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">manufacturing.scrap</field>
+            <field name="view_mode">list,form</field>
+            <field name="view_id" ref="manufacturing_scrap_form_view2"/>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Scrap products
+              </p><p>
+                Scrapping a product will remove it from your stock. The product will
+                end up in a scrap location that can be used for reporting purpose.
+              </p>
+            </field>
+    </record>
+
+
+<!--    <record id="manufacturing_scrap_form_view1" model="ir.ui.view">-->
+<!--        <field name="name">manufacturing.scrap.form</field>-->
+<!--        <field name="model">manufacturing.scrap</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Scrap">-->
+<!--                <header>-->
+<!--                    <button name="action_create_scrap_product" string="Done" states="draft" type="object" class="btn-primary" data-hotkey="q"/>-->
+<!--                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"-->
+<!--                               readonly="1" clickable="1"/>-->
+<!--                   </header>-->
+<!--                <sheet>-->
+<!--                    <div class="oe_button_box" name="button_box">-->
+<!--                            <button class="oe_stat_button" string="Stock Move" name="action_view_product_move"-->
+<!--                                    type="object"-->
+<!--                                    icon="fa-exchange" attrs="{'invisible': [('state', 'in', ['draft'])]}"/>-->
+<!--                          </div>-->
+
+<!--                    <div class="oe_title">-->
+
+<!--                            <label for="name" string="Reference"/>-->
+<!--                            <h1>-->
+<!--                                <field name="name" readonly="1"/>-->
+<!--                            </h1>-->
+<!--                        </div>-->
+<!--                <group>-->
+<!--                    <group>-->
+<!--                        <field name="product_id" required="1" options="{'no_create': True}"/>-->
+<!--                        <field name="product_uom_id" required="1"/>-->
+<!--                        <field name="product_uom_category_id"  invisible="1"/>-->
+<!--                        <field name="location_src_id" required="1"/>-->
+<!--                        <label for="scrap_qty" required="1"/>-->
+<!--                        <div class="o_row">-->
+<!--                            <field name="scrap_qty"-->
+<!--                                   attrs="{'readonly': [('tracking', '=', 'serial')]}"/>-->
+<!--                        </div>-->
+<!--                    </group>-->
+<!--                    <group>-->
+<!--                        <field name="tracking" invisible="1"/>-->
+<!--                        <field name="lot_id"  groups="stock.group_production_lot"-->
+<!--                               context="{'default_company_id': company_id, 'default_product_id': product_id}"-->
+<!--                               domain="[('product_id', '=', product_id)]"-->
+<!--                               attrs="{'invisible': ['|',('product_id', '=', False),('tracking', '=', 'none')], 'required': [('tracking', '!=', 'none')]}"/>-->
+<!--                        <field name="company_id" invisible="1"/>-->
+<!--                        <field name="scrap_location_id" required="1" domain="[('scrap_location', '!=', False)]" groups="stock.group_stock_multi_locations"-->
+<!--                               options="{'no_open': True, 'no_create': True}"/>-->
+<!--                        <field name="reason"/>-->
+<!--                    </group>-->
+<!--                </group>-->
+<!--                </sheet>-->
+<!--                <div class="oe_chatter">-->
+<!--                        <field name="message_follower_ids"/>-->
+<!--                        <field name="activity_ids"/>-->
+<!--                        <field name="message_ids"/>-->
+<!--                    </div>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+
+<!--     <record id="manufacturing_scrap_location" model="ir.ui.view">-->
+<!--        <field name="name">manufacturing.scrap.list</field>-->
+<!--        <field name="model">manufacturing.scrap</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <list string="Scrap">-->
+<!--                <field name="product_id"/>-->
+<!--                <field name="location_src_id"/>-->
+<!--                <field name="scrap_location_id"/>-->
+<!--                <field name="scrap_qty"/>-->
+<!--                <field name="state"/>-->
+<!--            </list>-->
+<!--        </field>-->
+<!--    </record>-->
+
+
+<!--    <record model="ir.actions.act_window" id="action_manufacturing_stock_scrap">-->
+<!--            <field name="name">Scrap Orders</field>-->
+<!--            <field name="type">ir.actions.act_window</field>-->
+<!--            <field name="res_model">manufacturing.scrap</field>-->
+<!--            <field name="view_mode">list,form</field>-->
+<!--        <field name="view_ids" eval="[(5, 0, 0),-->
+<!--                (0, 0, {'view_mode': 'list', 'view_id': ref('manufacturing_scrap_location')}),-->
+<!--                (0, 0, {'view_mode': 'form', 'view_id': ref('manufacturing_scrap_form_view1')})]"/>-->
+<!--            <field name="help" type="html">-->
+<!--              <p class="o_view_nocontent_smiling_face">-->
+<!--                Scrap products-->
+<!--              </p><p>-->
+<!--                Scrapping a product will remove it from your stock. The product will-->
+<!--                end up in a scrap location that can be used for reporting purpose.-->
+<!--              </p>-->
+<!--            </field>-->
+<!--    </record>-->
+
+
+
+<!--    <menuitem-->
+<!--            id="menu_manufacturing_stock_scrap"-->
+<!--            name="Scrap"-->
+<!--            parent="fnet_mrp.menu_manufacturing_configuration"-->
+<!--            action="action_manufacturing_stock_scrap"-->
+<!--            sequence="99"/>-->
+
+</odoo>

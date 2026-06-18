@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ===================================================== -->
+    <!-- Manufacturing Stages -->
+    <!-- ===================================================== -->
+
+    <!-- List View -->
+    <record id="view_manufacturing_stages_list" model="ir.ui.view">
+        <field name="name">manufacturing.stages.list</field>
+        <field name="model">manufacturing.stages</field>
+        <field name="arch" type="xml">
+            <list editable="top" string="Manufacturing Stages">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_manufacturing_stages" model="ir.actions.act_window">
+        <field name="name">Manufacturing Stages</field>
+        <field name="res_model">manufacturing.stages</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Menu -->
+
+
+    <!-- ===================================================== -->
+    <!-- Manufacturing Process -->
+    <!-- ===================================================== -->
+
+    <!-- List View -->
+    <record id="view_manufacturing_process_list" model="ir.ui.view">
+        <field name="name">manufacturing.process.list</field>
+        <field name="model">manufacturing.process.type</field>
+        <field name="arch" type="xml">
+            <list string="Manufacturing Process Type">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+    <record id="manufacturing_process_form_view" model="ir.ui.view">
+        <field name="name">manufacturing.process.type.form</field>
+        <field name="model">manufacturing.process.type</field>
+        <field name="arch" type="xml">
+            <form string="Production Process">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <notebook>
+                        <page string="Operation Field Configuration">
+                            <group string="Process Type">
+                                <group string="Operations">
+                                    <field name="is_power_bank" widget="boolean_toggle"/>
+                                    <field name="show_injection" widget="boolean_toggle" string="Injection"/>
+                                    <field name="show_degas" widget="boolean_toggle" string="Degas"/>
+                                    <field name="show_packing" widget="boolean_toggle" string="Packing"/>
+                                    <field name="show_cell_drying" widget="boolean_toggle" string="Cell Drying"/>
+                                    <field name="show_high_temperature" widget="boolean_toggle" string="High Temperature"/>
+                                    <field name="show_cell_clamp_baking" widget="boolean_toggle" string="Cell Clamp Baking"/>
+                                </group>
+                                <group string="Processes">
+                                    <field name="show_capacity_test" widget="boolean_toggle" string="Capacity Test"/>
+                                    <field name="show_voltage_test" widget="boolean_toggle" string="Voltage Test"/>
+                                    <field name="show_drying_process" widget="boolean_toggle" string="Drying Process"/>
+                                    <field name="show_slitting_process" widget="boolean_toggle" string="Slitting Process"/>
+                                    <field name="show_pad_printing" widget="boolean_toggle" string="Pad Printing"/>
+                                    <field name="show_aged_formation_1" widget="boolean_toggle" string="Aged Formation Cell 1"/>
+                                    <field name="show_aged_formation_2" widget="boolean_toggle" string="Aged Formation Cell 2"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Machine Field Configuration">
+                            <group>
+                                <group string="Processes">
+                                    <field name="is_anode_slitting_process" widget="boolean_toggle" string="Is Anode Slitting"/>
+                                    <field name="is_cathode_slitting_process" widget="boolean_toggle" string="Is Cathode Slitting"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="manufacturing_process_process_form_view" model="ir.ui.view">
+        <field name="name">manufacturing.process.form</field>
+        <field name="model">manufacturing.process</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="QR Code Printing" duplicate="0" delete="0">
+                <header>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="check_available_stock" string="Check Availability" type="object" invisible="state != 'draft'"/>
+                    <button name="action_done_production" string="Production Done" class="btn-success" type="object" invisible="state != 'progress'"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'done'" class="oe_highlight"/>
+                    <button name="action_break_production" string="Pause Production" class="btn-danger" type="object" invisible="state != 'progress'"/>
+                    <button name="action_restart_production" string="Restart Production" class="btn-success" type="object" invisible="state != 'hold'"/>
+                    <button name="create_scrap_product" string="Rejection" class="btn-strong" type="object" invisible="state != 'close' and is_next_process_created"/>
+                    <button name="lot_creation" type="object" string="Lot Creation" invisible="done_lot"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,progress,done"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" string="Production Plan" name="action_open_production_plan" type="object" icon="fa-industry"/>
+                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality" type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']"/>
+                        <button class="oe_stat_button" string="Quality" name="action_view_quality" type="object" icon="fa-check" invisible="state in ['draft','confirmed','progress','done']"/>
+                        <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object" icon="fa-exchange" invisible="state == 'draft'"/>
+                        <button class="oe_stat_button" name="action_open_before_cell_process" type="object" icon="fa-arrow-left" invisible="not before_manufacturing_process_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">
+                                    <field name="before_manufacturing_process_type_name" readonly="1"/>1
+                                </span>
+                            </div>
+
+                        </button>
+                        <button name="action_open_next_cell_process" invisible="state != 'close' or not next_manufacturing_process_id or not is_next_process_created" icon="fa-arrow-right" type="object">
+                            <field name="next_manufacturing_process_type_name_2"/>
+                            -
+                            (
+                            <field name="next_process_count" nolabel="1"/>
+                            )
+                        </button>
+                        <button name="action_create_next_cell_process" invisible="state != 'close' or not next_manufacturing_process_id or is_next_process_created" icon="fa-angle-double-right" type="object">
+                            <field name="next_manufacturing_process_type_name"/>
+                        </button>
+                        <button name="action_view_lots" type="object" string="Show Lots" icon="fa-list"/>
+
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                            <field name="remaining_qty" invisible="1"/>
+                            <field name="operation_id" invisible="1"/>
+                            <field name="process_status_check" invisible="1"/>
+                            <field name="is_next_process_created" invisible="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="production_plan_id" required="1" readonly="state != 'draft'"/>
+                            <field name="manufacturing_process_type_id" string="Type" required="1" readonly="state != 'draft'"/>
+                            <field name="product_model_id" required="1" string="Model" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="product_tracking" invisible="1"/>
+                            <field name="product_tmpl_id" invisible="1"/>
+                            <field name="product_qty" readonly="state in ['done','close']"/>
+                            <field name="product_uom_id" invisible="1"/>
+                            <field name="batch_id" readodnly="1"/>
+                        </group>
+                        <group>
+                            <field name="bom_id" domain="[('product_tmpl_id', '=', product_id), ('product_model_id', '=', product_model_id)]" readonly="state != 'draft'"/>
+                            <field name="qty_producing" invisible="1"/>
+                            <field name="product_uom_category_id" invisible="1"/>
+                            <field name="product_uom_qty" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="start_time" readonly="1"/>
+                            <label for="expected_end_time" invisible="not start_time"/>
+                            <div invisible="not start_time">
+                                <field name="expected_end_time" nolabel="1" class="oe_inline"/>
+                                <span invisible="end_time">
+                                    /
+                                    <field name="remaining_hours" widget="float_time" nolabel="1" class="oe_inline"/>
+                                    Hours Remaining
+                                </span>
+                            </div>
+                            <field name="end_time" readonly="1"/>
+                            <field name="user_id" readodnly="1"/>
+                            <field name="manufacturing_process_id" invisible="1"/>
+                            <field name="next_manufacturing_process_type_id" invisible="1"/>
+                            <field name="next_manufacturing_process_type_id" invisible="1"/>
+                            <field name="next_manufacturing_process_id" invisible="1"/>
+                            <field name="before_manufacturing_process_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Materials">
+                            <field name="input_material_lines" readonly="state in ['done','close']"/>
+                        </page>
+                        <page string="Detailed Materials">
+                            <group>
+                                <div>
+                                    <button name="action_remove_line" type="object" string="Remove All" invisible="state in ['done','close']"/>
+                                </div>
+                            </group>
+                            <field name="component_ids" readonly="state in ['done','close']"/>
+                        </page>
+                        <page string="Serial Number" invisible="state in ['done','close']">
+                            <group>
+                                <group string="From Material Tab">
+                                    <div>
+                                        <button name="get_serial_numbers" type="object" string="Get All Serial"/>
+                                        <button name="clear_serial_numbers" type="object" string="Clear All Serial"/>
+                                    </div>
+                                </group>
+                                <group string="Upload file">
+                                    <div>
+                                        <field name="out_file_name" invisible="1"/>
+                                        <field name="out_file" filename="out_file_name"/>
+                                        <button name="action_upload_serial" type="object" string="Upload Serial"/>
+                                        <button name="action_download_sample" type="object" string="Download Sample"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <field name="lot_ids" context="{'default_product_id': product_id, 'default_product_uom_id': product_uom_id}">
+                                <list editable="bottom">
+                                    <field name="name" required="1" string="Serial Number"/>
+                                    <field name="product_id" groups="base.group_no_one"/>
+                                    <field name="batch_id" groups="base.group_no_one"/>
+                                    <field name="cell_weight" groups="base.group_no_one"/>
+                                    <field name="product_uom_category_id" column_invisible="1"/>
+                                    <field name="product_uom_id" groups="base.group_no_one"/>
+                                    <field name="lot_id" groups="base.group_no_one"/>
+                                    <field name="is_available" groups="base.group_no_one"/>
+                                </list>
+                            </field>
+
+                        </page>
+                        <page string="Finished Move">
+                            <field name="finished_move_ids">
+                                <list editable="bottom" delete="0" create="0">
+                                    <field name="date" readonly="1"/>
+                                    <field name="reference" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="lot_id" string="Serial" readonly="1"/>
+                                    <field name="location_id" readonly="1"/>
+                                    <field name="location_dest_id" readonly="1"/>
+                                    <field name="quantity" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                    <field name="out_tray_id" readonly="state == 'done'" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Machine Parameter">
+                            <field name="machine_data_ids">
+                                <list editable="bottom" decoration-bf="1" decoration-success="qr_code_printing_condition == 'good'" decoration-danger="qr_code_printing_condition == 'fail'">
+                                    <field name="date"/>
+                                    <field name="temperature"/>
+                                    <field name="vacuum"/>
+                                    <field name="user_id"/>
+                                    <field name="qr_code_printing_condition" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Quality">
+                            <field name="quality_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="moisture_content"/>
+                                    <field name="color_shading"/>
+                                    <field name="quality_remarks"/>
+                                    <field name="visual_examination"/>
+                                    <field name="user_id" readonly="1"/>
+                                </list>
+
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="date"/>
+                                            <field name="moisture_content"/>
+                                            <field name="color_shading"/>
+                                        </group>
+                                        <group>
+                                            <field name="visual_examination"/>
+                                            <field name="user_id" readonly="1"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Utility">
+                            <field name="utility_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="humidity"/>
+                                    <field name="temperature"/>
+                                    <field name="compressed_air"/>
+                                    <field name="nitrogen"/>
+                                    <field name="user_id" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Breakdown">
+                            <field name="breakdown_ids">
+                                <list delete="0">
+                                    <field name="time" string="Time"/>
+                                    <field name="reason" column_invisible="1"/>
+                                    <field name="remarks"/>
+                                </list>
+
+                                <form delete="0">
+                                    <group>
+                                        <group>
+                                            <field name="time" readonly="1"/>
+                                            <field name="remarks" readonly="1"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Others">
+                            <group>
+                                <group>
+                                    <!--                                    <field name="type" readonly="state in ['done','close']"/>-->
+                                    <field name="location_src_id" readonly="state in ['done','close']"/>
+                                    <field name="location_dest_id" readonly="state in ['done','close']"/>
+                                    <field name="production_location_id" readonly="state in ['done','close']"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="manufacturing_process_process_list_view" model="ir.ui.view">
+        <field name="name">manufacturing.process.list</field>
+        <field name="model">manufacturing.process</field>
+        <field name="arch" type="xml">
+            <list string="QR Code Printing" sample="1">
+                <field name="name" column_invisible="0"/>
+                <field name="product_id"/>
+                <field name="product_qty"/>
+                <!--                    <field name="qty_produced"/>-->
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="manufacturing_process_form_action" model="ir.actions.act_window">
+        <field name="name">QR Code Printing</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">manufacturing.process</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                QR Code Printing
+            </p>
+
+        </field>
+    </record>
+    <record id="action_manufacturing_process" model="ir.actions.act_window">
+        <field name="name">Manufacturing Process Type</field>
+        <field name="res_model">manufacturing.process.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <odoo>
+        <record id="view_stock_quant_search_inherit" model="ir.ui.view">
+            <field name="name">stock.quant.search.inherit</field>
+            <field name="model">stock.quant</field>
+            <field name="inherit_id" ref="stock.quant_search_view"/>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Has Cell Weight" name="filter_cell_weight" domain="[('cell_weight', '>', 0)]"/>
+                    <filter string="Has Batch" name="filter_batch" domain="[('batch_id', '!=', False)]"/>
+                    <separator/>
+                    <group>
+                        <filter string="Batch" name="group_batch" context="{'group_by': 'batch_id'}"/>
+                        <filter string="Cell Weight" name="group_cell_weight" context="{'group_by': 'cell_weight'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </odoo>    <!-- Menu -->
+
+</odoo>

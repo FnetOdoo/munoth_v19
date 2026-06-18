@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_goods_recevies_note_report" model="report.paperformat">
+            <field name="name">A4 Expense Claim Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">40</field>
+            <field name="margin_bottom">15</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">20</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="material_request_report_1" model="ir.actions.report">
+            <field name="name">Material Request Report Duplicate</field>
+            <field name="model">mrp.material.request</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.material_request_munoth_report</field>
+            <field name="report_file">munoth_reports.material_request_munoth_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_goods_recevies_note_report"/>
+        </record>
+        <template id="material_request_munoth_report">
+            <t t-call="web.html_container">
+                <!--                <link rel="stylesheet" type="text/css" href="/munoth_reports/static/custom_css/custom_style.css"/>-->
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div style="height:100%;">
+                            <div class="page_border" style="height:100%;height-top:10mm;padding-right:15px;padding-left:15px;border-right:1px solid black;border-bottom:1px solid black;border-left:1px solid black;height:265mm;">
+                                <t t-if="o and 'company_id' in o">
+                                    <t t-set="company" t-value="o.company_id"></t>
+                                </t>
+                                <t t-if="not o or not 'company_id' in o">
+                                    <t t-set="company" t-value="res_company"></t>
+                                </t>
+                                <div class="header" style="border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;">
+                                    <h1 style="text-align:center;color:purple!important;"><strong><img src="/web/binary/company_logo" style="height:55px;"/><span t-esc="o.company_id.name"/></strong></h1>
+                                    <strong style="text-align:center;color:black!important;"><center>19,EMC-II,Vikruthamala Village,Yerpedu Mandai,Renigunta,Tirupati-517526</center></strong>
+                                </div>
+                                <br/>
+                                <center><b style="font-size:20px;"><u>Material Request Slip</u></b></center>
+                                <div style="width:65%;height:200px;float:left;padding-left:20px;">
+                                    <strong>Issue No:</strong><span t-field="o.name"/>
+                                    <p/>
+                                    <strong>Issued To:</strong><span t-field="o.location_dest_id"/>
+                                    <p/>
+                                    <strong>Production Section:</strong><span t-field="o.section"/>
+                                    <p/>
+                                    <strong>Department:</strong><span t-field="o.department_id"/>
+                                    <p/>
+                                </div>
+                                <div style="width:35%;height:200px;float:right;padding-right:10px;">
+                                    <strong>Issue Date:</strong><span t-field="o.date_issued"/>
+                                    <p/>
+                                </div>
+                                <table style="width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;page-break-before: avoid;height:500px;" cellspacing="0">
+                                    <thead style="line-height: 1.5;">
+                                        <th style="font-weight:bold;font-size:15px;width:10%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                            SI.No
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;width:23%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                            Type of Material
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;width:25%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                            Item Description
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;width:12%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;">
+                                            Quantity
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;width:15%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;">
+                                            Purpose
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;width:15%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                            Remarks
+                                        </th>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="counter" t-value="1"/>
+                                        <tr style="font-size: 16px;border:1px solid black;" t-foreach="docs.request_line_ids" t-as="t">
+                                            <td style="width:5%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;border:1px solid black;">
+                                                <span style="text-align:center;" t-esc="counter"/>
+                                                <t t-set="counter" t-value="counter+1"/>
+                                            </td>
+                                            <td style="width:23%;padding-left:2px;border-right:1px solid black;border-left:1px;vertical-align:top;text-align:left;padding-top:0px;">
+                                                <span t-esc="t.product_id.name"/>
+                                            </td>
+                                            <td style="width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.name"/>
+                                            </td>
+                                            <td style="width:12%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.quantity"/>
+                                            </td>
+                                            <td style="width:15%;text-align:right;padding-right:1px;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.purpose"/>
+                                            </td>
+                                            <td style="width:15%;text-align:right;padding-right:1px;valign:top;vertical-align:top;border-right:1px solid black;padding-top:0px;">
+                                                <span t-esc="t.remark"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div style="height:160px;"></div>
+                                <div style="page-break-inside:avoid;">
+                                    <table style="width:100%;font-size:16px;text-align:justify;page-break-inside:avoid;"
+                                           cellspacing="0">
+                                        <tr>
+                                            <td style="width:15%;text-align:center;">
+                                                <strong>Issued by</strong>
+                                            </td>
+                                            <td style="width:15%;text-align:center;">
+                                                <strong>Authorised by</strong>
+                                            </td>
+                                            <td style="width:15%;text-align:center;">
+                                                <strong>Received by</strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

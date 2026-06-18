@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_terms,access.account.terms,terms_condition.model_account_terms,,1,1,1,1
+access_account_terms_conditions,access.account.terms.conditions,terms_condition.model_account_terms_conditions,,1,1,1,1
+access_account_move_terms_conditions,access.account.move.terms.conditions,terms_condition.model_account_move_terms_conditions,,1,1,1,1
+access_account_move_description_details,access.account.description.details,terms_condition.model_account_move_description_details,,1,1,1,1
+access_account_terms_template,access.account.terms.template,terms_condition.model_account_terms_template,base.group_user,1,1,1,1

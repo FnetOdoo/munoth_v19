@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_purchase_vendor_report" model="report.paperformat">
+            <field name="name">A4 Purchase Vendor Report</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">48</field>
+            <field name="margin_bottom">45</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">45</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="hr_payslip_report_action" model="ir.actions.report">
+            <field name="name">Payslip Details</field>
+            <field name="model">hr.payslip</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hr_payroll_community.payslip_report</field>
+            <field name="report_file">hr_payroll_community.payslip_report</field>
+            <field name="paperformat_id" ref="hr_payroll_community.paperformat_purchase_vendor_report"/>
+            <field name="binding_model_id" ref="hr_payroll_community.model_hr_payslip"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- Main Layout with Header/Footer -->
+        <template id="external_layout_striped_ps">
+            <t t-if="not o" t-set="o" t-value="doc"/>
+            <t t-if="not company">
+                <t t-if="company_id">
+                    <t t-set="company" t-value="company_id"/>
+                </t>
+                <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                    <t t-set="company" t-value="o.company_id.sudo()"/>
+                </t>
+                <t t-else="else">
+                    <t t-set="company" t-value="res_company"/>
+                </t>
+            </t>
+
+            <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
+                <tr style="vertical-align: top;">
+                    <td style="max-width:100%; text-align: left;">
+                        <t t-if="doc and doc.company_id.logo">
+                            <right style="margin-left: 30px;">
+                                <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:150px;"
+                                     alt="Logo"/>
+                            </right>
+                        </t>
+                    </td>
+                    <td style="text-align: right; width: 50%;">
+                        <h2 style="font-size: 25px; margin: 0; font-weight: bold; font-family: Baskervville SC; serif; font-style: normal;">
+                            <span t-esc="doc.company_id.name if doc else company.name"/>
+                        </h2>
+                        <t t-if="doc and doc.company_id.street">
+                            <span t-field="doc.company_id.street"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.street2">
+                            <span t-field="doc.company_id.street2"/>
+                            ,
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.city">
+                            <span t-field="doc.company_id.city"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.state_id">
+                            <span t-field="doc.company_id.state_id.name"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.country_id">
+                            <span t-field="doc.company_id.country_id.name"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.phone">
+                            Phone:
+                            <span t-field="doc.company_id.phone"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.email">
+                            Email:
+                            <span t-field="doc.company_id.email"/>
+                        </t>
+                        <br/>
+                    </td>
+                </tr>
+            </table>
+            <div t-attf-class="o_company_#{company.id}_layout header" t-att-style="report_header_style">
+                <div class="o_background_header">
+                    <div class="row">
+                        <div style="width:10%;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:90px;"
+                                 alt="Logo"/>
+                        </div>
+                        <div class=" company_address" style="width:75%; padding-left: 20px; ">
+                            <div style="font-size: 16px; text-transform: uppercase; color:#636363;">
+                                <span t-field="company.name"/>
+                            </div>
+                            <div style="font-size: 16px; line-height: 1.2; color:#636363;">
+                                <span t-if="company.street" t-field="company.street"/>,
+                                <br/>
+                                <span t-if="company.street2" t-field="company.street2"/>
+                                <br/>
+                                <span t-if="company.city" t-field="company.city"/>
+                                <t t-if="company.zip">-
+                                    <span t-field="company.zip"/>
+                                </t>
+                                ,
+                                <br/>
+                                <span t-if="company.state_id" t-field="company.state_id"/>
+                                <br/>
+                                <span t-if="company.country_id" t-field="company.country_id"/>
+                                <br/>
+                                <br/>
+                                <strong>GSTIN:
+                                    <span t-field="company.vat"/>
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="border-bottom: 1px solid #dee2e6;"/>
+                    <br/>
+                </div>
+            </div>
+            <div t-attf-class="o_company_#{company.id}_layout article o_report_layout_striped {{  'o_layout_background' if company.layout_background in ['Geometric', 'Custom']  else  '' }}"
+                 t-attf-style="background-image: url({{ 'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/bg_background_template.jpg' if company.layout_background == 'Geometric' else ''}});"
+                 t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+                 t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <main>
+                    <t t-out="0"/>
+                </main>
+            </div>
+            <div t-attf-class="o_company_#{company.id}_layout footer o_background_footer">
+                <div class="text-center"
+                     style="border-top: 1px solid black;border-bottom: 1px solid black; padding: 5px;">
+                    <t t-if="company.phone">
+                        <strong>Phone:</strong>
+                        <span t-field="company.phone"/>
+                    </t>
+                    <t t-if="company.email">
+                        <strong>Email:</strong>
+                        <span t-field="company.email"/>
+                    </t>
+                    <t t-if="company.website">
+                        <strong>Website:</strong>
+                        <span t-field="company.website"/>
+                    </t>
+                </div>
+                <div t-if="report_type == 'pdf'" class="text-muted text-center" style="margin-top: 1px;">
+                    Page
+                    <span class="page"/>
+                    of
+                    <span class="topage"/>
+                </div>
+            </div>
+        </template>
+
+        <template id="report_payslipdetails_nwe">
+            <t t-call="hr_payroll_community.external_layout_striped_ps">
+                <div class="page">
+                    <h2>Pay Slip</h2>
+                    <p t-field="o.name"/>
+                    <table class="table table-borderless">
+                        <tr style="background-color:#f0f0f5; border:1px solid #f0f0f5;">
+                            <td style="border:1px solid grey;">
+                                <strong>Name</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.employee_id"/>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <strong>Designation</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.employee_id.job_id"/>
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #f0f0f5;">
+                            <td style="border:1px solid grey;">
+                                <strong>Address</strong>
+                            </td>
+                            <td style="border:1px solid grey;" colspan="3">
+                                <span t-field="o.employee_id.private_street"/>,
+                                <br/>
+                                <span t-field="o.employee_id.private_street2"/>,
+                                <br/>
+                                <span t-field="o.employee_id.private_city"/>
+                                <span t-field="o.employee_id.private_zip"/>,
+                                <br/>
+                                <span t-field="o.employee_id.private_state_id"/>,
+                                <span t-field="o.employee_id.private_country_id"/>
+                            </td>
+                        </tr>
+
+                        <tr style="background-color:#f0f0f5; border:1px solid #f0f0f5;">
+                            <td style="border:1px solid grey;">
+                                <strong>Email</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.employee_id.work_email"/>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <strong>Identification No</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.employee_id.identification_id"/>
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #636363;">
+                            <td style="border:1px solid grey;">
+                                <strong>Reference</strong>
+                            </td>
+                            <td>
+                                <span t-field="o.number"/>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <strong>Bank Account</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.employee_id.bank_account_ids"/>
+                            </td>
+                        </tr>
+                        <tr style="background-color:#f0f0f5; border:1px solid grey;">
+                            <td style="border:1px solid grey;">
+                                <strong>Date From</strong>
+                            </td>
+                            <td style="border:1px solid grey;">
+                                <span t-field="o.date_from"/>
+                            </td>
+                            <td>
+                                <strong>Date To</strong>
+                            </td>
+                            <td>
+                                <span t-field="o.date_to"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <h3>Details by Salary Rule Category</h3>
+                    <table
+                            class="table table-borderless">
+                        <thead style="border-top:1px solid #636363;border-bottom:1px solid #636363;">
+                            <tr>
+                                <th>
+                                    <strong>Code</strong>
+                                </th>
+                                <th>
+                                    <strong>Salary Rule Category</strong>
+                                </th>
+                                <th>
+                                    <strong>Total</strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="get_details_by_rule_category.get(o.id, [])"
+                                t-as="h"
+                                t-attf-style="background-color: {{ '#f0f0f5' if h_index % 2 == 0 else '#ffffff' }};">
+                                <td>
+                                    <span t-esc="h['code']"/>
+                                </td>
+                                <td>
+                                    <span t-esc="'..'*h['level']"/>
+                                    <span t-esc="h['rule_category']"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="h['total']"
+                                          t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3>Payslip Lines by Contribution Register</h3>
+                    <table class="table table-borderless">
+                        <thead style="border-top:1px solid #636363;border-bottom:1px solid #636363;">
+                            <tr>
+                                <th>
+                                    <strong>Code</strong>
+                                </th>
+                                <th>
+                                    <strong>Name</strong>
+                                </th>
+                                <th>
+                                    <strong>Quantity/rate</strong>
+                                </th>
+                                <th>
+                                    <strong>Amount</strong>
+                                </th>
+                                <th>
+                                    <strong>Total</strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="get_lines_by_contribution_register.get(o.id, [])"
+                                t-as="h"
+                                t-attf-style="background-color: {{ '#f0f0f5' if h_index % 2 == 0 else '#ffffff' }};">
+                                <td>
+                                    <span t-esc="p.get('code', '')"/>
+                                </td>
+                                <td>
+                                    <span t-esc="p.get('name', '')"/>
+                                </td>
+                                <td>
+                                    <span t-esc="p.get('quantity', '')"/>
+                                </td>
+                                <td>
+                                    <span t-esc="p.get('amount', 0)"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="p.get('total', 0)"
+                                          t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-right">
+                        <strong>Authorized signature</strong>
+                    </p>
+                </div>
+            </t>
+        </template>
+
+        <!-- Main entry-point template -->
+        <template id="payslip_report">
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="o" t-value="doc"/>
+                <t t-call="hr_payroll_community.report_payslipdetails_nwe"/>
+            </t>
+        </template>
+
+    </data>
+</odoo>

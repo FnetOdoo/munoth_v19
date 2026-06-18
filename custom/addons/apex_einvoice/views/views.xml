@@ -1,0 +1,65 @@
+<odoo>
+    <data>
+        <record id="view_account_einvoice_form" model="ir.ui.view">
+            <field name="name">view.account.einvoice.form</field>
+            <field name="model">account.einvoice</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="status" widget="statusbar" string="Status"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title oe_left">
+                            <h2>
+                                <field name="invoice_id" class="oe_inline" readonly="1"/>
+                            </h2>
+                        </div>
+                        <group>
+                            <group string="E-Invoice">
+                                <field name="ackno"/>
+                                <field name="ackdt"/>
+                                <field name="irn"/>
+                                <field name="signedinvoice"/>
+                                <field name="signedqrcode"/>
+                                <field name="cancel_date" invisible="status != 'CNL'"/>
+                                <field name="reason" invisible="status != 'CNL'"/>
+                            </group>
+                            <group string="Eway Bill">
+                                <field name="ewbno"/>
+                                <field name="ewbstatus"/>
+                                <field name="ewbdt"/>
+                                <field name="ewbvalidtill"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="remarks"/>
+                            <field name="response"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_account_einvoice_tree" model="ir.ui.view">
+            <field name="name">view.account.einvoice.tree</field>
+            <field name="model">account.einvoice</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="invoice_id"/>
+                    <field name="irn"/>
+                    <field name="status"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_account_einvoice_form" model="ir.actions.act_window">
+            <field name="name">E-invoice</field>
+            <field name="res_model">account.einvoice</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_finance_einvoice_root" name="E-Invoice" parent="account.menu_finance" sequence="4"/>
+        <menuitem action="action_account_einvoice_form" id="menu_finance_einvoice" parent="menu_finance_einvoice_root"
+                  groups="base.group_no_one,account.group_account_manager" sequence="0"/>
+
+    </data>
+</odoo>

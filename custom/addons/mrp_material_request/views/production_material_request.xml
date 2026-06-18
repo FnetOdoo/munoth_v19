@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+
+        <record id="anode_slitting_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">anode.slitting.inherit</field>
+            <field name="model">anode.slitting</field>
+            <field name="inherit_id" ref="fnet_mrp.anode_slitting_process_form_view"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="action_view_material_request" icon="fa-envelope"
+                        type="object" class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="cathode_slitting_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">cathode.slitting.inherit</field>
+            <field name="model">cathode.slitting</field>
+            <field name="inherit_id" ref="fnet_mrp.cathode_slitting_process_form_view"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="diaphragm_drying_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">diaphragm.drying.inherit</field>
+            <field name="model">diaphragm.drying</field>
+            <field name="inherit_id" ref="fnet_mrp.diaphragm_drying_process_form_view"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="anode_electrode_making_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">anode.electrode.making.inherit</field>
+            <field name="model">anode.electrode.making</field>
+            <field name="inherit_id" ref="fnet_mrp.anode_electrode_making_process_form_view"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="cathode_electrode_making_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">cathode.electrode.making.inherit</field>
+            <field name="model">cathode.electrode.making</field>
+            <field name="inherit_id" ref="fnet_mrp.cathode_electrode_making_process_form_view"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="winding_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">winding.inherit</field>
+            <field name="model">winding</field>
+            <field name="inherit_id" ref="fnet_mrp.winding_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="cell_assembly_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">assembly.cell.inherit</field>
+            <field name="model">assembly.cell</field>
+            <field name="inherit_id" ref="fnet_mrp.cell_assembly_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="cell_injection_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">cell.injection.inherit</field>
+            <field name="model">cell.injection</field>
+            <field name="inherit_id" ref="fnet_mrp.cell_injection_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="clamp_baking_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">cell.clamp.baking.inherit</field>
+            <field name="model">cell.clamp.baking</field>
+            <field name="inherit_id" ref="fnet_mrp.clamp_baking_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="cell_drying_form_view_inherit" model="ir.ui.view">
+            <field name="name">cell.drying.form.inherit</field>
+            <field name="model">cell.drying</field>
+            <field name="inherit_id" ref="fnet_mrp.cell_drying_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--        <record id="cell_degas_process_form_view_inherit" model="ir.ui.view">-->
+        <!--            <field name="name">degas.cell.inherit</field>-->
+        <!--            <field name="model">degas.cell</field>-->
+        <!--            <field name="inherit_id" ref="fnet_mrp.cell_degas_process_form_view"/>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <div class="oe_button_box" name="button_box">-->
+        <!--                    <button name="action_view_material_request" type="object"  class="oe_stat_button" invisible="request_count == 0">-->
+        <!--                        <field name="request_count" string="Material Request" widget="statinfo" invisible="0"/>-->
+        <!--                    </button>-->
+        <!--                </div>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
+        <record id="pad_printing_process_form_view_inherit" model="ir.ui.view">
+            <field name="name">pad.printing.inherit</field>
+            <field name="model">pad.printing</field>
+            <field name="inherit_id" ref="fnet_mrp.pad_printing_process_form_view"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_material_request" type="object"
+                        class="oe_stat_button"
+                        invisible="request_count == 0">
+                        <field name="request_count" string="Material Request"
+                            widget="statinfo" invisible="0"/>
+                    </button>
+                </div>
+                <xpath expr="//header" position="inside">
+                    <button name="action_material_request" type="object"
+                        string="Request Material" invisible="state != 'draft'"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

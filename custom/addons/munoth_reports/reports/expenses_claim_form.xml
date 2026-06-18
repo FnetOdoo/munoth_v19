@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_expense_claim_form_report" model="report.paperformat">
+            <field name="name">A4 Expense Claim Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">53</field>
+            <field name="margin_bottom">6</field>
+            <field name="margin_left">20</field>
+            <field name="margin_right">20</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">25</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="expenses_claim_munoth_report" model="ir.actions.report">
+            <field name="name">Expenses Claim Report</field>
+            <field name="model">hr.expense</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.expenses_claim_report</field>
+            <field name="report_file">munoth_reports.expenses_claim_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_expense_claim_form_report"/>
+            <field name="binding_model_id" ref="hr_expense.model_hr_expense"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="expenses_claim_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class="page">
+                            <div class="header">
+                                <h1 style="text-align:center;color:black!important;">
+                                    <strong>
+                                        <span style="font-weight:bold;font-size:50px;">
+                                            <img src="/web/binary/company_logo" style="height:65px;"/>
+                                            Munoth Industries Limited
+                                        </span>
+                                    </strong>
+                                </h1>
+                                <strong style="text-align:center;color:black!important;">
+                                    <center>19,EMC-11,Vikruthamala Village, Yerpedu Mandai, Renigunta, Tirupati-517526</center>
+                                </strong>
+                            </div>
+                            <div class="page">
+                                <center><b style="font-weight:bold;font-size:25px;"><u>Expense Claim Form</u></b></center>
+                                <br/>
+                                <div style="width:60%;height:150px;float:left;">
+                                    <strong>Employee Name :</strong><span t-field="o.employee_id"/><br/>
+                                    <strong>Department : </strong><span t-field="o.employee_id.department_id"/><br/>
+                                    <strong>Designation : </strong><span t-field="o.employee_id.job_id"/><br/>
+                                    <br/>
+                                    <p/>
+                                </div>
+                                <div style="width:40%;height:150px;float:right;">
+                                    <strong>Claim Date : <span t-field="o.date"/></strong>
+                                    <p/>
+                                    <br/>
+                                </div>
+                                <table style="width:100%;border-right:2px solid black;border-bottom:2px solid black;border-top:2px solid black;border-left:2px solid black;page-break-before:avoid;height:300px;" cellspacing="0">
+                                    <thead style="line-height:1.2;">
+                                        <th style="font-weight:bold;width:10%;height:25px;border-right:2px solid black;text-align:center;border-bottom:2px solid black;border-top:2px solid black;vertical-align:middle;">
+                                            SI No
+                                        </th>
+                                        <th style="font-weight:bold;width:25%;height:25px;border-right:2px solid black;text-align:center;border-bottom:2px solid black;border-top:2px solid black;vertical-align:middle;">
+                                            Category
+                                        </th>
+                                        <th style="font-weight:bold;width:33%;height:25px;border-right:2px solid black;text-align:center;border-bottom:2px solid black;border-top:2px solid black;vertical-align:middle;">
+                                            Description
+                                        </th>
+                                        <th style="font-weight:bold;width:15%;height:25px;border-right:2px solid black;text-align:center;border-bottom:2px solid black;border-top:2px solid black;vertical-align:middle;">
+                                            Amount
+                                        </th>
+                                    </thead>
+                                    <tbody>
+                                        <!--
+                                            Odoo 19: hr.expense.sheet is removed.
+                                            hr.expense is now a flat record — one expense per doc.
+                                            Each doc in the foreach is one hr.expense record.
+                                        -->
+                                        <t t-set="counter" t-value="1"/>
+                                        <tr style="font-size:16px;">
+                                            <td style="width:10%;border-right:2px solid black;text-align:center;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="counter"/>
+                                            </td>
+                                            <td style="width:25%;padding-left:2px;border-right:2px solid black;vertical-align:top;text-align:left;padding-top:0px;">
+                                                <span t-esc="o.product_id.name"/>
+                                            </td>
+                                            <td style="width:33%;text-align:center;border-right:2px solid black;vertical-align:top;padding-top:0px;">
+                                                <span t-out="o.name"/>
+                                            </td>
+                                            <td style="width:15%;text-align:center;border-right:2px solid black;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="o.total_amount_company"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <br/>
+                                <br/>
+                                <p/>
+                                <div>
+                                    <table style="width:100%;height:200px;font-size:16px;text-align:justify;page-break-inside:avoid;" cellspacing="0">
+                                        <tr>
+                                            <td style="width:10%;text-align:center;">
+                                                <strong>Prepared by</strong>
+                                            </td>
+                                            <td style="width:10%;text-align:center;">
+                                                <strong>Checked by</strong>
+                                            </td>
+                                            <td style="width:10%;text-align:center;">
+                                                <strong>Passed by</strong>
+                                            </td>
+                                            <td style="width:10%;text-align:center;">
+                                                <strong>Employee Signature</strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

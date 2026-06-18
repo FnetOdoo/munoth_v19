@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function name="write" model="ir.model.data">
+            <function name="search" model="ir.model.data">
+                <value eval="[('name', '=', 'email_template_rfq_approval_request'), ('module', '=', 'purchase_approval')]"/>
+            </function>
+            <value eval="{'noupdate': False}"/>
+        </function>
+
+        <record id="email_template_purchase_rfq_rejected" model="mail.template">
+            <field name="name">RFQ Rejected</field>
+            <field name="email_from">${user.email}</field>
+            <field name="subject">RFQ Rejected</field>
+            <field name="email_to">${object.purchase_order_approval_history[-1].user.email}</field>
+            <field name="model_id" ref="purchase.model_purchase_order" />
+            <field name="auto_delete" eval="False" />
+            <field name="body_html">
+                <![CDATA[
+<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+    <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
+        <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
+            RFQ Rejected
+        </strong>
+    </div>
+    <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
+        <p>Hello ${object.purchase_order_approval_history[-1].user.name},</p>
+
+        <p>RFQ ${object.name} has been rejected by ${object.user_id.name}. Please review this with the approver and make changes to the record, then re-send for approval. </p>
+    </div>
+</div>
+            ]]>
+            </field>
+        </record>
+    <function name="write" model="ir.model.data">
+            <function name="search" model="ir.model.data">
+                <value eval="[('name', '=', 'email_template_rfq_approval_request'), ('module', '=', 'purchase_approval')]"/>
+            </function>
+            <value eval="{'noupdate': True}"/>
+        </function>
+
+</odoo>

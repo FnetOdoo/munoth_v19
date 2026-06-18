@@ -1,0 +1,13 @@
+<odoo>
+    <data>
+        <record id="ir_cron_check_renewal" model="ir.cron">
+            <field name="name">Renewal Check Cron</field>
+            <field name="model_id" ref="model_renewal_renewal"/>
+            <field name="state">code</field>
+            <field name="code">model.check_renewal_cron()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

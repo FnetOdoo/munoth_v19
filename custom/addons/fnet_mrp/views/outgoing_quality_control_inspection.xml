@@ -1,0 +1,215 @@
+<odoo>
+    <data>
+        <record id="view_outgoing_quality_control_form" model="ir.ui.view">
+            <field name="name">outgoing.quality.control.form.view</field>
+            <field name="model">outgoing.quality.control</field>
+            <field name="arch" type="xml">
+                <form string="Outgoing Quality Control">
+                    <sheet>
+                        <div style="text-align:center;">
+                            <h1>
+                                <b><span>Outgoing Quality Control Inspection Report (OQC)</span></b>
+                            </h1>
+                            <group style="text-align:right;padding-top:-150px;position:relative;top:-50px;right:-30px;">
+                                <label for="name" invisible="1"/>
+                                <field name="name" string="Doc No.:"/>
+                                <br/>
+                                <label for="rev" invisible="1"/>
+                                <field name="rev" string="Rev" />
+                                <br/>
+                                <label for="effective_date" invisible="1"/>
+                                <field name="effective_date" string="Effective Date"/>
+                            </group>
+                        </div>
+                        <group colspan="4" col="2">
+                            <field name="stock_id" required="1" style="width:200px;"/>
+                        </group>
+                        <hr/>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th><span>Date:</span></th>
+                                    <th><field name="date" style="font-weight: normal"/></th>
+                                    <th><span>Customer Name</span></th>
+                                    <th><field name="customer_name" style="font-weight: normal"/></th>
+                                    <th><span>Invoice No</span></th>
+                                    <th><field name="stock_ref" style="font-weight: normal"/></th>
+                                    <th colspan="4"><field name="stock_type" style="font-weight: normal" widget="radio" options="{'horizontal': true}"/></th>
+                                    <th><span>Lot No</span></th>
+                                    <th><field name="lot_no" style="font-weight: normal"/></th>
+                                </tr>
+                                <tr>
+                                    <th><span>AQL</span></th>
+                                    <th><field name="aql" style="font-weight: normal"/></th>
+                                    <th><span>Material</span></th>
+                                    <th><field name="material" style="font-weight: normal"/></th>
+                                    <th><span>Model</span></th>
+                                    <th><field name="model_id" style="font-weight: normal"/></th>
+                                    <th><span>Total Qty:</span></th>
+                                    <th><field name="total_qty" style="font-weight: normal"/></th>
+                                    <th><span>Sample Size:</span></th>
+                                    <th><field name="sample_size" style="font-weight: normal"/></th>
+                                    <th><span>Checked By</span></th>
+                                    <th><field name="checked_by" style="font-weight: normal"/></th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <table class="table table-bordered" style="border: 1px solid black;position:relative;top:-13px;">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width:90px; vertical-align: middle; text-align: center;"><span>S.No</span></th>
+                                    <th rowspan="2" style="width:145px; vertical-align: middle; text-align: center;"><span>Test Name</span></th>
+                                    <th rowspan="2" style="width:205px; vertical-align: middle; text-align: center;"><span>Standard Parameter</span></th>
+                                    <th rowspan="2" style="width:150px; vertical-align: middle; text-align: center;"><span>Sort</span></th>
+                                    <th rowspan="2" style="width:184px; vertical-align: middle; text-align: center;"><span>Test Method</span></th>
+                                    <th colspan="5" style="vertical-align: middle; text-align: center;"><span>Observation</span></th>
+                                    <th rowspan="2" style="width:109px; vertical-align: middle; text-align: center;" ><span>Tolerance</span></th>
+                                    <th rowspan="2" style="width:100px; vertical-align: middle; text-align: center;"><span>Result</span></th>
+                                    <th rowspan="2" style="width:227px; vertical-align: middle; text-align: center;"><span>Remarks</span></th>
+                                </tr>
+                                <tr>
+                                    <th style="vertical-align: middle; text-align: center;"><span>1</span></th>
+                                    <th style="vertical-align: middle; text-align: center;"><span>2</span></th>
+                                    <th style="vertical-align: middle; text-align: center;"><span>3</span></th>
+                                    <th style="vertical-align: middle; text-align: center;"><span>4</span></th>
+                                    <th style="vertical-align: middle; text-align: center;"><span>5</span></th>
+                                </tr>
+                            </thead>
+                            <tbody style="vertical-align: middle; text-align: center;">
+                                <tr>
+                                    <td>1.</td>
+                                    <td>Weight</td>
+                                    <td>125±5 g</td>
+                                    <td>Critical</td>
+                                    <td>Weighing Balance</td>
+                                    <td colspan="5"><field name="weight_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="weight_result"/></td>
+                                    <td><field name="weight_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>2.</td>
+                                    <td>Cell Thickness</td>
+                                    <td>12 mm (Max)</td>
+                                    <td>General</td>
+                                    <td>Thickness gauge</td>
+                                    <td colspan="5"><field name="cell_thickness_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="cell_thickness_result"/></td>
+                                    <td><field name="cell_thickness_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>3.</td>
+                                    <td>Cell Width</td>
+                                    <td>62 mm (Max)</td>
+                                    <td>General</td>
+                                    <td>Vernier caliber</td>
+                                    <td colspan="5"><field name="cell_width_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="cell_width_result"/></td>
+                                    <td><field name="cell_width_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>4.</td>
+                                    <td>Cell Length</td>
+                                    <td>80 mm (Max)</td>
+                                    <td>General</td>
+                                    <td>Vernier caliber</td>
+                                    <td colspan="5"><field name="cell_length_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="cell_length_result"/></td>
+                                    <td><field name="cell_length_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>5.</td>
+                                    <td>OCV</td>
+                                    <td>3.7 V-4.1V</td>
+                                    <td>General</td>
+                                    <td>OCV tester</td>
+                                    <td colspan="5"><field name="ocv_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="ocv_result"/></td>
+                                    <td><field name="ocv_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>6.</td>
+                                    <td>IR</td>
+                                    <td>15-40 mΩ</td>
+                                    <td>Critical</td>
+                                    <td>IR tester</td>
+                                    <td colspan="5"><field name="ir_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="ir_result"/></td>
+                                    <td><field name="ir_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>7.</td>
+                                    <td>Logo &amp; QR</td>
+                                    <td>MIL design</td>
+                                    <td>General</td>
+                                    <td>Visual Check</td>
+                                    <td colspan="5"><field name="logo_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="logo_result"/></td>
+                                    <td><field name="logo_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>8.</td>
+                                    <td>Printing</td>
+                                    <td>MIL design</td>
+                                    <td>General</td>
+                                    <td>Visual Check</td>
+                                    <td colspan="5"><field name="printing_observation"/></td>
+                                    <td>NA</td>
+                                    <td><field name="printing_result"/></td>
+                                    <td><field name="printing_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>9.</td>
+                                    <td>Visual</td>
+                                    <td>
+                                        ( Dent, Scratches, Leakages,Tab damages,<br/>
+                                        Physical damges, Black dots, dirty, Siver<br/>
+                                        marks, Pin holes, improper Printing  etc….)
+                                    </td>
+                                    <td>General</td>
+                                    <td>Visual Check</td>
+                                    <td colspan="5">None</td>
+                                    <td>NA</td>
+                                    <td><field name="visual_result"/></td>
+                                    <td><field name="visual_remarks"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+         <record id="view_outgoing_quality_control_list" model="ir.ui.view">
+            <field name="name">outgoing.quality.control.list.view</field>
+            <field name="model">outgoing.quality.control</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="customer_name"/>
+                    <field name="stock_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_outgoing_quality_control_action" model="ir.actions.act_window">
+            <field name="name">Outgoing Quality Control Inspection</field>
+            <field name="res_model">outgoing.quality.control</field>
+            <field name="domain">[]</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                   Outgoing Quality Control Inspection Report (OQC)
+                </p>
+            </field>
+        </record>
+
+<!--        <menuitem id="menu_mrp_outgoing_quality_control_inspection" name="Outgoing Quality Control Inspection Report" parent="fnet_mrp.menu_mrp_quality"-->
+<!--                  sequence="4" action="view_outgoing_quality_control_action" />-->
+    </data>
+</odoo>

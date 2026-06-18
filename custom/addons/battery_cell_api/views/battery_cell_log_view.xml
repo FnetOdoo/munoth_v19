@@ -1,0 +1,245 @@
+<odoo>
+    <record id="view_battery_cell_log_list" model="ir.ui.view">
+        <field name="name">battery.cell.log.list</field>
+        <field name="model">battery.cell.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="serial_number"/>
+                <field name="creation_time"/>
+                <field name="model_br"/>
+                <field name="battery_voltage_v"/>
+                <field name="voltage_pass_ng_br"/>
+                <field name="battery_weight_pass_ng"/>
+                <field name="encapsulation_id_br"/>
+                <field name="vsn_br"/>
+                <field name="equipment_number"/>
+                <field name="bar_code_pass_ng_br"/>
+                <field name="status_br"/>
+                <field name="bar_code"/>
+                <field name="side_voltage"/>
+                <field name="side_voltage_ng"/>
+                <field name="battery_weight"/>
+                <field name="residual_liquid"/>
+                <field name="residual_liquid_ng"/>
+                <field name="package_upper"/>
+                <field name="encapsulation_lower"/>
+                <field name="encapsulation_pre"/>
+                <field name="packaging_time"/>
+                <field name="encapsulation_vacuum"/>
+                <field name="vacuum_time"/>
+                <field name="on_seal"/>
+                <field name="under_seal"/>
+                <field name="time_seal"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_battery_cell_log_form" model="ir.ui.view">
+        <field name="name">battery.cell.log.form</field>
+        <field name="model">battery.cell.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="serial_number"/>
+                        <field name="creation_time"/>
+                        <field name="model_br"/>
+                        <field name="battery_voltage_v"/>
+                        <field name="voltage_pass_ng_br"/>
+                        <field name="battery_weight_pass_ng"/>
+                        <field name="encapsulation_id_br"/>
+                        <field name="vsn_br"/>
+                        <field name="equipment_number"/>
+                        <field name="bar_code_pass_ng_br"/>
+                        <field name="status_br"/>
+                        <field name="bar_code"/>
+                        <field name="side_voltage"/>
+                        <field name="side_voltage_ng"/>
+                        <field name="battery_weight"/>
+                        <field name="residual_liquid"/>
+                        <field name="residual_liquid_ng"/>
+                        <field name="package_upper"/>
+                        <field name="encapsulation_lower"/>
+                        <field name="encapsulation_pre"/>
+                        <field name="packaging_time"/>
+                        <field name="encapsulation_vacuum"/>
+                        <field name="vacuum_time"/>
+                        <field name="on_seal"/>
+                        <field name="under_seal"/>
+                        <field name="time_seal"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_battery_cell_log" model="ir.actions.act_window">
+        <field name="name">Battery Cell Logs</field>
+        <field name="res_model">battery.cell.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_battery_cell_root" name="API Logs" sequence="1000"
+              web_icon="battery_cell_api,static/description/icon.png" groups="base.group_no_one"/>
+    <menuitem id="menu_battery_cell_log" name="Battery Logs" parent="menu_battery_cell_root"
+              action="action_battery_cell_log" sequence="1" groups="base.group_no_one"/>
+
+    <record id="view_injection_cell_log_list" model="ir.ui.view">
+        <field name="name">injection.cell.log.list</field>
+        <field name="model">injection.cell.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="time"/>
+                <field name="id_device"/>
+                <field name="work_order_no"/>
+                <field name="shift"/>
+                <field name="product_no"/>
+                <field name="cell_barcode"/>
+                <field name="before_weight"/>
+                <field name="after_weight"/>
+                <field name="volume"/>
+                <field name="ok_ng"/>
+                <field name="injection_needle"/>
+                <field name="lot_no"/>
+                <field name="number"/>
+                <field name="operator"/>
+                <field name="vacuum"/>
+                <field name="temperature"/>
+                <field name="injection_cavity"/>
+                <field name="seal_pressure"/>
+                <field name="sealing"/>
+                <field name="pressure"/>
+                <field name="pressure_holding_time"/>
+                <field name="pre_sealed_vacuum"/>
+                <field name="seal_pressure_time"/>
+                <field name="pressure_holding_time_inj"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_injection_cell_log_form" model="ir.ui.view">
+        <field name="name">injection.cell.log.form</field>
+        <field name="model">injection.cell.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="time"/>
+                        <field name="id_device"/>
+                        <field name="work_order_no"/>
+                        <field name="shift"/>
+                        <field name="product_no"/>
+                        <field name="cell_barcode"/>
+                        <field name="before_weight"/>
+                        <field name="after_weight"/>
+                        <field name="volume"/>
+                        <field name="ok_ng"/>
+                        <field name="injection_needle"/>
+                        <field name="lot_no"/>
+                        <field name="number"/>
+                        <field name="operator"/>
+                        <field name="vacuum"/>
+                        <field name="temperature"/>
+                        <field name="injection_cavity"/>
+                        <field name="seal_pressure"/>
+                        <field name="sealing"/>
+                        <field name="pressure"/>
+                        <field name="pressure_holding_time"/>
+                        <field name="pre_sealed_vacuum"/>
+                        <field name="seal_pressure_time"/>
+                        <field name="pressure_holding_time_inj"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_injection_cell_log" model="ir.actions.act_window">
+        <field name="name">Injection Cell Logs</field>
+        <field name="res_model">injection.cell.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <menuitem id="menu_injection_cell_log" name="Injection Logs"
+              parent="menu_battery_cell_root" action="action_injection_cell_log" sequence="1"
+              groups="base.group_no_one"/>
+
+
+    <record id="view_cell_clamp_baking_log_list" model="ir.ui.view">
+        <field name="name">cell.clamp.baking.log.list</field>
+        <field name="model">cell.clamp.baking.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="unit"/>
+                <field name="step_no"/>
+                <field name="step_status"/>
+                <field name="start_voltage"/>
+                <field name="end_voltage"/>
+                <field name="start_current"/>
+                <field name="end_current"/>
+                <field name="start_capacity"/>
+                <field name="end_capacity"/>
+                <field name="start_energy"/>
+                <field name="end_energy"/>
+                <field name="mean_voltage"/>
+                <field name="avg_voltage"/>
+                <field name="cc_time"/>
+                <field name="cc_capacity"/>
+                <field name="cv_time"/>
+                <field name="cv_capacity"/>
+                <field name="cc_percent"/>
+                <field name="barcode"/>
+                <field name="condition_end"/>
+                <field name="cycle_no"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cell_clamp_baking_log_form" model="ir.ui.view">
+        <field name="name">cell.clamp.baking.log.form</field>
+        <field name="model">cell.clamp.baking.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="unit"/>
+                        <field name="step_no"/>
+                        <field name="step_status"/>
+                        <field name="start_voltage"/>
+                        <field name="end_voltage"/>
+                        <field name="start_current"/>
+                        <field name="end_current"/>
+                        <field name="start_capacity"/>
+                        <field name="end_capacity"/>
+                        <field name="start_energy"/>
+                        <field name="end_energy"/>
+                        <field name="mean_voltage"/>
+                        <field name="avg_voltage"/>
+                        <field name="cc_time"/>
+                        <field name="cc_capacity"/>
+                        <field name="cv_time"/>
+                        <field name="cv_capacity"/>
+                        <field name="cc_percent"/>
+                        <field name="barcode"/>
+                        <field name="condition_end"/>
+                        <field name="cycle_no"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cell_clamp_baking_log" model="ir.actions.act_window">
+        <field name="name">Cell Clamp Baking Logs</field>
+        <field name="res_model">cell.clamp.baking.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_cell_clamp_baking_log" name="Baking Logs"
+              parent="menu_battery_cell_root" action="action_cell_clamp_baking_log" sequence="2"
+              groups="base.group_user"/>
+
+</odoo>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="payslip_munoth_report" model="ir.actions.report">
+            <field name="name">Payslip Report</field>
+            <field name="model">hr.payslip</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.hr_payslip_munoth_report</field>
+            <field name="report_file">munoth_reports.hr_payslip_munoth_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_payslip_report"/>
+            <field name="binding_model_id" ref="hr_payroll_community.model_hr_payslip"/>
+            <field name="binding_type">report</field>
+        </record>
+
+         <template id="custom_header_footer">
+            <t t-set="company" t-value="user.company_id"/>
+            <div class="header">
+                <table style="width:100%;" class="table table-borderless">
+                    <tr>
+                        <td style="width:100%; text-align:center; font-size:26px;">
+                            <strong>Payslip -
+                                <span t-esc="o.date_from.strftime('%B %Y')"/>
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="footer">
+                <div>
+                    <p style="width:100%;text-align:center;">
+                        <i>This is a computer-generated salary slip. Does not require a Signature</i>
+                    </p>
+                </div>
+                <div>
+                    <div style="border-bottom: 1px solid black;"/>
+                </div>
+                <br/>
+                <td style="width:100%; text-align:center; font-size:18px;">
+                    <strong>
+                        <div t-field="company.name" t-attf-style="text-align:center; font-size:20px;"/>
+                    </strong>
+                    <div style="width:100%; text-align:center;">
+                        <span t-field="company.street"/>
+                        <span t-field="company.street2"/>,<span t-field="company.city"/>,
+                        <span t-field="company.zip"/>
+                    </div>
+                </td>
+            </div>
+        </template>
+        <template id="hr_payslip_munoth_report_new">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+                    <t t-call="munoth_reports.custom_header_footer"/>
+                    <div class="page">
+                        <table style="width:100%; border:1px solid black; background-color:lightgrey;">
+                            <tr>
+                                <td style="width:100%; text-align:center;">
+                                    <strong>Employee Details</strong>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width=100%; border:1px solid black;" class="table table-borderless">
+                            <tr>
+                                <td style="width:20%; padding-right:50px">Name<td style="width:30%; padding-right:50px">: <span t-field="o.employee_id"/></td></td>
+
+                                <td style="width:15%;">Employee ID<td style="width:35%;">: <span t-field="o.employee_id.employee_id"/></td></td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%; padding-right:50px">Designation<td style="width:30%; padding-right:50px">: <span t-field="o.employee_id.job_id"/></td></td>
+                                <td style="width:15%;">Department<td style="width:35%;">: <span t-field="o.employee_id.department_id"/></td></td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%; padding-right:50px">Date of Joining<td style="width:30%; padding-right:50px">: <span t-field="o.employee_id.joining_date"/></td></td>
+                                <td style="width:15%;"><td style="width:35%;"></td></td>
+                            </tr>
+                            <tr>
+                                    <td style="width:20%; padding-right:50px">PF/UAN Number<td style="width:30%; padding-right:50px">: <span t-field="o.employee_id.pf_uan_no"/></td></td>
+                                <td style="width:15%;">Mode of Payment<td style="width:35%;">: <span  t-field="o.employee_id.mode_of_payment"/></td></td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%; padding-right:50px">Bank Account Number<td style="width:30%; padding-right:50px">: <span t-field="o.employee_id.bank_account_ids"/></td></td>
+                                <td style="width:15%;">ESI No<td style="width:35%;">: <span  t-field="o.employee_id.esi_no"/></td></td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%; padding-right:50px">LOP Days<td style="width:30%; padding-right:50px">: <span t-field="o.lop_days"/></td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <br/>
+<!--                        <div class="watermark_logo"-->
+<!--                             style="position:absolute;opacity:0.50;z-index:1000;-webkit-transform:rotate(325deg);text-align:center;width:100%;">-->
+<!--                            <td>-->
+<!--                                <img t-attf-src="/hr_payroll_extended/static/src/img/logo.png" width="750"-->
+<!--                                     height="205"/>-->
+<!--                            </td>-->
+<!--                        </div>-->
+                        <table width="100%" cellpadding="0px" cellspacing="0px" style="padding:0px;" >
+                            <tr>
+                                <td width="50%" height="300px" style="border:1px solid black;">
+                                    <table width="100%" cellpadding="0px" cellspacing="0px" style="padding:0px;">
+                                        <tr>
+                                            <td height="20px" width="25%"
+                                                style="border-bottom:1px solid black;border-right:1px solid black;text-align:center;padding-left:5px;">
+                                                <strong>Earnings</strong>
+                                            </td>
+                                            <td height="20px" width="25%"
+                                                style="border-bottom:1px solid black;border-right:1px solid black;text-align:center;padding-right:5px">
+                                                <strong>Amount</strong>
+                                            </td>
+                                        </tr>
+                                        <tr t-foreach="o.line_ids.filtered(lambda x: x.category_id.code in ['BASIC', 'ALW'] and x.amount != 0)"
+                                            t-as="line_id">
+                                            <td height="20px" width="25%" style="padding-left:5px">
+                                                <span t-field="line_id.name"/>
+                                            </td>
+                                            <td height="20px" width="25%"
+                                                style="text-align:right; padding-right:5px">
+                                                <span t-field="line_id.total"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td width="50%" height="300px" style="border:1px solid black;">
+                                    <table width="100%" cellpadding="0px" cellspacing="0px" style="padding:0px;">
+                                        <tr>
+                                            <td height="20px" width="25%"
+                                                style="border-bottom:1px solid black;border-right:1px solid black;text-align:center;padding-left:5px;">
+                                                <strong>Deductions</strong>
+                                            </td>
+                                            <td height="20px" width="25%"
+                                                style="border-bottom:1px solid black;text-align:center;padding-right:5px">
+                                                <strong>Amount</strong>
+                                            </td>
+                                        </tr>
+                                        <tr t-foreach="o.line_ids.filtered(lambda x: x.category_id.code in ['DED'] and x.amount != 0)"
+                                            t-as="line_id">
+                                            <td height="20px" width="25%" style="padding-left:5px">
+                                                <span t-field="line_id.name"/>
+                                            </td>
+                                            <td height="20px" width="25%"
+                                                style="text-align:right; padding-right:5px">
+                                                <span t-field="line_id.total"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width:100%; border:1px solid black;">
+                            <tr>
+                                <td style="width:25%; text-align:left;">
+                                    <strong>Total Earnings</strong>
+                                </td>
+                                <td style="width:25%; text-align:right;padding-right:5px;">
+                                    <t t-foreach="o.line_ids" t-as="line_id">
+                                        <t t-if="line_id.code == 'GROSS'">
+                                            <span t-field="line_id.total"/>
+                                        </t>
+                                    </t>
+                                </td>
+                                <td style="width:25%; text-align:left;">
+                                    <strong>Total Deductions</strong>
+                                </td>
+                                <td style="width:25%; text-align:right;padding-right:5px;">
+                                    <span t-esc="o.calculate_deductions()"/>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width:100%; border:1pt solid black;">
+                            <tr>
+                                <td style="width:10%; text-align:left;"><strong>In Words: </strong></td>
+                                <td style="width:65%; text-align:left;"><span t-esc="o.get_amount_in_words()"/>Only</td>
+                                <td style="width:13%; text-align:right;"><strong>Net Pay: </strong></td>
+                                <td style="width:12%; text-align:right;border-right:1pt solid black;">
+                                    <t t-foreach="o.line_ids" t-as="line_id">Base for new structures
+                                        <t t-if="line_id.code == 'NET'">
+                                            <span t-field="line_id.total"/>
+                                        </t>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width:100%;" class="table table-borderless">
+                            <tr>
+                                <td style="width:10%; text-align:left;"><strong>Note: </strong></td>
+                                <td style="width:65%; text-align:left;"><span t-esc="o.note"/></td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </template>
+        <template id="hr_payslip_munoth_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="munoth_reports.hr_payslip_munoth_report_new"/>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

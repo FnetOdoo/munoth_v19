@@ -1,0 +1,110 @@
+<odoo>
+    <data>
+        <menuitem name="Costing Configuration" id="menu_costing_config" parent="sale.menu_sale_config"/>
+        <!--        Master for Other Charges-->
+        <record id="view_other_salecost_form" model="ir.ui.view">
+            <field name="name">other_salecost_form</field>
+            <field name="model">other.salecost</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="cost_type"/>
+                            </group>
+                            <group>
+                                <field name="amount"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_other_salecost_list" model="ir.ui.view">
+            <field name="name">other.salecost.list</field>
+            <field name="model">other.salecost</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="amount"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_other_salecost" model="ir.actions.act_window">
+            <field name="name">Other Charges</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">other.salecost</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{}</field>
+        </record>
+        <menuitem action="action_other_salecost" id="menu_other_salecost" parent="menu_costing_config"/>
+        <!--        Template for Other Charges-->
+        <record id="view_other_salecost_template_form" model="ir.ui.view">
+            <field name="name">view.other.salecost.template.form</field>
+            <field name="model">other.salecost.template</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <notebook>
+                            <page string="Other Charges">
+                                <field name="charge_ids">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="type"/>
+                                        <field name="amount"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_other_salecost_template_list" model="ir.ui.view">
+            <field name="name">other.salecost.template.list</field>
+            <field name="model">other.salecost.template</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_other_salecost_template" model="ir.actions.act_window">
+            <field name="name">Other Charges Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">other.salecost.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{}</field>
+        </record>
+        <menuitem action="action_other_salecost_template" id="menu_other_salecost_template"
+                  parent="menu_costing_config"/>
+
+        <record id="view_cost_cancel_request_form" model="ir.ui.view">
+            <field name="name">cost.cancel.request.form</field>
+            <field name="model">cost.cancel.request</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <footer>
+                        <button name="action_confirm" type="object" string="Confirm" class="oe_highlight"/>
+                        <button name="cancel" string="Cancel" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

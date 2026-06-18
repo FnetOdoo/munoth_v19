@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Migration v15→v19:
+    - t-extend / t-jquery QWeb directives removed in v17+ (legacy widget patching)
+    - Replaced with OWL xml template override
+    - The button is now rendered via the ButtonInTreeListController component
+      registered in tree_view_button.js (js_class="button_in_tree")
+    - Original button label "Download" and open_wizard_action class preserved
+-->
+<templates xml:space="preserve">
+    <!-- OWL v2 template for the custom list controller buttons -->
+    <t t-name="munoth_reports.buttons" owl="1">
+        <!-- Inherit the standard list buttons template and add Download button after -->
+        <t t-call-block="web.ListView.buttons">
+            <t t-set-slot="after-add-button">
+                <button
+                    style="margin-left: 10px;margin-right: 10px;"
+                    type="button"
+                    class="btn btn-primary fa fa-download open_wizard_action"
+                    t-on-click="() => this._OpenWizard()">
+                   Download
+                </button>
+            </t>
+        </t>
+    </t>
+</templates>

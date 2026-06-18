@@ -1,0 +1,38 @@
+{
+    'name': 'Sale Proforma',
+    'version': '19.0.1.0.0',
+    'summary': '',
+    'sequence': 16,
+    'description': """
+
+    """,
+    'category': '',
+    'website': '',
+    'images': [],
+    'depends': [
+        'base',
+        'sale',
+        'sale_management',
+        'purchase',
+        'account',
+        'mrp_material_request',
+        'purchase_approval',
+        'sale_expected_delivery',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'security/group_security.xml',
+        'data/purchase_data.xml',
+        'data/sequence.xml',
+        'views/sale_proforma_add.xml',
+        'views/proforma_button.xml',
+        'views/vendor_evaluation.xml',
+        'report/vendor_evaluation.xml',
+        'wizard/stock_picking.xml',
+    ],
+    'demo': [],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+    'license': 'LGPL-3',
+}

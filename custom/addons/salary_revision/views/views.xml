@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!--
+        ══════════════════════════════════════════════════════════════════
+        MIGRATION NOTE — views.xml (v15 → v19)
+        ══════════════════════════════════════════════════════════════════
+
+        v15 had ONE view record:
+          model      : hr.contract
+          inherit_id : hr_contract.hr_contract_view_form
+          Changes:
+            • Added "Salary History" page (one2many history_line)
+            • Added "Salary Revision" button in header
+
+        v19 changes:
+          • hr.contract does NOT exist → view target changed to hr.employee
+          • inherit_id → hr.view_employee_form
+          • history_line one2many still works (now linked via employee_id)
+          • "Salary Revision" action button now targets hr.employee
+          • XPath updated: employee form uses <notebook>, not page[2]
+        ══════════════════════════════════════════════════════════════════
+        -->
+
+        <!-- ── hr.employee form: Salary History tab + Salary Revision button ── -->
+        <record id="hr_employee_form_salary_history" model="ir.ui.view">
+            <field name="name">hr.employee.form.salary.history</field>
+            <field name="model">hr.employee</field>
+            <!--
+                v15: hr_contract.hr_contract_view_form
+                v19: hr.view_employee_form  (hr.contract fully removed)
+            -->
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Button in employee form header -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button type="action"
+                            name="%(salary_revision.action_salary_revision_wiz)d"
+                            string="Salary Revision"
+                            class="oe_stat_button"
+                            icon="fa-money"/>
+                </xpath>
+
+                <!-- Salary History tab inside the notebook -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="Salary History" name="salary_history">
+                        <field name="effective_date"/>
+                        <field name="history_line" readonly="1">
+                            <list>
+                                <!--
+                                    v15 had contract_id column — removed in v19.
+                                    employee_id is already known (parent record).
+                                -->
+                                <field name="effective_date"/>
+                                <field name="old_basic"/>
+                                <field name="old_wage"/>
+                                <field name="old_structure_id"/>
+                                <field name="create_date" optional="show"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

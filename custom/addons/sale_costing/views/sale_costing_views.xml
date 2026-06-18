@@ -1,0 +1,265 @@
+<odoo>
+    <data>
+        <record id="sale_costing_form" model="ir.ui.view">
+            <field name="name">sale_costing_form</field>
+            <field name="model">sale.costing</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object"
+                                class="oe_highlight"
+                                invisible="state != 'draft'"/>
+                        <button name="action_revision" string="Revise Costing" type="object"
+                                invisible="state not in ('confirm', 'reject')"/>
+                        <button name="action_create_quotation" string="Create Quotation" type="object"
+                                class="oe_highlight"
+                                invisible="sale_count != 0 or state != 'confirm'"/>
+                        <button name="action_sale_revision" string="Revise Quotation" type="object"
+                                class="oe_highlight"
+                                invisible="sale_count == 0 or state != 'confirm'"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state != 'draft'"/>
+<!--                        <button name="print_costing" string="Print" type="object"/>-->
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
+                    </header>
+                    <sheet>
+                        <field name="sale_count" invisible="1"/>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_sale" type="object" class="oe_stat_button"
+                                    icon="fa-pencil-square-o"
+                                    invisible="sale_count == 0">
+                                <field name="sale_count" widget="statinfo" string="Orders"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="partner_id"  readonly="state != 'draft'"/>
+<!--                                <field name="agreement_id"/>-->
+                                <field name="opportunity_id"/>
+                                <field name="company_id"/>
+                                <field name="currency_id"/>
+                                <field name="margin_percentage"/>
+                            </group>
+                            <group>
+                                <field name="date"/>
+                                <field name="other_cost_template_id"/>
+                                <field name="pricelist_id" required="1" readonly="state != 'draft'"/>
+                                <field name="to_currency_id" invisible="1"/>
+                                <field name="conversion_rate"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Products">
+                                <field name="line_ids" mode="list"  readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="company_id" column_invisible="1"/>
+                                        <field name="to_currency_id" column_invisible="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="item_no"/>
+                                        <field name="product_id"/>
+                                        <field name="product_uom_qty"/>
+<!--                                        <field name="product_uom_category_id" column_invisible="1"/>-->
+                                        <field name="product_uom"/>
+                                        <field name="price_unit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="margin_percentage" column_invisible="1"/>
+                                        <field name="price_subtotal" string="without Margin" sum="Margin"
+                                               widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="1"/>
+                                        <field name="price_total" sum="Total" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" column_invisible="1"/>
+                                        <field name="amount_other_charge" string="Charges" sum="Total" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" column_invisible="1"/>
+                                        <field name="amount_charge_selling" string="Charges" sum="Total" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="base_sale_price" string="Base Sale Price" sum="Total"
+                                               widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="1"/>
+                                        <field name="unit_sale_price" string="Sale Price/Unit" widget="monetary"
+                                               sum="Total"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="sale_price" string="Total Sale Price" widget="monetary" sum="Total"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="factored_unit_sale_price" string="Factored Sale Price/Unit" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="factored_sale_price" string="Total Factored Sale Price" widget="monetary" sum="Total"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="parent_id" column_invisible="1"/>
+                                        <field name="state" column_invisible="1"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="product_id"/>
+                                                <field name="parent_id"/>
+                                                <field name="product_uom_qty"/>
+<!--                                                <field name="product_uom_category_id" invisible="1"/>-->
+                                            </group>
+                                            <group>
+                                                <field name="product_uom"/>
+                                                <field name="price_unit"/>
+                                                <field name="price_subtotal" invisible="1"/>
+                                                <field name="price_total" sum="Total"/>
+                                                <field name="amount_other_charge" string="Charges"/>
+                                                <field name="sale_price" string="Sale Price"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                                <group name="note_group" col="6">
+                                    <group colspan="4">
+                                        <field name="note" nolabel="1" placeholder="Notes..."/>
+                                    </group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name="pricing_factor"/>
+                                        <field name="price_subtotal" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="additional_subtotal" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="margin_price_total" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_total"/>
+                                        </div>
+                                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator"
+                                               widget="monetary" options="{'currency_field': 'to_currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="sale_amount_total"/>
+                                        </div>
+                                        <field name="sale_amount_total" nolabel="1"
+                                               class="oe_subtotal_footer_separator"
+                                               widget="monetary" options="{'currency_field': 'to_currency_id'}" force_save="1"/>
+                                    </group>
+                                    <div class="oe_clear"/>
+                                </group>
+                            </page>
+                            <page string="Additional Charges">
+                                <group col="4">
+                                    <field name="finance_percentage"/>
+                                    <field name="customs_duty_percentage"/>
+                                    <field name="clg_fwd_percentage"/>
+                                    <field name="freight_charges"/>
+                                </group>
+                                <field name="other_lines" mode="list"  readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="state" column_invisible="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="to_currency_id" column_invisible="1"/>
+                                        <field name="name"/>
+                                        <field name="type"/>
+                                        <field name="amount"/>
+                                        <field name="include_margin"/>
+                                        <field name="include_finance"/>
+                                        <field name="price_total" widget="monetary"
+                                               sum="Total"
+                                               options="{'currency_field': 'currency_id'}"/>
+                                        <field name="selling_price_total" widget="monetary"
+                                               sum="Total"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="state" invisible="1"/>
+                                                <field name="name"/>
+                                                <field name="type"/>
+                                                <field name="include_margin"/>
+                                            </group>
+                                            <group>
+                                                <field name="amount"/>
+                                                <field name="price_total" widget="monetary"
+                                                       sum="Total"
+                                                       options="{'currency_field': 'to_currency_id'}"/>
+                                                <field name="selling_price_total" widget="monetary"
+                                                       sum="Total"
+                                                       options="{'currency_field': 'to_currency_id'}"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                                <group name="note_group" col="6">
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="additional_charges_total">
+                                        <field name="customs_duty_total" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="clg_insurance_total" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                        <field name="additional_subtotal" widget="monetary"
+                                               options="{'currency_field': 'to_currency_id'}"/>
+                                    </group>
+                                    <div class="oe_clear"/>
+                                </group>
+                            </page>
+                            <page string="Revisions">
+                                <field name="old_revision_ids">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="create_date" string="Superseeded on"/>
+                                        <field name="create_uid" string="Superseeded by"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                                <group>
+                                    <field name="current_revision_id"/>
+                                    <field name="active"/>
+                                </group>
+                            </page>
+                            <page string="Others">
+                                <group>
+                                    <group>
+                                        <field name="user_id"/>
+                                    </group>
+                                    <group>
+                                        <field name="cancel_reason" readonly="1"
+                                               invisible="state != 'cancel'"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_sale_costing_list" model="ir.ui.view">
+            <field name="name">view.sale.costing.list</field>
+            <field name="model">sale.costing</field>
+            <field name="arch" type="xml">
+                <list string="Sales Costing" decoration-muted="state=='cancel'"
+                      multi_edit="1">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="agreement_id"/>
+                    <field name="partner_id"/>
+                    <field name="amount_total"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_sale_costing" model="ir.actions.act_window">
+            <field name="name">Costing</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.costing</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Costing can be created from purchase agreement.
+                </p>
+                <p>
+                    Once the costing completed the value cannot be modified.
+                    <br/>
+                    You will be able to create an revision and calculate the costing.
+                </p>
+            </field>
+        </record>
+
+<!--        <menuitem action="action_sale_costing" id="menu_sale_costing" sequence="98"-->
+<!--                  parent="sale.sale_order_menu"/>-->
+
+    </data>
+</odoo>

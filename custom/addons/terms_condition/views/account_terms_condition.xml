@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!-- ── account.terms form view ─────────────────────────────────────── -->
+    <record model="ir.ui.view" id="account_terms_conditions_view_form">
+        <field name="name">account.terms.conditions</field>
+        <field name="model">account.terms</field>
+        <field name="arch" type="xml">
+            <form string="Terms &amp; Conditions">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="terms_conditions_ids">
+                            <!-- v15: <tree editable="bottom"> → v19: <list> -->
+                            <list editable="bottom">
+                                <field name="value"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── account.terms list view ─────────────────────────────────────── -->
+    <record model="ir.ui.view" id="account_terms_conditions_view_list">
+        <field name="name">account.terms.conditions.view.list</field>
+        <field name="model">account.terms</field>
+        <field name="arch" type="xml">
+            <!-- v15: <tree> → v19: <list> -->
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── account.terms.template form view ────────────────────────────── -->
+    <record model="ir.ui.view" id="account_terms_conditions_template_view_form">
+        <field name="name">account.terms.conditions.template</field>
+        <field name="model">account.terms.template</field>
+        <field name="arch" type="xml">
+            <form string="Terms &amp; Conditions Template">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="terms_conditions_ids" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Window actions ───────────────────────────────────────────────── -->
+    <record id="action_account_terms_conditions" model="ir.actions.act_window">
+        <field name="name">Account Terms Conditions</field>
+        <field name="res_model">account.terms</field>
+        <!-- v15: view_mode="tree,form" → v19: list,form -->
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_account_terms_conditions_template" model="ir.actions.act_window">
+        <field name="name">Terms Conditions Template</field>
+        <field name="res_model">account.terms.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ── Menu items under Accounting > Configuration ──────────────────── -->
+    <menuitem id="menu_account_terms_conditions"
+              name="Terms &amp; Conditions"
+              action="action_account_terms_conditions"
+              parent="account.menu_finance_configuration"
+              sequence="50"/>
+
+    <menuitem id="menu_account_terms_conditions_template"
+              name="Terms &amp; Conditions Template"
+              action="action_account_terms_conditions_template"
+              parent="account.menu_finance_configuration"
+              sequence="51"/>
+
+    <!-- ── account.move form inheritance ───────────────────────────────── -->
+    <record id="account_move_terms_conditions_form_inherit" model="ir.ui.view">
+        <field name="name">account.move.inherit.terms</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+              <xpath expr="//field[@name='enable_einv']" position="after">
+                    <field name="terms_conditions_template_id" readonly="state != 'draft'" string="Terms &amp; Conditions"/>
+                </xpath>
+            <xpath expr="//field[@name='invoice_date']" position="after">
+                <field name="terms_conditions_template_id"
+                       readonly="state != 'draft'"
+                       string="Terms &amp; Conditions"/>
+            </xpath>
+
+
+            <xpath expr="//field[@name='invoice_incoterm_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Terms Conditions and Description Details tabs -->
+            <xpath expr="//page[last()]" position="after">
+
+                <page string="Terms Conditions" name="page_terms_conditions">
+                    <field name="terms_conditions_ids"
+                           readonly="state != 'draft'">
+                        <!-- v15: <tree editable="bottom"> → v19: <list> -->
+                        <list editable="bottom">
+                            <field name="terms_conditions_id" string="Name"/>
+                            <field name="terms_conditions_value_ids"
+                                   string="Value"
+                                   domain="[('terms_conditions_id','=',terms_conditions_id)]"/>
+                        </list>
+                    </field>
+                </page>
+
+                <page string="Description Details" name="page_description_details">
+                    <group>
+                        <field name="project_description"/>
+                    </group>
+                    <field name="description_detail_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="value" string="Value"/>
+                        </list>
+                    </field>
+                </page>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

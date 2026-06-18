@@ -1,0 +1,45 @@
+<odoo>
+    <!-- Tree View -->
+    <record id="view_dummy_partner_tree" model="ir.ui.view">
+        <field name="name">dummy.partner.tree</field>
+        <field name="model">dummy.partner</field>
+        <field name="arch" type="xml">
+            <list string="Dummy Partners">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="pan_no"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_dummy_partner_form" model="ir.ui.view">
+        <field name="name">dummy.partner.form</field>
+        <field name="model">dummy.partner</field>
+        <field name="arch" type="xml">
+            <form string="Dummy Partner">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="email"/>
+                        <field name="phone"/>
+                        <field name="pan_no"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menu Action -->
+    <record id="action_dummy_partner" model="ir.actions.act_window">
+        <field name="name">Dummy Partners</field>
+        <field name="res_model">dummy.partner</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_dummy_partner"
+              name="Dummy Partners"
+              action="action_dummy_partner"
+              sequence="99"/>
+</odoo>

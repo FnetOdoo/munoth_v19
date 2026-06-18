@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="manufacturing.DynamicProcessMenu">
+        <div class="o_dpm_wrapper">
+
+            <!-- ── SIDEBAR: Process Types ── -->
+            <div class="o_dpm_sidebar">
+                <div class="o_dpm_sidebar_header">
+                    <i class="fa fa-industry me-2"/>
+                    Process Types
+                </div>
+
+                <t t-if="state.loading">
+                    <div class="o_dpm_center">
+                        <i class="fa fa-spinner fa-spin fa-lg"/>
+                    </div>
+                </t>
+
+                <t t-else="">
+                    <t t-foreach="state.processTypes" t-as="ptype" t-key="ptype.id">
+                        <div
+                            class="o_dpm_menu_item"
+                            t-att-class="{ 'o_dpm_active': state.activeId === ptype.id }"
+                            t-on-click="() => this._selectType(ptype.id, ptype.name)"
+                        >
+                            <i class="fa fa-cogs me-2"/>
+                            <span t-esc="ptype.name"/>
+                        </div>
+                    </t>
+
+                    <t t-if="state.processTypes.length === 0">
+                        <div class="o_dpm_empty_side">No types found</div>
+                    </t>
+                </t>
+            </div>
+
+            <!-- ── CONTENT: Records ── -->
+            <div class="o_dpm_content">
+
+                <div class="o_dpm_content_header">
+                    <div class="o_dpm_content_title">
+                        <i class="fa fa-list-alt me-2"/>
+                        <span t-esc="state.activeLabel || 'Select a Process Type'"/>
+                        <t t-if="state.records.length > 0">
+                            <span class="o_dpm_badge" t-esc="state.records.length"/>
+                        </t>
+                    </div>
+                    <div class="o_dpm_content_actions">
+                        <t t-if="state.activeId">
+                            <button class="btn btn-sm btn-primary me-2" t-on-click="_createNew">
+                                <i class="fa fa-plus me-1"/>New
+                            </button>
+                            <button
+                                class="btn btn-sm btn-outline-secondary"
+                                t-on-click="() => this._openFullList(state.activeId, state.activeLabel)"
+                            >
+                                <i class="fa fa-external-link me-1"/>Open List
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <t t-if="state.recordsLoading">
+                    <div class="o_dpm_center">
+                        <i class="fa fa-spinner fa-spin fa-2x"/>
+                        <p class="mt-2 text-muted">Loading records...</p>
+                    </div>
+                </t>
+
+                <!-- Records Table -->
+                <t t-elif="state.records.length > 0">
+                    <div class="o_dpm_table_wrap">
+                        <table class="o_dpm_table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Product</th>
+                                    <th>Batch</th>
+                                    <th>Qty</th>
+                                    <th>State</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.records" t-as="rec" t-key="rec.id">
+                                    <tr class="o_dpm_row" t-on-click="() => this._openRecord(rec.id)">
+                                        <td>
+                                            <strong t-esc="rec.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="rec.product_id ? rec.product_id[1] : '-'"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="rec.batch_id ? rec.batch_id[1] : '-'"/>
+                                        </td>
+                                        <td t-esc="rec.product_qty"/>
+                                        <td>
+                                            <!-- ✅ state badge -->
+                                            <span t-esc="rec.state" t-att-class="_getStateBadgeClass(rec.state)"/>
+                                        </td>
+                                        <td>
+                                            <button
+                                                class="btn btn-sm btn-light"
+                                                t-on-click.stop="() => this._openRecord(rec.id)"
+                                            >
+                                                <i class="fa fa-eye"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+
+                <!-- Empty -->
+                <t t-elif="state.activeId and !state.recordsLoading">
+                    <div class="o_dpm_center">
+                        <i class="fa fa-inbox fa-3x text-muted"/>
+                        <p class="mt-3 text-muted">No records for this process type.</p>
+                        <button class="btn btn-primary mt-2" t-on-click="_createNew">
+                            <i class="fa fa-plus me-1"/>Create First Record
+                        </button>
+                    </div>
+                </t>
+
+                <!-- No selection -->
+                <t t-else="">
+                    <div class="o_dpm_center">
+                        <i class="fa fa-arrow-left fa-2x text-muted"/>
+                        <p class="mt-3 text-muted">Select a process type from the left panel.</p>
+                    </div>
+                </t>
+
+            </div>
+        </div>
+    </t>
+
+</templates>

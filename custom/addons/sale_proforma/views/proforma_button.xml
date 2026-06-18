@@ -1,0 +1,294 @@
+<odoo>
+    <record id="view_sale_order_inherited_form_button" model="ir.ui.view">
+        <field name="name">view_sale_order_inherited_form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="action_generate" type="object" string="Generate Pro-forma" class="oe_highlight" invisible="proforma_invoice != False and proforma_no != False"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sale_order_inherited_form_company_details" model="ir.ui.view">
+        <field name="name">view_sale_order_inherited_form_new</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_expected_delivery.mrp_delivery_sale_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='model_id']" position="after">
+                <field name="company_details"/>
+                <field name="buyer"/>
+                <field name="buyer_date"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_goods_check_list_inherited" model="ir.ui.view">
+        <field name="name">view_goods_check_list_inherited_form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="returnable_items"/>
+            </xpath>
+            <xpath expr="//notebook//page[@name='note']" position="after">
+                <page string='Check List' name="check_list">
+                    <div style="padding:16px;">
+                        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+
+                            <!-- HEADER -->
+                            <thead>
+                                <tr>
+                                    <th style="width:28%; padding:10px 14px; background:#1a6b72; border:1px solid #155a60; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:1px;">
+                                        Check Item
+                                    </th>
+                                    <th style="width:22%; padding:10px 14px; background:#1a6b72; border:1px solid #155a60; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:1px;">
+                                        Remarks
+                                    </th>
+                                    <th style="width:28%; padding:10px 14px; background:#1a6b72; border:1px solid #155a60; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:1px;">
+                                        Check Item
+                                    </th>
+                                    <th style="width:22%; padding:10px 14px; background:#1a6b72; border:1px solid #155a60; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:1px;">
+                                        Remarks
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <!-- ROW 1 -->
+                                <tr style="background:#ffffff;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="security_inward" nolabel="1"/>
+                                            <label for="security_inward" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="security_inward == False">
+                                            <field name="security_inward_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="quantity_measure" nolabel="1"/>
+                                            <label for="quantity_measure" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="quantity_measure == False">
+                                            <field name="quantity_measure_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 2 -->
+                                <tr style="background:#f8fafc;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="purchase_order" nolabel="1"/>
+                                            <label for="purchase_order" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="purchase_order == False">
+                                            <field name="purchase_order_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="supplies_review" nolabel="1"/>
+                                            <label for="supplies_review" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="supplies_review == False">
+                                            <field name="supplies_review_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 3 -->
+                                <tr style="background:#ffffff;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="commercial_invoice" nolabel="1"/>
+                                            <label for="commercial_invoice" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="commercial_invoice == False">
+                                            <field name="commercial_invoice_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="entry_details" nolabel="1"/>
+                                            <label for="entry_details" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="entry_details == False">
+                                            <field name="entry_details_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 4 -->
+                                <tr style="background:#f8fafc;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="verify_code" nolabel="1"/>
+                                            <label for="verify_code" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="verify_code == False">
+                                            <field name="verify_code_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="account_depart" nolabel="1"/>
+                                            <label for="account_depart" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="account_depart == False">
+                                            <field name="account_depart_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 5 -->
+                                <tr style="background:#ffffff;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="grn" nolabel="1"/>
+                                            <label for="grn" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="grn == False">
+                                            <field name="grn_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="certificate" nolabel="1"/>
+                                            <label for="certificate" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="certificate == False">
+                                            <field name="certificate_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 6 -->
+                                <tr style="background:#f8fafc;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="purchase_descrip" nolabel="1"/>
+                                            <label for="purchase_descrip" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="purchase_descrip == False">
+                                            <field name="purchase_descrip_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="storage" nolabel="1"/>
+                                            <label for="storage" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="storage == False">
+                                            <field name="storage_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 7 -->
+                                <tr style="background:#ffffff;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="notify_goods" nolabel="1"/>
+                                            <label for="notify_goods" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="notify_goods == False">
+                                            <field name="notify_goods_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="invoice_value" nolabel="1"/>
+                                            <label for="invoice_value" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="invoice_value == False">
+                                            <field name="invoice_value_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 8 — last row, inspect only, right side empty styled -->
+                                <tr style="background:#f8fafc;">
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <field name="inspect" nolabel="1"/>
+                                            <label for="inspect" style="margin:0; font-weight:500;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; vertical-align:middle; background:#f7fbfc;">
+                                        <div invisible="inspect == False">
+                                            <field name="inspect_remarks" nolabel="1" placeholder="Remarks..." style="width:100%;"/>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; background:#f0f4f8;"></td>
+                                    <td style="padding:10px 14px; border:1px solid #e2e8f0; background:#f0f4f8;"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </page>
+            </xpath>
+
+            <xpath expr="//notebook//page[@name='check_list']" position="after">
+                <page string='Transport Details' name="transport_details">
+                    <group>
+                        <group>
+                            <field name="inward_date"/>
+                            <field name="total_value_of_goods"/>
+                            <field name="gate_doc"/>
+                            <field name="transporter_name"/>
+                        </group>
+                        <group>
+                            <field name="vehicle_no"/>
+                            <field name="purpose"/>
+                            <field name="type_vehicle"/>
+                            <field name="transporter"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_returnable_inherit_form" model="ir.ui.view">
+        <field name="name">view_returnable_inherit_form</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='create_backorder']" position="after">
+                <field name="return_items"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

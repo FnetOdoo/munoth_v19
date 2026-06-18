@@ -1,0 +1,77 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="crm_case_form_view_oppor_inherit">
+            <field name="name">crm.case.form.view.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_sale_quotations_new']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="crm_lead_view_form_inherit">
+            <field name="name">crm.lead.form.view.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_sale_quotations_new']" position="after">
+                    <button name="create_cell_design" type="object" string="Create Design Request" class="oe_highlight"/>
+<!--                    <button name="create_costing" type="object" string="Create Costing" class="oe_highlight"/>-->
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button type="object" name="open_cell_design" class="oe_stat_button" icon="fa-gears" invisible="cell_design_count == 0">
+                        <field name="cell_design_count" widget="statinfo" string="Cell Design(s)"/>
+                    </button>
+<!--                    <button type="object" name="open_sale_costing" class="oe_stat_button" icon="fa-bars" invisible="sale_costing_count == 0">-->
+<!--                        <field name="sale_costing_count" widget="statinfo" string="Sale Costing"/>-->
+<!--                    </button>-->
+                </xpath>
+                <xpath expr="//page[@name='internal_notes']" position="before">
+                    <page string="Model" name="model_lines">
+                        <field name="model_line_ids">
+                            <list editable="bottom">
+                                <field name="lead_id" column_invisible="1"/>
+                                <field name="product_id"/>
+                                <field name="product_description"/>
+                                <field name="product_qty"/>
+                                <field name="product_uom"/>
+                            </list>
+                            <form>
+                                <group col="4">
+                                    <field name="lead_id" invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="product_description"/>
+                                    <field name="product_qty"/>
+                                    <field name="product_uom"/>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                    <page string="Products" name="product_lines">
+                        <field name="product_line_ids">
+                            <list editable="bottom">
+                                <field name="lead_id" column_invisible="1"/>
+                                <field name="product_id"/>
+                                <field name="product_description"/>
+                                <field name="product_qty"/>
+                                <field name="product_uom"/>
+                            </list>
+                            <form>
+                                <group col="4">
+                                    <field name="lead_id" invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="product_description"/>
+                                    <field name="product_qty"/>
+                                    <field name="product_uom"/>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <data>
+        <!-- Cathode Electrode -->
+
+        <record id="cathode_electrode_making_process_form_view" model="ir.ui.view">
+            <field name="name">cathode.electrode.making.form</field>
+            <field name="model">cathode.electrode.making</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <form string="Cathode Electrode" duplicate="0" delete="0">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                        <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'" class="oe_highlight"/>
+                        <button name="check_available_stock" string="Check Availability" type="object" invisible="state != 'draft'"/>
+                        <button name="action_close" string="Close" type="object" invisible="state != 'progress'" class="oe_highlight"/>
+                        <button name="action_break_production" string="Pause Production" invisible="state != 'progress'" class="btn-danger" type="object"/>
+                        <button name="action_restart_production" string="Restart Production" invisible="state != 'hold'" class="btn-success" type="object"/>
+                        <button name="create_scrap_product" string="Scrap" class="btn-strong" invisible="state != 'done'" type="object"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done" readonly="1" clickable="1"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object" icon="fa-exchange" invisible="state == 'draft'"/>
+                            <button class="oe_stat_button" name="show_cathode_drying_record" type="object" invisible="cathode_drying_count == 0" icon="fa-arrow-left">
+                                <field name="cathode_drying_count" widget="statinfo" string="Cathode Drying"/>
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="production_plan_id" required="1" readonly="state != 'draft'"/>
+                                <field name="product_model_id" required="1" string="Model" readonly="state != 'draft'"/>
+                                <field name="machine_id" required="1" domain="['|', ('type', '=', type), ('type', '=', False)]" readonly="state != 'draft'"/>
+                                <field name="operation_id" domain="[('product_model_id', '=', product_model_id), ('type', '=', type)]" required="1" readonly="state != 'draft'"/>
+                                <field name="product_id" force_save="1" required="0" domain="[('type', 'in', ['product', 'consu']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                                <field name="product_tracking" required="0" invisible="1"/>
+                                <field name="product_tmpl_id" invisible="1"/>
+                                <field name="cathode_drying_id" invisible="1"/>
+                                <field name="production_plan_id" invisible="1"/>
+                                <field name="product_uom_category_id" invisible="1"/>
+                                <field name="product_uom_id"/>
+                                <field name="product_qty"/>
+                                <field name="product_uom_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="bom_id" domain="[('product_tmpl_id', '=', product_id), ('product_model_id', '=', product_model_id)]" invisible="0" required="0" readonly="state != 'draft'"/>
+                                <field name="qty_producing" invisible="1"/>
+                                <field name="product_uom_category_id" invisible="1"/>
+                                <field name="product_uom_qty" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="start_time" readonly="1"/>
+                                <field name="expected_end_time" invisible="0"/>
+                                <field name="end_time" readonly="1"/>
+                                <field name="user_id" readonly="1"/>
+                                <!--                        <field name="qty_produced"  attrs="{'invisible': [('state', 'in', ['draft', 'confirmed'])] , 'readonly' : [('state', 'in', ['draft', 'confirmed', 'done', 'close'])]}"/>-->
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Material" name="materials">
+                                <field name="component_ids" readonly="state != 'draft'"/>
+                            </page>
+
+                            <page string="Utility">
+                                <field name="utility_ids">
+                                    <list editable="bottom" decoration-bf="1" decoration-success="cathode_electrode_utility_condition == 'good'" decoration-danger="cathode_electrode_utility_condition == 'fail'">
+                                        <field name="date"/>
+                                        <field name="humidity"/>
+                                        <field name="temperature"/>
+                                        <field name="vacuum_section_pressure" column_invisible="1"/>
+                                        <field name="compressed_air"/>
+                                        <field name="nitrogen"/>
+                                        <field name="user_id" readonly="1" column_invisible="1"/>
+                                        <field name="cathode_electrode_utility_condition" column_invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Quality">
+                                <field name="quality_ids">
+                                    <list editable="bottom">
+                                        <field name="date"/>
+                                        <field name="tab_dimension"/>
+                                        <field name="productive_tape"/>
+                                        <field name="tab_tape"/>
+                                        <field name="tensile_strength_weld"/>
+                                        <field name="visual_examination"/>
+                                        <field name="user_id" readonly="1"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="date"/>
+                                                <field name="tab_dimension"/>
+                                                <field name="productive_tape"/>
+                                                <field name="tab_tape"/>
+                                            </group>
+                                            <group>
+                                                <field name="tensile_strength_weld"/>
+                                                <field name="visual_examination"/>
+                                                <field name="user_id" readonly="1"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+
+                            <page string="Machine Parameter">
+                                <field name="machine_data_ids">
+                                    <list editable="bottom">
+                                        <field name="date"/>
+                                        <field name="electrode_length"/>
+                                        <field name="electrode_width"/>
+                                        <field name="electrode_winding_tension"/>
+                                        <field name="user_id"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Breakdown">
+                                <field name="breakdown_ids" readonly="1">
+                                    <list delete="0">
+                                        <field name="time" string="Time"/>
+                                        <field name="reason" column_invisible="1"/>
+                                        <field name="remarks"/>
+                                    </list>
+                                    <form delete="0">
+                                        <group>
+                                            <group>
+                                                <field name="time" string="Time" readonly="1"/>
+                                                <field name="remarks" readonly="1"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page string="Others">
+                                <group>
+                                    <group>
+                                        <field name="type" readonly="state in ('done', 'close')"/>
+                                        <field name="location_src_id" readonly="state in ('done', 'close')"/>
+                                        <field name="location_dest_id" readonly="state in ('done', 'close')"/>
+                                        <field name="production_location_id" readonly="state in ('done', 'close')"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="cathode_electrode_making_process_list_view" model="ir.ui.view">
+            <field name="name">cathode.electrode.making.list</field>
+            <field name="model">cathode.electrode.making</field>
+            <field name="arch" type="xml">
+                <list string="Cathode Electrode" sample="1">
+                    <field name="name" column_invisible="0"/>
+                    <field name="product_id"/>
+                    <field name="product_qty"/>
+                    <!--                    <field name="qty_produced"/>-->
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+
+        <record id="cathode_electrode_making_process_form_action" model="ir.actions.act_window">
+            <field name="name">Cathode Electrode</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">cathode.electrode.making</field>
+            <field name="domain">[]</field> <!-- force empty -->
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Cathode Electrode
+                </p>
+
+            </field>
+        </record>
+
+        <menuitem id="menu_cathode_electrode_making_process" name="Cathode Electrode" action="cathode_electrode_making_process_form_action" parent="fnet_mrp.menu_manufacturing_cathode_main" sequence="10"/>
+
+
+    </data>
+</odoo>

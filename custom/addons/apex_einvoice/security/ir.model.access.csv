@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_einvoice_configuration_base_user,einvoice_configuration_base_user,model_einvoice_configuration,base.group_user,1,0,0,0
+access_einvoice_configuration_account_manager,einvoice_configuration_account_manager,model_einvoice_configuration,account.group_account_manager,1,1,1,1
+access_account_einvoice_base_user,account_einvoice_base_user,model_account_einvoice,base.group_user,1,1,1,0
+access_einvoice_cancel_wizard_base_user,einvoice_cancel_wizard_base_user,model_einvoice_cancel_wizard,base.group_user,1,1,1,1

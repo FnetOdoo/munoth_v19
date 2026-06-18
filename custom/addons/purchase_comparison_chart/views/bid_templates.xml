@@ -1,0 +1,80 @@
+<odoo>
+	<data>
+		<template id="purchase_comparison" name="Purchase Comparison Chart">
+			<t t-call="website.layout">
+				<style>
+					footer{display:none !important;}
+				</style>
+				<div class="wrap">
+					<div class="wrap">
+						<div class="container" style="width:80%;">
+							<br />
+							<div class="row">
+								<div style="width:30%;">
+									<table>
+										<tr>
+											<th>
+												<td style="font-weight:bold;">PRC No</td>
+												<td style="font-weight:bold;">:</td>
+												<td><span t-field="purchase_requisition_id.name" /></td>
+											</th>
+										</tr>
+										<tr>
+											<th>
+												<td style="font-weight:bold;">Date</td>
+												<td style="font-weight:bold;">:</td>
+												<td><span t-field="purchase_requisition_id.date_end" /></td>
+											</th>
+										</tr>
+									</table>
+								</div>
+								<div style="width:40%;">
+									<h2>Purchase Comparison Chart</h2>
+								</div>
+								<div t-ignore="true" style="width:30%;">
+									<a style="background-color: #74c25f;font-weight:bold;font-size:22px;" t-attf-href="/web#view_type=form&amp;model=purchase.requisition&amp;id=#{purchase_requisition_id.id}&amp;action=purchase_requisition.action_purchase_requisition" class="btn btn-default bk_butn">Back to Purchase Requisition</a>
+								</div>
+							</div>
+							<br />
+							<br />
+							<div style="text-align:center;">
+								<table class="table table-bordered" style="width:80%;" align="center">
+									<thead>
+										<tr style="background-color:#9ba897;">
+											<th style="width:5%;">S#</th>
+											<th style="width:35%;">Product</th>
+											<th style="width:10%;">UOM</th>
+											<th style="width:10%;">QTY</th>
+											<th style="width:15%;">Price Unit</th>
+											<th style="width:10%;">Amount</th>
+										</tr>
+									</thead>
+									<tbody>
+										<t t-foreach="records" t-as="record">
+											<tr style="background-color: #f0c9e2;font-weight:bold;text-align:center;line-height:15px;">
+												<td colspan="5"><span t-esc="record['vendor_name']" /></td>
+												<td><span t-esc="sum(l['amount'] for l in record['product_lines'])" /></td>
+											</tr>
+											<t t-set="i" t-value="1" />
+											<t t-foreach="record['product_lines']" t-as="line">
+												<tr style="line-height:12px;">
+													<td><span t-esc="i" /></td>
+													<td><span t-esc="line['name']" /></td>
+													<td><span t-esc="line['uom']" /></td>
+													<td><span t-esc="line['qty']" style="text-align:right;"/></td>
+													<td><span t-esc="line['rate']" style="text-align:right;"/></td>
+													<td><span t-esc="line['amount']" style="text-align:right;"/></td>
+													<t t-set="i" t-value="i+1" />
+												</tr>
+											</t>
+										</t>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</t>
+		</template>
+	</data>
+</odoo>

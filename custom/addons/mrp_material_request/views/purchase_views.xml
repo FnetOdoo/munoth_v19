@@ -1,0 +1,57 @@
+<odoo>
+    <data>
+        <record id="view_purchase_order_material_request_form" model="ir.ui.view">
+            <field name="name">view_purchase_order_material_request_form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='currency_id']" position="after">
+                    <field name="material_request_id" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='picking_type_id']" position="after">
+                    <field name="narration" readonly="state in ['purchase','done','cancel']"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']" position="attributes">
+                    <attribute name="readonly">state == 'cancel' or locked or material_request_id</attribute>
+                </xpath>
+
+<!--                <xpath expr="//field[@name='order_line']//list//field[@name='product_qty']" position="attributes">-->
+<!--                    <attribute name="readonly">is_downpayment or parent.material_request_id</attribute>-->
+<!--                </xpath>-->
+                <xpath expr="//field[@name='order_line']//list//field[@name='product_id']" position="attributes">
+                    <attribute name="readonly">state in ('purchase', 'to approve', 'cancel') or is_downpayment or parent.material_request_id
+                    </attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//field[@name='sequence']" position="attributes">
+                    <attribute name="readonly">parent.material_request_id</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//field[@name='product_uom_id']" position="attributes">
+                    <attribute name="readonly">state in ('purchase', 'cancel') or is_downpayment or parent.material_request_id
+                    </attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//control//create[@name='add_product_control']" position="attributes">
+                    <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//control//create[@name='add_section_control']" position="attributes">
+                    <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//control//create[@name='add_note_control']" position="attributes">
+                    <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']//list//control//button[@name='action_add_from_catalog']" position="attributes">
+                    <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
+                </xpath>
+
+                <!-- ✅ Correct: use xpath to target the existing button_box -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_view_mrp_request"
+                            icon="fa-cubes"
+                            string="Material Request"
+                            type="object"
+                            invisible="not material_request_id"
+                            class="oe_stat_button"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

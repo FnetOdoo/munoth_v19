@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="account_asset.DeprecLinesReversedWidget">
+        <span t-if="component.isReversed"
+              title="This move has been reversed"
+              class="o_field_deprec_lines_reversed">
+            <i class="fa fa-exclamation-circle text-warning"/>
+        </span>
+    </t>
+</templates>

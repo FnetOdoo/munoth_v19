@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_purchase_approval" name="Approval Configurations" parent="purchase.menu_purchase_config" sequence="102"/>
+
+    <record id="purchase_apporval_role_tree_view" model="ir.ui.view">
+        <field name="name">purchase.approval.role.tree</field>
+        <field name="model">purchase.approval.role</field>
+        <field name="arch" type="xml">
+            <list string="Approval Role" editable='bottom'>
+                <field name='name' />
+            </list>
+        </field>
+    </record>
+    <record id="purchase_approval_role_form_action" model="ir.actions.act_window">
+        <field name="name">Approval Roles</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.approval.role</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to add a new Approval Role.
+            </p>
+        </field>
+    </record>
+    <record id="purchase_approval_category_tree_view" model="ir.ui.view">
+        <field name="name">purchase.approval.category.tree</field>
+        <field name="model">purchase.approval.category</field>
+        <field name="arch" type="xml">
+            <list string="Approval Category" editable='bottom'>
+                <field name='name' />
+            </list>
+        </field>
+    </record>
+    <record id="purchase_approval_category_form_action" model="ir.actions.act_window">
+        <field name="name">Approval Categories</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.approval.category</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to add a new Approval Category.
+            </p>
+        </field>
+    </record>
+    <record id="view_employee_form_purchase_approval_role" model="ir.ui.view">
+        <field name="name">hr.employee.form.purchase.approval.role</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='settings_group']" position="after">
+                <field name='purchase_order_approval_rule_id' invisible="1" />
+                <field name='purchase_order_approval' invisible="1" />
+                <group string="Purchase Approval Role" groups="base.group_erp_manager" name="purchase_approval_role">
+                    <field name="purchase_approval_role" class="oe_inline" widget="many2many_tags"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_template_form_view_purchase_approval_category" model="ir.ui.view">
+        <field name="name">product.template.form.purchase.approval.category</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <!-- <field name='purchase_order_approval_rule_id' invisible="0" />
+                <field name='purchase_order_approval' invisible="0" /> -->
+                <field name="purchase_approval_category" />
+            </xpath>
+        </field>
+    </record>
+    <menuitem id="menu_purchase_approval_category_form_action" parent="purchase_approval.menu_purchase_approval" sequence="101" action="purchase_approval_category_form_action" />
+    <menuitem id="menu_approval_role_form_action" parent="purchase_approval.menu_purchase_approval" sequence="102" action="purchase_approval_role_form_action" />
+</odoo>

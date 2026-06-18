@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<odoo>
+
+    <!-- 1. Module Category -->
+    <record id="module_category_purchase_approval" model="ir.module.category">
+        <field name="name">Purchase Approval</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <!-- 2. Privilege (NEW in Odoo 19 - replaces category_id on res.groups) -->
+    <record id="privilege_purchase_approval" model="res.groups.privilege">
+        <field name="name">Purchase Approval</field>
+        <field name="sequence">25</field>
+        <field name="category_id" ref="module_category_purchase_approval"/>
+    </record>
+
+    <!-- 3. Groups now use privilege_id instead of category_id -->
+    <record id="group_first_approval_user" model="res.groups">
+        <field name="name">Send for Approval</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_purchase_approval"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
+    </record>
+
+    <record id="group_second_approval_user" model="res.groups">
+        <field name="name">Approve Quotation</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_purchase_approval"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
+    </record>
+
+    <record id="group_confirm_order_user" model="res.groups">
+        <field name="name">Confirm Order</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="privilege_purchase_approval"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
+    </record>
+
+</odoo>

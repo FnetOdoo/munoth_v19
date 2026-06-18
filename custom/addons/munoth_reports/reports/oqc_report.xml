@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_oqc_report" model="report.paperformat">
+            <field name="name">A4 Inspection Report</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">35</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">5</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="inspection_report" model="ir.actions.report">
+            <field name="name">Inspection Report</field>
+            <field name="model">stock.inspection</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.oqc_inspection_report</field>
+            <field name="report_file">munoth_reports.oqc_inspection_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_oqc_report"/>
+            <field name="binding_model_id" ref="fnet_mrp.model_stock_inspection"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="oqc_inspection_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class='page'>
+                            <table style="width:100%;">
+                                <tr style="border:1px solid black;">
+                                    <td style="padding: 5px; text-align:left;"><img src="/web/binary/company_logo" style="height:68px;" class="right"/></td>
+                                    <td style="padding: 5px; width:60%;text-align:center;font-size:25px;">
+                                        <t t-if="o.type in ['outgoing']">Outgoing Quality Control Inspection Report (OQC)</t>
+                                        <t t-if="o.type in ['incoming']">Incoming Quality Control Inspection Report (IQC)</t>
+                                        <t t-if="o.type in ['audit']"> Doc Audit</t>
+                                    </td>
+                                    <td style="padding: 5px; width:20%;border:1px solid black; vertical-align: center;">
+                                        <t>Doc No:<span style="font-weight:bold;" t-field="o.rev_doc_number"/></t><br/>
+                                        <t>Rev No:<span style="font-weight:bold;" t-field="o.rev_number"/></t><br/>
+                                        <t t-if="o.type in ['outgoing']">Effect Date:<span style="font-weight:bold;" t-field="o.rev_date"/></t>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="border-right:1px solid black;border-left:1px solid black;border-bottom:1px solid black;width:100%;height:30px;">
+
+                            </div>
+                            <div class="page">
+                                <table style="font-size:20px;width:100%; border: 1px solid black;">
+                                    <t t-if="o.type in ['outgoing']">
+                                        <tr style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;font-size:12px;">Date</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.date" t-options="{'widget': 'date'}"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Customer Name</span></td>
+                                            <td colspan="4" style="border: 1px solid black;width:20px;"><span t-field="o.partner_id"/></td>
+                                            <td  style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Invoice No</span></td>
+                                            <td colspan="1" style="border: 1px solid black;width:10px;"><span t-field="o.invoice_number"/></td>
+<!--                                            <td style="padding: 5px; border:1px solid black;width:30px;"><span t-field="o.purpose"/></td>-->
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Lot Qty</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><p><span t-field="o.quantity"/></p></td>
+                                        </tr>
+                                        <tr  style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;font-size:12px;">AQL</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.aql"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Material</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:20px;"><span t-field="o.partner_id"/></td>
+                                            <td  style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Model</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span t-field="o.product_id"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Total Qty: </span></td>
+                                            <td style="padding: 5px; border:1px solid black;width:20px;"><span t-field="o.quantity"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;">Sample size: <span style="font-weight:bold;" t-field="o.sample_qty"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Checked by: </span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><p><span t-field="o.verify_user_id"/></p></td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.type  in ['audit']">
+                                        <tr style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;font-size:12px;">Date</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.date" t-options="{'widget': 'date'}"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Customer Name</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:20px;"><span t-field="o.partner_id"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Invoice No</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span t-field="o.invoice_number"/></td>
+                                            <td style="padding: 5px; border:1px solid black;width:30px;"><span t-field="o.purpose"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Lot Qty</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><p><span t-field="o.quantity"/></p></td>
+                                        </tr>
+
+                                        <tr  style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;font-size:12px;">AQL</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.create_date" t-options="{'widget': 'date'}"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Material</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:20px;"><span t-field="o.partner_id"/></td>
+                                            <td  style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Model</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span t-field="o.product_id"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Total Qty: </span></td>
+                                            <td style="padding: 5px; border:1px solid black;width:20px;"><span t-field="o.quantity"/></td>
+                                            <td  style="width:5px;border:1px solid black;">Sample size: <span style="font-weight:bold;" t-field="o.sample_qty"/></td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.type in ['incoming']">
+                                        <tr style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Inspection date:</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.date_done" t-options="{'widget': 'date'}"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Supplier Name:</span></td>
+                                            <td colspan="3" style="border: 1px solid black;width:20px;"><span t-field="o.partner_id"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Regular / Replacement / Sample</span></td>
+                                            <td style="padding: 5px; border:1px solid black;width:30px;"><span t-field="o.purpose"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Standard:</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><p><span t-field="o.standard"/></p></td>
+                                        </tr>
+                                        <tr  style="font-size:15px;border: 1px solid black;">
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;font-size:12px;">Part Number :</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span t-field="o.part_number"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span style="font-weight:bold;">Part description:</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:20px;"><span t-field="o.part_description"/></td>
+                                            <td  style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Model</span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><span t-field="o.product_id"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Lot qty: </span></td>
+                                            <td style="padding: 5px; border:1px solid black;width:20px;"><span t-field="o.quantity"/></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:5px;"><span style="font-weight:bold;">Sampling size: </span></td>
+                                            <td style="padding: 5px; border: 1px solid black;width:10px;"><p><span t-field="o.sample_qty"/></p></td>
+                                        </tr>
+                                    </t>
+
+                                </table>
+                                <!--                                <table class="table table-bordered" style="font-size:20px;width:100%; border: 1px solid black;padding-left:1px;">-->
+                                <!--                                </table>-->
+                                <table style="font-size:17px;border: 1px solid black;width:100%;">
+                                    <tr>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th colspan="5" style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-border:1px solid black;text-align:center;">Observation</th>
+                                        <!--                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>-->
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+
+                                    </tr>
+                                    <tr  style="line-height: 1.5;">
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:5%;text-align:center;">Sl.#</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:10%;text-align:center;">Test Name</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:15%;text-align:center;">Standard Parameter</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Sort</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:10%;text-align:center;">Tools</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">1</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">2</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">3</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">4</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">5</th>
+                                        <!--                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-50px;width:7%;text-align:center;">Tolarence</th>-->
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Result</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:16%;text-align:center;">Remark</th>
+                                    </tr>
+
+                                    <t t-set="counter" t-value="1"/>
+                                    <tbody t-foreach="o.line_ids" t-as="doc" style="font-size:15px;border: 1px solid black;">
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><t t-esc="counter"/><t t-set="counter" t-value="counter+1"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:10%;"><span t-field="doc.name"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:15%;"><span t-field="doc.parameter"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:7%;"><span t-esc="doc.sort"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:10%;"><span t-esc="doc.test_method"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><span t-esc="doc.sample_1"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><span t-field="doc.sample_2"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><span t-esc="doc.sample_3"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><span t-esc="doc.sample_4"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:5%;"><span t-esc="doc.sample_5"/></td>
+                                        <!--                                        <td style="padding: 5px; text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.min_value"/></td>-->
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:7%;"><span t-esc="doc.state"/></td>
+                                        <td style="padding: 5px; text-align:center;border: 1px solid black;width:16%;"><span t-esc="doc.remark"/></td>
+                                    </tbody>
+                                    <t t-if="o.type in ['incoming']">
+                                        <tr style="width:100%;">
+                                            <td colspan="13" style="width:50%;border:1px solid black;text-align:center;">
+                                                Disposition :  Accepted  /   Rejected / Rework
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr style="width:100%;">
+                                        <td colspan="6" style="width:50%;border:1px solid black;text-align:center;">
+                                            <t t-if="o.type not in ['outgoing']">
+                                                Inspected by (Name): <span t-field="o.verify_user_id"/>
+                                            </t>
+                                            <t t-if="o.type in ['outgoing']">
+                                                Verified by (Name): <span t-field="o.verify_user_id"/>
+                                            </t>
+                                        </td>
+                                        <td colspan="7" style="width:50%;border:1px solid black;text-align:center;">
+                                            Approved by (Name):<span t-field="o.approve_user_id"/>
+
+                                        </td>
+
+                                    </tr>
+                                    <tr style="width:100%;">
+                                        <td colspan="6" style="width:50%;border:1px solid black;text-align:center;">
+                                            signature
+                                        </td>
+                                        <td colspan="7" style="width:50%;border:1px solid black;text-align:center;">
+                                            signature
+                                        </td>
+                                    </tr>
+                                </table>
+
+
+
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

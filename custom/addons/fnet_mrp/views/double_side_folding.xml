@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <data>
+        <!--Double Side Folding Cell-->
+
+        <record id="double_side_folding_process_form_view" model="ir.ui.view">
+            <field name="name">double.side.folding.form</field>
+            <field name="model">double.side.folding</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <form string="Double Side Folding" duplicate="0" delete="0">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                        <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'" class="oe_highlight"/>
+                        <button name="check_available_stock" string="Check Availability" type="object" invisible="state != 'draft'"/>
+                        <button name="action_close" string="Close" type="object" invisible="state != 'progress'" class="oe_highlight"/>
+                        <button name="action_break_production" string="Pause Production" class="btn-danger" type="object" invisible="state != 'progress'"/>
+                        <button name="action_restart_production" string="Restart Production" class="btn-success" type="object" invisible="state != 'hold'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done" readonly="1" clickable="1"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object" icon="fa-exchange" invisible="state in ['draft']"/>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="production_plan_id" required="1" readonly="state != 'draft'"/>
+                                <field name="product_id"/>
+                                <field name="product_tracking" invisible="1"/>
+                                <field name="product_tmpl_id" invisible="1"/>
+                                <field name="bom_id" domain="[('product_tmpl_id', '=', product_id)]" invisible="0"/>
+                                <field name="product_qty"/>
+                                <field name="product_uom_id" invisible="1"/>
+                            </group>
+
+                            <group>
+                                <field name="qty_producing" invisible="1"/>
+                                <!--                                <field name="qty_produced"  attrs="{'invisible': [('state', 'in', ['draft', 'confirmed'])] , 'readonly' : [('state', 'in', ['draft', 'confirmed', 'done', 'close'])]}"/>-->
+                                <field name="product_uom_category_id" invisible="1"/>
+                                <field name="product_uom_qty" invisible="1"/>
+                                <field name="start_time" readonly="1"/>
+                                <field name="expected_end_time"/>
+                                <field name="end_time" readonly="1"/>
+                                <field name="company_id"/>
+                                <field name="user_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Components">
+                                <field name="component_ids" readonly="state != 'draft'"/>
+                            </page>
+                            <page string="Serial Number">
+                                <field name="lot_ids">
+                                    <list editable="bottom">
+                                        <field name="name" required="1" string="Serial Number"/>
+                                        <field name="product_id" column_invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Breakdown">
+                                <field name="breakdown_ids" readonly="1">
+                                    <list delete="0">
+                                        <field name="time"/>
+                                        <field name="reason" column_invisible="1"/>
+                                        <field name="remarks"/>
+                                    </list>
+                                    <form delete="0">
+                                        <group>
+                                            <group>
+                                                <field name="time" readonly="1"/>
+                                                <field name="remarks" readonly="1"/>
+                                            </group>
+                                            <group/>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+
+                            <page string="Others">
+                                <group>
+                                    <group>
+                                        <field name="type" readonly="state in ['done','close']"/>
+                                        <field name="location_src_id" readonly="state in ['done','close']"/>
+                                        <field name="location_dest_id" readonly="state in ['done','close']"/>
+                                        <field name="production_location_id" readonly="state in ['done','close']"/>
+                                    </group>
+                                    <group/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+        <record id="double_side_folding_process_list_view" model="ir.ui.view">
+            <field name="name">double.side.folding.list</field>
+            <field name="model">double.side.folding</field>
+            <field name="arch" type="xml">
+                <list string="Double Side Folding" sample="1">
+                    <field name="name" column_invisible="0"/>
+                    <field name="product_id"/>
+                    <field name="product_qty"/>
+                    <!--                    <field name="qty_produced"/>-->
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+
+        <record id="double_side_folding_process_form_action" model="ir.actions.act_window">
+            <field name="name">Double Side Folding</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">double.side.folding</field>
+            <field name="domain">[]</field> <!-- force empty -->
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Double Side Folding
+                </p>
+
+            </field>
+        </record>
+
+        <!--        <menuitem id="menu_double_side_folding_process" name="Double Side Folding"-->
+        <!--                  action="double_side_folding_process_form_action" -->
+        <!--                  parent="fnet_mrp.menu_manufacturing_main" sequence="13"/>-->
+
+
+    </data>
+</odoo>

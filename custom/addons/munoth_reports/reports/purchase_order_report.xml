@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_purchase_vendor_report" model="report.paperformat">
+            <field name="name">A4 Purchase Vendor Report</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">48</field>
+            <field name="margin_bottom">45</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">45</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="purchase_order_to_vendor_report" model="ir.actions.report">
+            <field name="name">Purchase Vendor Report </field>
+            <field name="model">purchase.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.purchase_order_to_vendor_munoth_report</field>
+            <field name="report_file">munoth_reports.purchase_order_to_vendor_munoth_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_purchase_vendor_report"/>
+            <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- Main Layout with Header/Footer -->
+        <template id="external_layout_striped_po">
+            <t t-if="not o" t-set="o" t-value="doc"/>
+            <t t-if="not company">
+                <t t-if="company_id">
+                    <t t-set="company" t-value="company_id"/>
+                </t>
+                <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                    <t t-set="company" t-value="o.company_id.sudo()"/>
+                </t>
+                <t t-else="else">
+                    <t t-set="company" t-value="res_company"/>
+                </t>
+            </t>
+
+                <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
+                <tr style="vertical-align: top;">
+                    <td style="max-width:100%; text-align: left;">
+                        <t t-if="doc and doc.company_id.logo">
+                            <right style="margin-left: 30px;">
+                                <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:150px;"
+                                     alt="Logo"/>
+                            </right>
+                        </t>
+                    </td>
+                    <td style="text-align: right; width: 50%;">
+                        <h2 style="font-size: 25px; margin: 0; font-weight: bold; font-family: Baskervville SC; serif; font-style: normal;">
+                            <span t-esc="doc.company_id.name if doc else company.name"/>
+                        </h2>
+                        <t t-if="doc and doc.company_id.street">
+                            <span t-field="doc.company_id.street"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.street2">
+                            <span t-field="doc.company_id.street2"/>
+                            ,
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.city">
+                            <span t-field="doc.company_id.city"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.state_id">
+                            <span t-field="doc.company_id.state_id.name"/>
+                            ,
+                        </t>
+                        <t t-if="doc and doc.company_id.country_id">
+                            <span t-field="doc.company_id.country_id.name"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.phone">
+                            Phone:
+                            <span t-field="doc.company_id.phone"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.email">
+                            Email:
+                            <span t-field="doc.company_id.email"/>
+                        </t>
+                        <br/>
+                    </td>
+                </tr>
+            </table>
+            <div t-attf-class="o_company_#{company.id}_layout header" t-att-style="report_header_style">
+                <div class="o_background_header">
+                    <div class="row">
+                        <div style="width:10%;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:90px;"
+                                 alt="Logo"/>
+                        </div>
+                        <div class=" company_address" style="width:75%; padding-left: 20px; ">
+                            <div style="font-size: 16px; text-transform: uppercase; color:#636363;">
+                                <span t-field="company.name"/>
+                            </div>
+                            <div style="font-size: 16px; line-height: 1.2; color:#636363;">
+                                <span t-if="company.street" t-field="company.street"/>,
+                                <br/>
+                                <span t-if="company.street2" t-field="company.street2"/>
+                                <br/>
+                                <span t-if="company.city" t-field="company.city"/>
+                                <t t-if="company.zip">-
+                                    <span t-field="company.zip"/>
+                                </t>
+                                ,
+                                <br/>
+                                <span t-if="company.state_id" t-field="company.state_id"/>
+                                <br/>
+                                <span t-if="company.country_id" t-field="company.country_id"/>
+                                <br/>
+                                <br/>
+                                <strong>GSTIN:
+                                    <span t-field="company.vat"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <div id="po_header" style="width:15%; font-size: 16px;color:#636363;">
+                            <!-- Show fields from PO record, or fallback to Company defaults if empty -->
+                            <strong>Doc No:</strong>
+                            <span t-esc="o.doc_no or company.doc_no"/>
+                            <br/>
+                            <strong>Rev No:</strong>
+                            <span t-esc="o.rev_no or company.rev_no"/>
+                            <br/>
+                            <strong>Date:</strong>
+                            <span t-esc="(o.rev_date or company.rev_date)"
+                                  t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="border-bottom: 1px solid #dee2e6;"/>
+                    <br/>
+                </div>
+            </div>
+            <div t-attf-class="o_company_#{company.id}_layout article o_report_layout_striped {{  'o_layout_background' if company.layout_background in ['Geometric', 'Custom']  else  '' }}"
+                 t-attf-style="background-image: url({{ 'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/bg_background_template.jpg' if company.layout_background == 'Geometric' else ''}});"
+                 t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+                 t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <main>
+                    <t t-out="0"/>
+                </main>
+            </div>
+            <div t-attf-class="o_company_#{company.id}_layout footer o_background_footer">
+                <div class="text-right">
+                    <img t-att-src="'/munoth_reports/static/img/munoth.jpg'" style="width: 90px; padding-bottom: 0px;"/>
+                </div>
+                <div class="text-center" style="padding: 3px;">
+                    <span style="font-style: italic; font-weight: bold;">
+                        This is a computer-generated document.Does not require a signature.
+                    </span>
+                </div>
+                <div class="text-center"
+                     style="border-top: 1px solid black;border-bottom: 1px solid black; padding: 5px;">
+                    <t t-if="company.phone">
+                        <strong>Phone:</strong>
+                        <span t-field="company.phone"/>
+                    </t>
+                    <t t-if="company.email">
+                        <strong>Email:</strong>
+                        <span t-field="company.email"/>
+                    </t>
+                    <t t-if="company.website">
+                        <strong>Website:</strong>
+                        <span t-field="company.website"/>
+                    </t>
+                </div>
+                <div t-if="report_type == 'pdf'" class="text-muted text-center" style="margin-top: 1px;">
+                    Page
+                    <span class="page"/>
+                    of
+                    <span class="topage"/>
+                </div>
+            </div>
+        </template>
+
+        <!-- Terms Page Layout Override -->
+        <!--        <template id="external_layout_striped_po_terms" inherit_id="munoth_reports.external_layout_striped_po"-->
+        <!--                  primary="True">-->
+        <!--            <xpath expr="//div[@id='po_header']" position="replace">-->
+        <!--                <div class="col-4 text-right" id="po_header">-->
+        <!--                    <strong style="font-size: 16px;color:#636363;">Doc No:</strong>-->
+        <!--                    <span t-esc="o.po_doc_no or company.po_doc_no"/>-->
+        <!--                    <br/>-->
+        <!--                    <strong style="font-size: 16px;color:#636363;">Rev No:</strong>-->
+        <!--                    <span t-esc="o.po_rev_no or company.po_rev_no"/>-->
+        <!--                    <br/>-->
+        <!--                    <strong style="font-size: 16px;color:#636363;">Date:</strong>-->
+        <!--                    <span t-esc="(o.po_rev_date or company.po_rev_date)"-->
+        <!--                          t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>-->
+        <!--                </div>-->
+        <!--            </xpath>-->
+        <!--        </template>-->
+        <!--        <div style="border-top: 1px solid #636363;"/>-->
+        <!-- Template for PO Content (Page 1) -->
+        <template id="purchase_order_to_vendor_munoth_report_new">
+            <t t-call="munoth_reports.external_layout_striped_po">
+                <div class="page o_report_layout_standard">
+                    <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                    <div class="row" style="padding-top: 10px;">
+                        <div class="col-6" style="font-size: 16px;color:#636363; ">
+                            <strong>Shipping address:</strong>
+                            <br/>
+                            <div t-field="o.company_id.partner_id"
+                                 t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                            <t t-if="o.company_id.vat">
+                                <strong>GSTIN:</strong>
+                                <span t-field="o.company_id.vat"/>
+                            </t>
+                        </div>
+                        <div class="col-6" style="font-size: 16px;color:#636363; padding-left: 20px;">
+                            <strong>Vendor:</strong>
+                            <br/>
+                            <div t-field="o.partner_id"
+                                 t-options='{"widget": "contact", "fields": ["address", "name", "phone", "email"], "no_marker": True}'/>
+                            <t t-if="o.partner_id.vat">
+                                <strong>GSTIN:</strong>
+                                <span t-field="o.partner_id.vat"/>
+                            </t>
+                        </div>
+                    </div>
+                    <br/>
+                    <h3 style="color:#636363;" t-if="o.state in ['draft', 'sent', 'to approve', 'bid received']">Request
+                        for Quotation #
+                        <span t-field="o.name"/>
+                    </h3>
+                    <h3 style="color:#636363;" t-if="o.state in ['purchase', 'done']">Purchase Order #
+                        <span t-field="o.name"/>
+                    </h3>
+                    <h3 style="color:#636363;" t-if="o.state == 'cancel'">Cancelled Purchase Order #
+                        <span t-field="o.name"/>
+                    </h3>
+
+                    <div id="informations" class="row mt32 mb32">
+                        <div t-if="o.user_id" class="col-3 bm-2">
+                            <strong style="color:black;">Purchase Representative:</strong>
+                            <p style="color:#636363;" t-field="o.user_id" class="m-0"/>
+                        </div>
+                        <div t-if="o.partner_ref" class="col-3 bm-2">
+                            <strong style="color:black;">Your Order Reference:</strong>
+                            <p style="color:#636363;" t-field="o.partner_ref" class="m-0"/>
+                        </div>
+                        <div t-if="o.date_order" class="col-3 bm-2">
+                            <strong style="color:black;">Order Date:</strong>
+                            <p style="color:#636363;" t-field="o.date_order" class="m-0"/>
+                        </div>
+                    </div>
+                    <table style="border-top:1px solid #636363;" class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th name="th_s_no">
+                                    <strong>S.No</strong>
+                                </th>
+                                <th name="th_description">
+                                    <strong>Description</strong>
+                                </th>
+                                <th name="th_taxes">
+                                    <strong>Taxes</strong>
+                                </th>
+                                <th name="th_quantity" class="text-right">
+                                    <strong>Quantity</strong>
+                                </th>
+                                <th name="th_price_unit" class="text-right">
+                                    <strong>Unit Price</strong>
+                                </th>
+                                <th name="th_discount" class="text-right">
+                                    <strong>Disc.(%)</strong>
+                                </th>
+                                <th name="th_amount" class="text-right">
+                                    <strong>Amount</strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="current_subtotal" t-value="0"/>
+                            <t t-foreach="o.order_line" t-as="line">
+                                <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                                   groups="account.group_show_line_subtotals_tax_excluded"/>
+                                <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                                   groups="account.group_show_line_subtotals_tax_included"/>
+
+                                <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                                    <t t-if="not line.display_type">
+                                        <t t-set="row_bg"
+                                           t-value="'background-color:#f0f0f5;' if line_index % 2 == 0 else ''"/>
+                                        <td id="line.s_no" t-att-style="row_bg">
+                                            <span t-field="line.s_no"/>
+                                        </td>
+                                        <td id="product" t-att-style="row_bg">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <td name="td_taxes" t-att-style="row_bg">
+                                            <span t-esc="', '.join(map(lambda x: x.name, line.tax_ids))"/>
+                                        </td>
+                                        <td class="text-right" t-att-style="row_bg">
+                                            <span t-field="line.product_qty"/>
+                                            <span t-field="line.product_uom_id.name" groups="uom.group_uom"/>
+                                        </td>
+                                        <td class="text-right" t-att-style="row_bg">
+                                            <span t-field="line.price_unit"/>
+                                        </td>
+                                        <td class="text-right" t-att-style="row_bg">
+                                            <span t-field="line.discount"/>
+                                        </td>
+                                        <td class="text-right" t-att-style="row_bg">
+                                            <span t-field="line.price_subtotal"
+                                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </t>
+                                    <t t-if="line.display_type == 'line_section'">
+                                        <td colspan="99" id="section">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <t t-set="current_section" t-value="line"/>
+                                        <t t-set="current_subtotal" t-value="0"/>
+                                    </t>
+                                    <t t-if="line.display_type == 'line_note'">
+                                        <td colspan="99" id="note">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div id="total" class="row justify-content-end">
+                        <div class="col-4">
+                            <table class="table table-borderless">
+                                <tr style="border-top:1px solid grey;">
+                                    <td>
+                                        <strong>Untaxed Amount</strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="o.amount_untaxed"
+                                              t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    </td>
+                                </tr>
+                                <t t-foreach="o.tax_totals['subtotals']" t-as="subtotal">
+                                    <t t-foreach="subtotal['tax_groups']" t-as="tax_group">
+                                        <tr>
+                                            <td>
+                                                <strong t-esc="tax_group['group_name']"/>
+                                                :
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-esc="tax_group['tax_amount_currency']"
+                                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <tr class="o_total"  style="border-top:1px solid grey;color:black;">
+                                    <td>
+                                        <strong>Total</strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-field="o.amount_total"
+                                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <p t-field="o.note"/>
+
+                    <div style="width:100%;border:1px solid black;font-size:15px;overflow: hidden;page-break-inside: avoid;">
+                        <div style="width:50%;float:left;padding-left:10px;page-break-inside:avoid;">
+                            <b>
+                                <u>Commercial Terms:</u>
+                            </b>
+                            <br/>
+                            <div class='o_report_layout_standard' style="color:#636363;">
+                                1.Please mention Purchase Order No in the invoice.
+                                <br/>
+                                2.All deliveries to be made to the shipping address mentioned above.
+                                <br/>
+                                3.We reserve the right to reject the goods that are not in good order or
+                                condition as determined by our quality control.
+                                <br/>
+                                4.Delivery:
+                                <span t-field="o.delivery_term_id"/>
+                                <br/>
+                                5.Payment:
+                                <span t-field="o.payment_term_id"/>
+                                <br/>
+                                6.GST as applicable as per laws.
+                            </div>
+                        </div>
+                        <div style="width:50%;float:left;padding-left:10px;page-break-inside:avoid;border-left:1px solid black;color:#636363;">
+                            <b>
+                                <u>Technical Terms:</u>
+                            </b>
+                            <br/>
+                            <tr style="width:50%;" >
+                                Calibration Certificate :
+                                <t t-if="o.caliberate_certificate">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.caliberate_certificate">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Test Report :
+                                <t t-if="o.test_report">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.test_report">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Warranty Certificate :
+                                <t t-if="o.warranty_certificate">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.warranty_certificate">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Certificate of Analysis :
+                                <t t-if="o.certifi_analysis">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.certifi_analysis">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Machine/Part Drawings :
+                                <t t-if="o.machine_part">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.machine_part">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Tech Manual/Documents :
+                                <t t-if="o.tech_machine">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.tech_machine">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Material Safety Data Sheet(MSDS) :
+                                <t t-if="o.material_data">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.material_data">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <tr style="width:35%;">
+                                <br/>
+                                Technical Data Sheet :
+                                <t t-if="o.Technical_data">
+                                    <input type="checkbox" checked="checked"/>
+                                </t>
+                                <t t-if="not o.Technical_data">
+                                    <input type="checkbox"/>
+                                </t>
+                            </tr>
+                            <br/>
+                            <tr>Others :
+                                <span t-field="o.others"/>
+                            </tr>
+                            <br/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- Main entry-point template: iterates docs, renders PO page then Terms page -->
+        <template id="purchase_order_to_vendor_munoth_report">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="munoth_reports.purchase_order_to_vendor_munoth_report_new"/>
+                <t t-call="munoth_reports.external_layout_striped_po">
+                    <div class="page">
+                        <div style="color:#636363;">
+                            <center>
+                                <u>
+                                    <strong style="font-size:20px;">Standard Terms &amp; Conditions</strong>
+                                </u>
+                            </center>
+                            <br/>
+                            1.The Purchase order may be accepted either through e-mail, fax, post or courier.
+                            <br/>
+                            <br/>
+                            2.Prices, terms &amp; conditions as mentioned in the Purchase Order shall be final and
+                            binding.
+                            Any modification to the terms and conditions of the Purchase Order shall be in writing
+                            with the
+                            mutual consent of both the parties.
+                            <br/>
+                            <br/>
+                            3.The Vendor shall deliver the materials within the due date as specified in the
+                            Purchase Order.
+                            All the deliveries are to be made from 9:00am to 6:00pm on weekdays (Monday to
+                            Saturday). In the
+                            event of delayed delivery, Munoth Industries Limited reserve the right to cancel the
+                            order and
+                            claim loss or damages arising out of such delay. Any demurrage due to late receipt of
+                            goods/services shall be debited to the Vendor's account.
+                            <br/>
+                            <br/>
+                            4.The supply of materials /services should be strictly in accordance with requirements
+                            and
+                            specifications as mentioned in the Purchase Order.
+                            <br/>
+                            <br/>
+                            5.Payment shall be made as per agreed terms and conditions as specified in the Purchase
+                            Order
+                            only for the materials/services received &amp; accepted by Munoth Industries Limited.
+                            <br/>
+                            <br/>
+                            6.In case of failure in availing input tax credit by Munoth Industries Limited or any
+                            input tax
+                            credit availed by Munoth Industries Limited is subsequently reversed, due to any default
+                            or
+                            delay in payment or deposit of any tax amount with the appropriate authority or delay in
+                            filing
+                            of returns, forms, documents, undertakings etc. and/or any non-compliance/ nondisclosure
+                            on the
+                            part of the Vendor then the Vendor shall be liable to compensate Munoth Industries
+                            Limited for
+                            the amount of such input tax of which credit is denied or reversed and also applicable
+                            statutory
+                            interest and penalties thereon.
+                            <br/>
+                            <br/>
+                            7.Notwithstanding anything to the contrary, the total liability of Munoth Industries
+                            Limited
+                            under the Purchase Order shall not exceed the total value as mentioned in the Purchase
+                            Order.
+                            <br/>
+                            <br/>
+                            8.The requirement of verification of the product at the supplier premises if applicable
+                            for the
+                            ordered product will be carried out on case-to-case basis
+                            <br/>
+                            <br/>
+                            9.All the supplies shall be accompanied by the delivery challan and other commercial
+                            documents.
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

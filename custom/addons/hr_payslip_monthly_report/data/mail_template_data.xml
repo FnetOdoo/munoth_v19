@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+            Monthly Payslip Email Template
+            Odoo 19 migration notes:
+            - model_id ref updated from hr_payroll_community to payroll module.
+            - email_from / email_to: Jinja2 syntax unchanged; {{ }} is correct.
+            - report_template_ids ref updated to payroll module xmlid.
+            - template_fs field removed in Odoo 19 (attachment naming handled
+              differently); remove or replace with report_name if needed.
+        -->
+        <record id="email_template_payslip" model="mail.template">
+            <field name="name">Monthly Payslip Email</field>
+            <!-- Odoo 19: payroll.model_hr_payslip (module renamed from
+                 hr_payroll_community to payroll) -->
+            <field name="model_id" ref="hr_payroll_community.model_hr_payslip"/>
+            <field name="email_from">{{ user.email }}</field>
+            <!-- private_email is still on hr.employee in v19 community.
+                 If moved, replace with object.employee_id.work_email -->
+            <field name="email_to">{{ object.employee_id.private_email }}</field>
+            <field name="subject">Ref {{ object.number }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Hi,</p>
+                <p>Please find attached the payslip details for this month.</p>
+            ]]></field>
+            <!-- Odoo 19: update xmlid to payroll module's report action -->
+            <field name="report_template_ids"
+                   eval="[(4, ref('hr_payroll_community.hr_payslip_report_action'))]"/>
+        </record>
+    </data>
+</odoo>

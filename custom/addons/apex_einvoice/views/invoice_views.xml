@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="inherit_move_form">
+            <field name="name">move.form.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <button name="genarate_einvoice" type="object" string="Genarate E-Invoice" class="oe_highlight"
+                            invisible="not enable_einv or einv_status in ['ACT', 'CNL']"/>
+                    <button name="generate_eway" type="object" string="Genarate E-Way Bill" class="oe_highlight"
+                            invisible="not enable_einv or ewbstatus in ['ACT', 'CNL']"/>
+                    <button name="%(action_einvoice_cancel_wizard)d" string="Cancel E-Invoice"
+                            context="{'default_invoice_id': id, 'default_type': 'irn'}"
+                            type="action"
+                            invisible="not enable_einv or einv_status != 'ACT'"/>
+                    <button name="check_eway_details" string="Check EwayBill Status"
+                            type="object"
+                            invisible="not einvoice_id"/>
+                    <button name="print_json_file" type="object" string="Print E-Invoice Json" class="oe_highlight"
+                            invisible="True" groups="base.group_no_one"/>
+                </field>
+                <field name="payment_reference" position="after">
+                    <field name="enable_einv"/>
+                </field>
+                <div name="journal_div" position="after">
+                    <field name="tpt_name_id" invisible="True"/>
+                </div>
+                <page name="other_info" position="after">
+                    <page string="E-Invoice &amp; Eway Details" invisible="not enable_einv">
+                        <group colspan="2">
+                            <group string="E-Invoice Details" colspan="1">
+                                <field name="einvoice_id" groups="base.group_no_one"/>
+                                <field name="irn" readonly="1"/>
+                                <button name="preview_qrcode" string="Preview QR" type="object"/>
+                                <field name="ackno" readonly="1"/>
+                                <field name="ackdt" readonly="1"/>
+                                <field name="einv_status" readonly="1"/>
+                                <field name="irn_cancel_date" readonly="1"
+                                       invisible="einv_status != 'CNL'"/>
+                                <field name="qr_image_1" readonly="1" widget="image" width="100" height="100"/>
+                            </group>
+                            <group string="E-Way Bill Details" colspan="1">
+                                <field name="trans_id"/>
+                                <field name="trans_name"/>
+                                <field name="trans_number"/>
+                                <field name="trans_date"/>
+                                <field name="trans_distant"/>
+                                <field name="trans_mode"/>
+                                <field name="trans_vehicle_number"/>
+                                <field name="trans_vehicle_type"/>
+                                <field name="ewbno" readonly="1"/>
+                                <field name="ewbstatus" readonly="1"/>
+                                <field name="ewbdt" readonly="1"/>
+                                <field name="remarks" readonly="1"/>
+                                <field name="ewbvalidtill" readonly="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </page>
+            </field>
+        </record>
+    </data>
+</odoo>

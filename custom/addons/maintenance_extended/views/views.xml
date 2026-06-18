@@ -1,0 +1,346 @@
+<odoo>
+    <record id="fnet_mrp_equipment_request_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Requests</field>
+        <field name="res_model">maintenance.request</field>
+        <field name="view_mode">kanban,list,form,pivot,graph,calendar</field>
+        <field name="view_id" ref="maintenance.hr_equipment_request_view_kanban"/>
+        <field name="context">{'default_user_id': uid}</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new maintenance request
+            </p>
+            <p>
+                Follow the process of the request and communicate with the collaborator.
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_manufacturing_request_maintenance" name="Maintenance Requests" parent="mrp_material_request.menu_manufacturing_request_root" action="fnet_mrp_equipment_request_action"/>
+
+    <record id="checklist_view_form" model="ir.ui.view">
+        <field name="name">equipment.checklist.view.form</field>
+        <field name="model">equipment.checklist</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" string="Name" placeholder="e.g. LED Monitor cleaning"/>
+                        </h1>
+                    </div>
+                    <field name="company_id" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="category_id"/>
+                        </group>
+                        <group>
+                            <field name="duration" widget="float_time"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Materials" name="material">
+                            <field name="material_ids">
+                                <list editable="bottom">
+                                    <field name="product_uom_category_id" column_invisible="1"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="product_qty"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="checklist_view_list" model="ir.ui.view">
+        <field name="name">equipment.checklist.view.form</field>
+        <field name="model">equipment.checklist</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="duration" widget="float_time"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_equipment_checklist">
+        <field name="name">Checklist</field>
+        <field name="res_model">equipment.checklist</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_maintenance_checklist" name="Maintenance Checklist" parent="maintenance.menu_maintenance_configuration" action="action_equipment_checklist"/>
+
+    <record id="maintenance_material_view_form" model="ir.ui.view">
+        <field name="name">maintenance.material.view.form</field>
+        <field name="model">checklist.material</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="company_id" invisible="1"/>
+                <field name="product_uom_category_id" invisible="1"/>
+                <field name="product_id"/>
+                <field name="product_uom_id"/>
+                <field name="product_qty"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="maintenance_material_view_list" model="ir.ui.view">
+        <field name="name">maintenance.material.view.list</field>
+        <field name="model">checklist.material</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id" column_invisible="1"/>
+                <field name="product_uom_category_id" column_invisible="1"/>
+                <field name="product_id"/>
+                <field name="product_uom_id"/>
+                <field name="product_qty"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="maintenance_equipment_checklist_view_form" model="ir.ui.view">
+        <field name="name">maintenance.equipment.view.form.inherit.hr</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[last()]" position="after">
+                <page name="checklist" string="Checklist">
+                    <field name="checklist_ids" domain="[('category_id', '=', category_id)]"/>
+                </page>
+            </xpath>
+            <group name="statistics" position="inside">
+                <label for="location_id" string="Destination Location"/>
+                <div class="o_row">
+                    <field name="location_id"/>
+                </div>
+            </group>
+            <xpath expr="//page[last()]" position="after">
+                <page name="instrument_ids" string="Instrument Details">
+                    <field name="instrument_ids">
+                        <list editable="bottom">
+                            <field name="instrument_id"/>
+                            <field name="name" required="1" string="Name"/>
+                            <field name="description"/>
+                            <field name="make_model"/>
+                            <field name="spec_range"/>
+                            <field name="area_location"/>
+                            <field name="equipment_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="maintenance.menu_equipment_form" model="ir.ui.menu">
+        <field name="action" eval="False"/>
+    </record>
+
+    <menuitem id="menu_equipment_child_form" name="Equipments" parent="maintenance.menu_equipment_form" action="maintenance.hr_equipment_action" groups="maintenance.group_equipment_manager,base.group_user" sequence="1"/>
+
+    <record id="maintenance_instrument_form" model="ir.ui.view">
+        <field name="name">view.maintenance.instrument.form</field>
+        <field name="model">maintenance.instrument</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="description"/>
+                            <field name="make_model"/>
+                        </group>
+                        <group>
+                            <field name="spec_range"/>
+                            <field name="area_location"/>
+                            <field name="equipment_id" invisible="0"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="maintenance_instrument_list" model="ir.ui.view">
+        <field name="name">view.maintenance.instrument.list</field>
+        <field name="model">maintenance.instrument</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="make_model"/>
+                <field name="spec_range"/>
+                <field name="area_location"/>
+                <field name="equipment_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_maintenance_instrument" model="ir.actions.act_window">
+        <field name="name">Instrument</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.instrument</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_maintenance_instrument" name="Instrument" parent="maintenance.menu_equipment_form" action="action_maintenance_instrument"/>
+
+    <record id="hr_equipment_stage_view_list_ineherit" model="ir.ui.view">
+        <field name="name">maintenance.stage.inherit</field>
+        <field name="model">maintenance.stage</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_stage_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="done" position="after">
+                <field name="enable_approval"/>
+                <field name="user_ids" widget="many2many_tags" readonly="enable_approval != True" required="enable_approval == True"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="maintenance_plan_view_form_inherit" model="ir.ui.view">
+        <field name="name">maintenance.plan.form.inherit</field>
+        <field name="model">maintenance.plan</field>
+        <field name="inherit_id" ref="maintenance_plan.maintenance_plan_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[last()]" position="after">
+                <page name="checklist" string="Checklist">
+                    <field name="checklist_ids"/>
+                </page>
+            </xpath>
+            <field name="is_calibration" position="after">
+                <field name="instrument_id" domain="[('equipment_id', '=', equipment_id)]"/>
+                <button name="change_start_date" string=" Danger" type="object" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_equipment_request_view_form_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.form.inherit</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <button name="archive_equipment_request" position="after">
+                <button string="Create Work Order" name="action_create_work_order" type="object" class="oe_highlight"/>
+            </button>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_work_order" type="object" invisible="work_order_count == 0" class="oe_stat_button" icon="fa-list">
+                        <field name="work_order_count" widget="statinfo" string="Work Orders"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//sheet[last()]" position="inside">
+                <notebook>
+                    <page string="Work Orders" name="orders" invisible="work_order_count == 0">
+                        <field name="order_ids" readonly="1"/>
+                        <field name="is_changed" invisible="1"/>
+                    </page>
+                    <page string="Checklist" name="checklist">
+                        <field name="checklist_ids"/>
+                    </page>
+                </notebook>
+            </xpath>
+            <field name="email_cc" position="after">
+                <field name="is_request_sent" invisible="1"/>
+                <field name="enable_approval" invisible="0"/>
+                <field name="can_approve" invisible="1"/>
+            </field>
+            <button name="reset_equipment_request" position="after">
+                <button string="Request for Approval" name="action_close_request" type="object" class="btn-success" invisible="not enable_approval or is_request_sent"/>
+                <button string="Approve" name="action_close_approve" type="object" class="btn-success" invisible="is_request_sent != True or can_approve != True"/>
+                <button string="Reject" name="action_close_reject" type="object" class="btn-danger" invisible="is_request_sent != True or can_approve != True"/>
+            </button>
+            <field name="category_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="equipment_id" position="before">
+                <field name="category_id" context="{'default_company_id':company_id}" readonly="0"/>
+            </field>
+            <field name="equipment_id" position="attributes">
+                <attribute name="domain">[('category_id', '=', category_id)]</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_equipment_category_view_form_inherit" model="ir.ui.view">
+        <field name="name">maintenance.equipment.category.form.inherit</field>
+        <field name="model">maintenance.equipment.category</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_category_view_form"/>
+        <field name="arch" type="xml">
+            <field name="technician_user_id" position="after">
+                <field name="alert_days"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sale_subscription_view_form_inherit" model="ir.ui.view">
+        <field name="name">sales.subscription.form.view</field>
+        <field name="model">sales.subscription</field>
+        <field name="inherit_id" ref="sales_subscription.sale_subscription_view_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="is_maintenance" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="maintenance_request_view_search_inherit_instrument" model="ir.ui.view">
+        <field name="name">maintenance.request.view.search.inherit.instrument</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <!--                <xpath expr="field[@name='equipment_id']" position="before">-->
+            <!--                    <field name="instrument_id" attrs="{'invisible': [('is_calibration', '=', False)]}"/>-->
+            <!--                    <field name="is_calibration" invisible="0"/>-->
+            <!--                </xpath>-->
+            <field name="request_date" position="before">
+                <field name="instrument_id" invisible="is_calibration == False" domain="[('equipment_id', '=', equipment_id)]"/>
+                <field name="is_calibration" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="maintenance_plan.maintenance_plan_action" model="ir.actions.act_window">
+        <field name="domain">[('is_calibration', '=', False)]</field>
+    </record>
+
+    <record id="calibration_plan_view_list" model="ir.ui.view">
+        <field name="name">maintenance.plan.list</field>
+        <field name="model">maintenance.plan</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="active == False">
+                <field name="equipment_id"/>
+                <!--                    <field name="maintenance_kind_id"/>-->
+                <field name="maintenance_team_id"/>
+                <field name="instrument_id"/>
+                <field name="start_maintenance_date"/>
+                <field name="interval"/>
+                <field name="interval_step"/>
+                <field name="duration"/>
+                <field name="next_maintenance_date"/>
+                <field name="maintenance_plan_horizon"/>
+                <field name="planning_step"/>
+                <field name="active" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="calibration_plan_action" model="ir.actions.act_window">
+        <field name="name">Calibration plans</field>
+        <field name="res_model">maintenance.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="calibration_plan_view_list"/>
+        <field name="domain">[('is_calibration', '=', True)]</field>
+        <field name="context">{"default_is_calibration": True}</field>
+    </record>
+
+    <menuitem id="menu_c_plan_form" name="Calibration Plans" parent="maintenance.menu_m_request" action="calibration_plan_action" groups="maintenance.group_equipment_manager,base.group_user"/>
+
+</odoo>

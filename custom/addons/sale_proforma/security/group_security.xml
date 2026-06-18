@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.module.category" id="module_category_vendor_evaluation">
+        <field name="name">Vendor Evaluation</field>
+        <field name="sequence">7</field>
+    </record>
+      <record id="privilege_vendor_evaulation" model="res.groups.privilege">
+            <field name="name">Vendor Evaluation</field>
+            <field name="sequence">7</field>
+            <field name="category_id" ref="module_category_vendor_evaluation"/>
+        </record>
+    <record id="group_reviewer_evaluation_reviewer" model="res.groups">
+        <field name="name">Reviewer</field>
+        <field name="privilege_id" ref="privilege_vendor_evaulation"/>
+    </record>
+    <record id="group_customer_evaluation_officer" model="res.groups">
+        <field name="name">Officer</field>
+        <field name="privilege_id" ref="privilege_vendor_evaulation"/>
+        <field name="implied_ids" eval="[(4,ref('group_reviewer_evaluation_reviewer'))]"/>
+    </record>
+    <record id="group_customer_evaluation_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_vendor_evaulation"/>
+        <field name="implied_ids" eval="[(4,ref('group_customer_evaluation_officer'))]"/>
+    </record>
+</odoo>

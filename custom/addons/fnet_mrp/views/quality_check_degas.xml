@@ -1,0 +1,108 @@
+<odoo>
+    <data>
+        <record id="view_quality_check_degas_form" model="ir.ui.view">
+            <field name="name">quality.check.degas.form</field>
+            <field name="model">quality.check.degas</field>
+            <field name="arch" type="xml">
+                <form string="Quality Check -Degas">
+                    <sheet>
+                        <div>
+                            <div style="float:left;">
+                                <img src="/web/binary/company_logo" style="height:68px;"/>
+
+                            </div>
+
+                            <h1 style="text-align:center;">
+                                <b><span>Process Quality Check Sheet (PQC) - Degas</span></b>
+                                <div style="float:right;">
+                                    <b style="font-size:13px;">Document:</b><field name="doc_no" style="text-align:right;width:50px;font-size:13px;"/><br/>
+                                    <b style="font-size:13px;width:20px;padding-left:17px;">Date:</b><field name="date" style="text-align:right;width:50px;font-size:13px;padding-left:22px;"/>
+                                </div>
+                            </h1>
+                        </div>
+                        <br/>
+                        <hr/>
+                        <group col="6">
+                            <field name="model_id"/>
+                            <field name="product_id"/>
+                        </group>
+                        <hr/>
+                        <b><center><u>Process Quality Check Sheet (PQC) - Injection</u></center></b>
+                        <table>
+                            <thead>
+                                <th>
+                                    <th style="width:5%;text-align:center;"></th>
+                                    <th style="width:5%;text-align:center;"></th>
+                                    <th  style="width:9%;text-align:center;padding-left:60px;"> SWAT-Sealing width after fine trimming (mm)</th>
+                                    <th  style="width:6%;text-align:center;">OCV (V)</th>
+                                     <th  style="width:6%;text-align:center;padding-left:50px;">Weight (g)</th>
+                                     <th  style="width:6%;text-align:center;padding-left:60px;">Final Dimension (12*60*110 mm Max)</th>
+                                    <th  style="width:6%;text-align:center;">Tools Used</th>
+                                     <th  style="width:6%;text-align:center;">Remarks</th>
+
+                                </th>
+                            </thead>
+                            <tbody>
+                                <field name="pcq_degas_ids" style="width:99%;">
+                                    <list editable="bottom" string="value">
+                                        <field name="date_from" style="width:10%;"/>
+                                        <field name="date_to" />
+                                         <field name="sample_qty"/>
+                                        <field name="degas_trimming_actual"/>
+                                        <field name="degas_trimming_observance"/>
+                                        <field name="degas_voltage_actual"/>
+                                        <field name="degas_voltage_observance"/>
+                                        <field name="degas_final_cell_weight_actual"/>
+                                        <field name="degas_final_cell_weight_observation"/>
+                                        <field name="degas_fd_t"/>
+                                        <field name="degas_fd_w"/>
+                                        <field name="degas_fd_l"/>
+                                        <field name="tool_used"/>
+                                        <field name="degas_remarks"/>
+                                    </list>
+                                </field>
+
+                            </tbody>
+                        </table>
+                        <div>
+                            <div style="float:left;width:50%;text-align:center;">
+                                <strong>checked By</strong>
+                            </div>
+                            <div style="float:right;width:50%;text-align:center;">
+                                <strong> Verified By </strong>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_quality_check_process_list" model="ir.ui.view">
+            <field name="name">quality.check.injection.list.view</field>
+            <field name="model">quality.check.injection</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="date"/>
+                    <field name="model_id"/>
+                    <field name="product_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_process_quality_check_degas" model="ir.actions.act_window">
+            <field name="name">Quality Check in degas</field>
+            <field name="res_model">quality.check.degas</field>
+            <field name="domain">[]</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Quality Check Process
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="menu_quality_check_degas" name="Process Quality Check Degas" parent="fnet_mrp.menu_mrp_quality"
+                  sequence="3" action="view_process_quality_check_degas"/>
+
+    </data>
+</odoo>

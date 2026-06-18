@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_goods_gate_pass_report" model="report.paperformat">
+            <field name="name">A4 Expense Claim Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">50</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">37</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="gate_pass_munoth_new_reports" model="ir.actions.report">
+            <field name="name">Gate pass Report</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.gate_pass_munoth_reports</field>
+            <field name="report_file">munoth_reports.gate_pass_munoth_reports</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_goods_gate_pass_report"/>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+        </record>
+        <template id="gate_pass_munoth_reports_new">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class="page">
+                            <t t-if="doc and 'company_id' in doc">
+                                <t t-set="company" t-value="doc.company_id"></t>
+                            </t>
+                            <t t-if="not doc or not 'company_id' in doc">
+                                <t t-set="company" t-value="res_company"></t>
+                            </t>
+                            <div class="header">
+                                <div style="float:right;">
+                                    Doc No:<span t-esc="o.doc_no"/><br/>
+                                    Rev No:<span t-esc="o.rev_no"/><br/>
+                                    Date:<span t-field="o.rev_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/><br/>
+                                </div>
+                                <h1 style="text-align:center;color:black!important;"><strong><h2><img src="/web/binary/company_logo" style="height:65px;"/><span t-field="company.name"/></h2></strong></h1>
+                                <h5 style="text-align:center;color:black!important;"><center><span t-field="company.street"/>,<span t-field="company.street2"/>,<br/><span t-field="company.city"/>-<span t-field="company.zip"/></center></h5>
+                                <t t-if="company.phone">
+                                    <h5 style="text-align:center;color:black!important;"><center>Phone No:<span t-field="company.phone"/></center></h5>
+                                </t>
+                                <t t-if="company.vat">
+                                    <h5 style="text-align:center;color:black!important;"><center>GSTIN:<span t-field="company.vat"/></center></h5>
+                                </t>
+                                <p/>
+                            </div>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <div class="page">
+                                <p/>
+                                <center><b style="font-weight:bold;font-size:25px;"><u>Material Gate Pass</u></b></center>
+                                <div style="width:70%;height:235px;float:left;">
+                                    <strong>Gate Outward Sl No :</strong><span t-field="o.gate_doc"/><br/>
+                                    <strong>Outward Register Sl. No:</strong><span t-field="o.name"/>
+                                    <p/>
+                                    <strong>Delivery Challan/Tax Invoice No &amp; Date:</strong><br/>
+                                    <t t-if="not o.items">
+                                        <t t-if="o.name">
+                                            <span t-field="o.name"/>
+                                        </t>
+                                        <t t-if="o.sale_id.invoice_ids.name">/
+                                            <span t-field="o.sale_id.invoice_ids.name"/>
+                                        </t>
+                                        <t t-if="o.sale_id.invoice_ids.invoice_date">&amp;
+                                            <span t-field="o.sale_id.invoice_ids.invoice_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                        </t>
+                                    </t>
+                                    <p/>
+                                    <strong>Receiver Name &amp; Address:</strong><br/>
+                                    <span t-field="o.partner_id"/><br/>
+                                    <t t-if="o.partner_id.street">
+                                        <span t-field="o.partner_id.street"/>
+                                    </t>
+                                    <t t-if="o.partner_id.street2">,
+                                        <span t-field="o.partner_id.street2"/>
+                                    </t>
+                                    <t t-if="o.partner_id.city">,
+                                        <span t-field="o.partner_id.city"/>
+                                    </t>
+                                    <t t-if="o.partner_id.state_id">,
+                                        <span t-field="o.partner_id.state_id.name"/>
+                                    </t>
+                                    <t t-if="o.partner_id.zip">.
+                                    </t>
+                                </div>
+                                <div style="width:30%;height:235px;float:right;">
+                                    <strong style="text-align:right;">Date : </strong><span t-field="o.scheduled_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/><br/>
+                                    <strong style="text-align:right;">Time: </strong><span t-field="o.scheduled_date" t-options='{"widget": "datetime", "time_only": True, "hide_seconds": True}'/>
+                                    <p/>
+                                    <t t-if="o.returnable_items">
+                                        <strong>
+                                            <!--                                       <t t-set='o.returnable_items' t-value='bool(1)'/>-->
+                                            <div t-if="o.returnable_items == 'return_item'">Returnable</div>
+                                            <div t-if="o.returnable_items == 'nonreturn_item'">Non-Returnable</div>
+                                        </strong>
+                                    </t>
+                                    <p/>
+                                </div>
+                                <table style="width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;page-break-before: avoid;" cellspacing="0">
+                                    <thead style="line-height: 1.5;">
+                                        <th style="font-weight:bold;width:5%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;height:20px;">
+                                            Sl.No
+                                        </th>
+                                        <th style="font-weight:bold;width:50%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;height:20px;">
+                                            Description
+                                        </th>
+                                        <th style="font-weight:bold;width:8%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;height:20px;">
+                                            Boxes
+                                        </th>
+                                        <th style="font-weight:bold;width:7%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;height:20px;">
+                                            Quantity
+                                        </th>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="counter" t-value="1"/>
+                                        <tr style="font-size: 16px;" t-foreach="docs.move_line_ids" t-as="t">
+                                            <td style="width:5%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;border-bottom:1px solid black;">
+                                                <span style="text-align:center;" t-esc="counter"/>
+                                                <t t-set="counter" t-value="counter+1"/>
+                                            </td>
+                                            <td style="width:50%;padding-left:2px;border-right:1px solid black;border-left:1px;vertical-align:top;text-align:left;padding-top:0px;border-bottom:1px solid black;">
+                                                <span t-esc="t.product_id.name"/>
+                                            </td>
+                                            <td style="width:8%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;border-bottom:1px solid black;">
+                                                <span t-esc="t.boxes"/>
+                                            </td>
+                                            <td style="width:7%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;border-bottom:1px solid black;">
+                                                <span t-esc="'%.0f'%t.quantity"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div>
+                                    <strong>Total Value Of Goods:</strong>
+                                    <t t-if="o.total_value_of_goods">
+                                        <span t-field="o.total_value_of_goods"/>
+                                    </t> <br/>
+                                    <br/>
+                                    <strong>Transporter Name:</strong><span t-field="o.transporter"/><br/>
+                                    <br/>
+                                    <strong>Vehicle No:</strong><span t-field="o.vehicle_no"/><br/>
+                                    <br/>
+                                    <strong>Purpose:</strong><span t-field="o.purpose"/><br/>
+                                </div>
+                                <p/>
+                                <br/>
+                                <div>
+                                    <table  class="table table-borderless" style="width:100%;height:200px; font-size:16px;text-align:justify;page-break-inside:avoid;"
+                                           cellspacing="0">
+                                        <tr>
+                                            <td style="width:25%;text-align:left;">
+                                                <strong>Prepared by</strong>
+                                            </td>
+                                            <td style="width:25%;text-align:left;">
+                                                <strong>Authorised by</strong>
+                                            </td>
+                                            <td style="width:25%;text-align:left;">
+                                                <strong>Security by</strong>
+                                            </td>
+                                            <td style="width:25%;text-align:center;">
+                                                <strong>Receiver Name &amp; Signature</strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+        <template id="gate_pass_munoth_reports">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="docs">
+                    <t t-call="munoth_reports.gate_pass_munoth_reports_new"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

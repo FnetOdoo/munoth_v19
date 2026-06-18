@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_check_quality" model="ir.ui.view">
+        <field name="name">check.quality.form</field>
+        <field name="model">check.quality</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="pcq_injection_id"/>
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

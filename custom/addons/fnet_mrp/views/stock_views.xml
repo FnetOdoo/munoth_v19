@@ -1,0 +1,273 @@
+<odoo>
+    <data>
+
+        <record id="view_location_form_inherit" model="ir.ui.view">
+            <field name="name">view.location.form.inherit</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='replenish_location']" position="after">
+                    <field name="stock_location"/>
+                    <field name="temporary_location"/>
+                    <field name="consumed_location"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="stock_picking_inspection_form_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.inspection.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+
+                <button name="action_cancel" position="after">
+
+                    <button name="action_request_inspection" type="object" class="oe_highlight" string="Request Inspection" invisible="is_inspection_enabled == False or picking_type_code == 'internal' or inspection_count != 0"/>
+
+                    <button name="action_request_inspection" type="object" string="Request Inspection" invisible="is_inspection_enabled != True or picking_type_code == 'internal' or inspection_count == 0"/>
+
+                </button>
+
+                <div name="button_box" position="inside">
+                    <button name="action_open_inspection" type="object" icon="fa-check" invisible="inspection_count == 0">
+                        <field name="inspection_count" widget="statinfo" string="Inspections"/>
+                    </button>
+                </div>
+                <field name="location_dest_id" position="after">
+                    <field name="inspection_team_id" readonly="state not in 'draft'"/>
+                    <!--                    <field name="mrp_material_request"/>-->
+                    <field name="is_inspection_enabled" invisible="1"/>
+                </field>
+            </field>
+        </record>
+        <!--        Inspection-->
+        <record id="stock_inspection_view_search" model="ir.ui.view">
+            <field name="name">stock.inspection.view.search</field>
+            <field name="model">stock.inspection</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="batch_number"/>
+                    <field name="product_id"/>
+                    <group>
+                        <filter string="Incoming" name="type" domain="[('type', '=', 'incoming')]"/>
+                        <filter string="Outgoing" name="type" domain="[('type', '=', 'outgoing')]"/>
+                        <filter string="Doc Audit" name="type" domain="[('type', '=', 'audit')]"/>
+                        <filter string="Type" name="type" domain="[]" context="{'group_by':'type'}"/>
+                        <filter string="Status" name="state" domain="[]" context="{'group_by':'state'}"/>
+                        <filter string="Responsible" name="user_id" domain="[]" context="{'group_by':'user_id'}"/>
+                        <filter string="Inspection Team" name="team_id" domain="[]" context="{'group_by':'team_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="stock_inspection_view_form" model="ir.ui.view">
+            <field name="name">stock.inspection.view.form</field>
+            <field name="model">stock.inspection</field>
+            <field name="arch" type="xml">
+                <form string="Inspection">
+                    <header>
+                        <button name="action_submit" type="object" string="Submit" class="oe_highlight" invisible="state != 'draft'"/>
+                        <button name="action_verify" type="object" string="Verify" class="oe_highlight" invisible="state != 'request'"/>
+                        <button name="action_validate" type="object" string="Manager Approve" class="oe_highlight" groups="fnet_mrp.group_stock_inspection_approve" invisible="state != 'verify'"/>
+                        <button name="action_cancel" type="object" string="Cancel" invisible="state not in ['draft','request','verify']"/>
+                        <button name="action_reset" type="object" string="Set to Draft" invisible="state != 'cancel'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,request,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="company_id" invisible="1"/>
+                                <div class="o_td_label">
+                                    <label for="partner_id" string="Customer" style="font-weight:bold;" invisible="type != 'outgoing'"/>
+                                    <label for="partner_id" string="Vendor" style="font-weight:bold;" invisible="type != 'incoming'"/>
+                                </div>
+                                <field name="partner_id" widget="res_partner_many2one" nolabel="1" readonly="state == 'done'"/>
+                                <field name="product_id" readonly="state == 'done'"/>
+                                <field name="product_model_id" readonly="state == 'done'" invisible="1"/>
+                                <field name="quantity" readonly="state == 'done'"/>
+                                <field name="sample_qty" readonly="state == 'done'"/>
+                                <field name="purpose"/>
+                                <field name="template_id" readonly="state in ['done','cancel']"/>
+                            </group>
+                            <group>
+                                <field name="type" required="1" readonly="state == 'done'"/>
+                                <field name="part_number"/>
+                                <field name="part_description"/>
+                                <field name="batch_number"/>
+                                <field name="date" readonly="1" invisible="state != 'done'"/>
+                                <field name="date_done" readonly="1" invisible="state != 'done'"/>
+                                <field name="team_id" readonly="state == 'done'"/>
+                                <field name="picking_id" readonly="state == 'done'"/>
+                                <field name="standard"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Inspection">
+                                <field name="line_ids" readonly="state == 'done'">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="parameter"/>
+                                        <field name="sort"/>
+                                        <field name="test_method"/>
+                                        <field name="sample_1"/>
+                                        <field name="sample_2"/>
+                                        <field name="sample_3"/>
+                                        <field name="sample_4"/>
+                                        <field name="sample_5"/>
+                                        <field name="min_value"/>
+                                        <field name="max_value"/>
+                                        <field name="state"/>
+                                        <field name="remark"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="parameter"/>
+                                                <field name="sort"/>
+                                                <field name="test_method"/>
+                                                <field name="sample_1"/>
+                                                <field name="sample_2"/>
+                                            </group>
+                                            <group>
+                                                <field name="sample_3"/>
+                                                <field name="sample_4"/>
+                                                <field name="sample_5"/>
+                                                <field name="state"/>
+                                                <field name="remark"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page string="Others">
+                                <group>
+                                    <group string="Revision Detail">
+                                        <field name="rev_doc_number"/>
+                                        <field name="rev_number"/>
+                                        <field name="rev_date"/>
+                                        <field name="invoice_number"/>
+                                    </group>
+                                    <group string="Approval Details">
+                                        <field name="user_id" readonly="1"/>
+                                        <field name="verify_user_id" readonly="1"/>
+                                        <field name="approve_user_id" readonly="1"/>
+                                        <field name="aql"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <group string="others">
+                                        <field name="create_date" readonly="1"/>
+                                        <field name="create_uid" readonly="1"/>
+                                    </group>
+                                    <group/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+        <record id="stock_inspection_view_list" model="ir.ui.view">
+            <field name="name">stock.inspection.view.list</field>
+            <field name="model">stock.inspection</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="partner_id" string="Partner"/>
+                    <field name="date"/>
+                    <field name="type"/>
+                    <field name="team_id"/>
+                    <field name="user_id"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+        <record id="stock_inspection_action" model="ir.actions.act_window">
+            <field name="name">Inspection</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.inspection</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create Inspection
+                </p>
+            </field>
+        </record>
+        <!--        Inspection Template-->
+        <record id="inspection_template_view_form" model="ir.ui.view">
+            <field name="name">inspection.template.view.form</field>
+            <field name="model">inspection.template</field>
+            <field name="arch" type="xml">
+                <form string="Serial Number">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                            </group>
+                            <group/>
+                        </group>
+                        <notebook>
+                            <page string="Items" name="item">
+                                <field name="item_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="field_type_view"/>
+                                        <field name="parameter"/>
+                                        <field name="from_value"/>
+                                        <field name="to_value"/>
+                                        <field name="sort"/>
+                                        <field name="test_method"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="parameter"/>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="inspection_template_view_list" model="ir.ui.view">
+            <field name="name">inspection.template.view.list</field>
+            <field name="model">inspection.template</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="type"/>
+                </list>
+            </field>
+        </record>
+        <record id="inspection_template_action" model="ir.actions.act_window">
+            <field name="name">Inspection Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inspection.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create Inspection
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

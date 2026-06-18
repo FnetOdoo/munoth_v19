@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="pro_forma_invoice_report" model="ir.actions.report">
+            <field name="name">Pro-Forma Munoth Invoice</field>
+            <field name="model">sale.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.pro_forma_invoice_template_report</field>
+            <field name="report_file">munoth_reports.pro_forma_invoice_template_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_pro_forma_invoice_report"/>
+            <field name="binding_model_id" ref="sale.model_sale_order"/>
+            <field name="binding_type">report</field>
+        </record>
+        <template id="pro_forma_template_report_new">
+            <t t-call="web.html_container">
+                <t t-call="munoth_reports.pro_forma_invoice_template_in_invoice_new" t-lang="lang"/>
+            </t>
+        </template>
+
+
+        <template id="custom_pro_forma_header">
+            <t t-if="doc and 'company_id' in doc">
+                <t t-set="company" t-value="doc.company_id"></t>
+            </t>
+            <t t-if="not doc or not 'company_id' in doc">
+                <t t-set="company" t-value="res_company"></t>
+            </t>
+            <div class="header">
+                <div style="text-align:center;font-size:18px;">PRO-FORMA INVOICE</div>
+                <div class="row">
+                    <div class="col-4">
+                        <img src="/web/binary/company_logo" style="height:75px;width:100px;"/>
+                        <br/>
+                        <br/>
+                        <div t-field="company.name" style="font-size: 15px;"/>
+                        <div t-field="company.street"/>
+                        <div t-field="company.street2"/>
+                        <div>
+                            <span t-field="company.city"/>
+                            -
+                            <span t-field="company.zip"/>
+                        </div>
+                        <p>
+                            <span t-if="company.vat">GST:
+                                <span t-field="company.vat"/>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template id="pro_forma_invoice_template_in_invoice_new">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+                    <t t-call="munoth_reports.custom_pro_forma_header"/>
+                    <div class="page">
+                        <table class="table table-bordered" style="font-size:14px; border: 1px solid black;padding-left:1px;">
+                            <tr style="font-size:11px;background: white;border: 1px solid black;line-height: 0.01;">
+                                <td style="font-weight:bold;width:12px;font-size:14px;border: 1px solid black;">
+                                    <span>Pro-Forma Number</span>
+                                    <br/>
+                                    <br/>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;font-size:14px;">
+                                    <span style="font-weight:bold;font-size:14px;">Proforma Date</span>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;font-size:14px;">
+                                    <span t-field="o.date_order" t-options="{'widget': 'date'}"/>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;font-size:14px;">
+                                    <span style="font-weight:bold;">Due Date</span>
+                                </td>
+                                <td style="border: 1px solid black;width:60px;font-size:14px;">
+                                    <span t-field="o.validity_date" t-options="{'widget': 'date'}"/>
+                                </td>
+                            </tr>
+                            <tr style="font-size:14px;background: white;width:10px; border: 1px solid black;">
+                                <td style="border: 1px solid black;width:10px;">
+                                    <span t-field="o.proforma_no"/>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;">
+                                    <span style="font-weight:bold;">Payment Term</span>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;">
+                                    <span t-field="o.payment_term_id.name"/>
+                                </td>
+                                <td style="border: 1px solid black;width:10px;">
+                                    <span style="font-weight:bold;">Customer Ref</span>
+                                </td>
+                                <td style="border: 1px solid black;width:60px;">
+                                    <p>
+                                        <span t-field="o.client_order_ref"/>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="font-size:14px;border: 1px solid black; width:100%;padding-left:2px;">
+                            <tr style="font-size:11px;background: white;border: 1px solid black;">
+                                <td style="border: 1px solid black;padding-left:5px;">
+                                    <b style="font-size: 14px;">BILLING ADDRESS:</b>
+                                    <br/>
+                                    <div style="font-size: 14px;font-weight:bold;" t-esc="o.partner_id.name"/>
+                                    <div style="font-size: 12px;" t-esc="o.partner_id.street"/>
+                                    <div style="font-size: 12px;" t-esc="o.partner_id.street2"/>
+                                    <div style="font-size: 12px;">
+                                        <span t-field="o.partner_id.city"/>
+                                        -
+                                        <span t-field="o.partner_id.zip"/>
+                                    </div>
+                                    <div style="font-size: 12px;" t-esc="o.partner_id.phone"/>
+                                    GST :
+                                    <div style="font-size: 12px;" t-esc="o.partner_id.vat"/>
+                                </td>
+                                <td style="border: 1px solid black; padding-left:5px;">
+                                    <b style="font-size: 14px;">SHIPPING ADDRESS:</b>
+                                    <div style="font-size: 14px;font-weight:bold;" t-esc="o.partner_shipping_id.name"/>
+                                    <div style="font-size: 12px;" t-esc="o.partner_shipping_id.street"/>
+                                    <div style="font-size: 12px;" t-esc="o.partner_shipping_id.street2"/>
+                                    <div style="font-size: 12px;">
+                                        <span t-field="o.partner_shipping_id.city"/>
+                                        -
+                                        <span t-field="o.partner_shipping_id.zip"/>
+                                    </div>
+                                    <div style="font-size: 12px;" t-esc="o.partner_shipping_id.phone"/>
+                                    <!--								GST : <div style="font-size: 12px;" t-esc="o.partner_shipping_id.vat"/>-->
+                                </td>
+                            </tr>
+                        </table>
+                        <!--						<div class="watermark_logo" style="position:absolute;opacity:0.25;z-index:1000;-webkit-transform:rotate(325deg);text-align:center;width:100%;">-->
+                        <!--							<td>-->
+                        <!--								<span style="font-family:'Times New Roman';font-size:70px;">PRO - FORMA</span>-->
+                        <!--							</td>-->
+                        <!--						</div>-->
+                        <table class="table table-bordered" style="font-size:14px;border: 1px solid black;">
+                            <tr style="font-size:14px;background: white;line-height: 0.8;border: 1px solid black;">
+                                <th style="border: 1px solid black;">S.No</th>
+                                <th style="border: 1px solid black;">Description of Goods</th>
+                                <th style="border: 1px solid black;">HSN/SAC Code</th>
+                                <th style="border: 1px solid black;">Tax</th>
+                                <th style="border: 1px solid black;">Quantity</th>
+                                <th style="border: 1px solid black;">Rate</th>
+                                <th style="border: 1px solid black;">Uom</th>
+                                <th style="border: 1px solid black;">Amount</th>
+                            </tr>
+                            <t t-set="counter" t-value="1"/>
+                            <tr t-foreach="o.order_line" t-as="doc" style="font-size:14px;background: white;border: 1px solid black;">
+                                <t t-if="doc.product_id">
+                                    <td style="text-align:center;border: 1px solid black;">
+                                        <t t-esc="counter"/>
+                                        <t t-set="counter" t-value="counter+1"/>
+                                    </td>
+                                    <td style="padding-left:10px;border: 1px solid black;">
+                                        <span t-field="doc.name"/>
+                                    </td>
+                                    <td style="padding-left:10px;border: 1px solid black;">
+                                        <span t-field="doc.product_id.l10n_in_hsn_code"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-esc="', '.join(map(lambda x: (x.description or x.name), doc.tax_ids))"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-esc="doc.product_uom_qty"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-esc="'%.2f'%doc.price_unit"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-field="doc.product_uom_id.name"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-esc="'%.2f'%doc.price_subtotal"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <!--<t t-if="o.tds_added > 0 ">
+                                <tr style="font-size:14px;background: white;border: 1px solid black;">
+                                    <td colspan="7" style="padding-left:10px;text-align:right;border: 1px solid black;">TCS:</td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;"><span t-esc="o.tds_added"/></td>
+                                </tr>
+                            </t>
+                            <tr style="font-size:14px;background: white;border: 1px solid black;" t-if="o.get_tds_des(o) &lt; 0 ">
+                                <td colspan="7" style="padding-left:10px;text-align:right;border: 1px solid black;">TDS:</td>
+                                <td style="padding-left:10px;text-align:right;border: 1px solid black;"><span t-esc="o.get_tds_des(o)"/></td>
+                            </tr>-->
+
+                            <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
+                                <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                    Untaxed Amount (in words):
+                                    <span t-esc="o.get_tax_amt(o, o.amount_untaxed)"/>
+                                </td>
+                                <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                    <span t-field="o.amount_untaxed"/>
+                                </td>
+                            </tr>
+                            <t t-set="tax_totals" t-value="docs.tax_totals or {}"/>
+                            <t t-if="tax_totals.get('groups_by_subtotal')">
+                                <t t-if="o.get_tax_totals(o)[0]['cgst'] > 0">
+                                    <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
+                                        <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                            Total CGST
+                                        </td>
+                                        <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                            <span t-esc="o.get_tax_totals(o)[0]['cgst']"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="o.get_tax_totals(o)[0]['sgst'] > 0">
+                                    <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
+                                        <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                            Total SGST
+                                        </td>
+                                        <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                            <span t-esc="o.get_tax_totals(o)[0]['sgst']"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="o.get_tax_totals(o)[0]['igst'] > 0">
+                                    <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
+                                        <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                            Total IGST
+                                        </td>
+                                        <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                            <span t-esc="o.get_tax_totals(o)[0]['igst']"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
+                                    <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                        Total Amount(in words):
+                                        <span t-esc="o.get_tax_amt(o, o.amount_total)"/>
+                                    </td>
+                                    <td style="padding-left:10px;text-align:right;border: 1px solid black;">
+                                        <span t-field="o.amount_total"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </table>
+                        <!--						<div class="watermark_logo" style="position:absolute;opacity:0.25;z-index:1000;-webkit-transform:rotate(325deg);text-align:center;width:100%;">-->
+                        <!--							<td>-->
+                        <!--								<span style="font-family:'Times New Roman';font-size:70px;">PRO - FORMA</span>-->
+                        <!--							</td>-->
+                        <!--						</div>-->
+                        <table>
+                            <tr style="background: white;border: 1px solid black;">
+                                <td colspan="6" style="padding-left:10px;text-align:left;border: 1px solid black;">
+                                    <span t-esc="o.note"/>
+                                </td>
+                            </tr>
+                            <tr style="text-align:left;background: white;border: 1px solid black;font-size:14px;">
+                                <td colspan="2" style="border: 1px solid black;">
+                                    <span style="font-weight:bold;">
+                                        <u>Declaration:</u>
+                                    </span>
+                                    <br/>
+                                    <span>We declare that this invoice shows the actual price of the goods described and
+                                        that all particulars are true and correct
+                                    </span>
+                                </td>
+                                <td colspan="4" width="50%" style="border: 1px solid black;">
+                                    <t t-if="o.company_id.partner_id.bank_ids">
+                                        Bank Holder
+                                        <span style="padding-left:54px;">:
+                                            <t t-esc="o.company_details.acc_holder_name"/>
+                                            <br/>
+                                        </span>
+                                        Bank Name
+                                        <span style="padding-left:60px;">:
+                                            <t t-esc="o.company_details.bank_id.name"/>
+                                            <br/>
+                                        </span>
+                                        Bank Account Number:
+                                        <t t-esc="o.company_details.acc_number"/>
+                                        <br/>
+                                        Bank IFSC
+                                        <span style="padding-left:65px;">:
+                                            <t t-esc="o.company_details.bank_id.bic"/>
+                                            <br/>
+                                        </span>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr style="text-align:right;font-size:14px;background: white;border: 1px solid black;">
+                                <td colspan="6" style=" padding-right: 5px; border: 1px solid black;">For :
+                                    <span t-esc="o.company_id.name"/>
+                                    <br/>
+                                    <div class="text-right">
+                                        <img t-att-src="'/munoth_reports/static/img/munoth_sign.jpg'" style="width: 220px; padding-bottom: 0px;"/>
+                                    </div>
+                                    <span>Authorised Signatory</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div>
+                            <p style="width:100%;text-align:center;font-size:14px;">
+                                <i>This is a computer-generated document. Does not require a Signature</i>
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+        <template id="pro_forma_invoice_template_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="munoth_reports.pro_forma_template_report_new"/>
+                </t>
+            </t>
+        </template>
+
+
+    </data>
+</odoo>

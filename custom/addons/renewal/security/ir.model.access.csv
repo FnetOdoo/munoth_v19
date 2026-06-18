@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_renewal_renewal,renewal.renewal,model_renewal_renewal,base.group_user,1,1,1,1
+access_renewal_department_config,renewal_department_config,model_renewal_department_config,base.group_user,1,1,1,1
+access_nature_config,nature_config,model_nature_config,base.group_user,1,1,1,1
+access_renewal_template,renewal_template,model_renewal_template,base.group_user,1,1,1,1
+access_renewal_history,renewal_history,model_renewal_history,,1,1,1,1

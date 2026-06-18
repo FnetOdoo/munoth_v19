@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dome_requirements_dome_requirements,dome_requirements.dome_requirements,model_dome_requirements_dome_requirements,base.group_user,1,1,1,1

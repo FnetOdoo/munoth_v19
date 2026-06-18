@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Odoo 19 migration: no model-level changes; action group ref updated
+        from hr_payroll_community to payroll module.
+    -->
+    <record id="payslip_confirm_form_view" model="ir.ui.view">
+        <field name="name">payslip.confirm.form</field>
+        <field name="model">payslip.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Mass Confirm">
+                <footer>
+                    <button name="confirm_payslip" type="object"
+                            string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="payslip_confirm_action" model="ir.actions.act_window">
+        <field name="name">Mass Confirm Payslip</field>
+        <field name="res_model">payslip.confirm</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="hr_payroll_community.model_hr_payslip"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

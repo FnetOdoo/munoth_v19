@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.hr.payslip.monthly.report</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!--
+                Odoo 19: the old //div[@id='hr'] no longer exists.
+                Settings now use <app>/<block>/<setting> structure.
+                We inject into the 'employees_setting_container' block.
+            -->
+            <xpath expr="//block[@name='employees_setting_container']" position="inside">
+                <setting string="Automatic Send Payslip By Mail"
+                         help="Automatically send payslip by email on confirmation.">
+                    <field name="send_payslip_by_email"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

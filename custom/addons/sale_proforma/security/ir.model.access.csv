@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access.partner.evaluation,access_partner_evaluation,sale_proforma.model_partner_evaluation,base.group_user,1,1,1,1
+access.purchase.terms,access_purchase_terms,sale_proforma.model_purchase_terms,base.group_user,1,1,1,1
+access_rack_list,access_rack_list,sale_proforma.model_rack_list,base.group_user,1,1,1,1
+
+

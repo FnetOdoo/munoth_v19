@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_salary_history_line_user,salary.history.line user,salary_revision.model_salary_history_line,base.group_user,1,1,1,0
+access_salary_history_line_manager,salary.history.line manager,salary_revision.model_salary_history_line,hr_payroll_community.group_hr_payroll_community_manager,1,1,1,1
+access_salary_revision_user,salary.revision user,salary_revision.model_salary_revision,base.group_user,1,1,1,1

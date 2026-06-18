@@ -1,0 +1,34 @@
+<odoo>
+    <record model="ir.ui.view" id="availability_report_wizard_form_view">
+        <field name="name">Availability report</field>
+        <field name="model">availability.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="no_of_machine"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_availability_report" string="Print" type="object" class="btn-primary"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" close="1"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_availability_report">
+        <field name="name">Availability report</field>
+        <field name="res_model">availability.report</field>
+        <field name="domain">[]</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="availability_report_wizard_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+
+
+
+</odoo>

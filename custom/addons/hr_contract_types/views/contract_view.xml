@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <!--
+        MIGRATION NOTE (Odoo 15 → 19):
+        In Odoo 15, type_id was added to hr.contract form view.
+        hr.contract and its views no longer exist in Odoo 19.
+        type_id is now injected into the hr.employee form view instead.
+        The inherit_id now references hr.view_employee_form (hr module).
+    -->
+    <record id="hr_employee_form_view_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.view.form.inherit.contract.type</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- Place type_id after job_id in the employee form -->
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="type_id"/>
+            </xpath>
+        </field>
+    </record>
+
+<!--    CONTRACT TYPE VIEWS -->
+<!--
+    MIGRATION NOTE (Odoo 15 → 19):
+    The native hr module in Odoo 19 already defines hr.contract.type with a
+    'code' field (Char). Our form and list views now include 'code' so they
+    don't conflict with the native list view that references it.
+-->
+    <record id="hr_contract_type_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.type.form</field>
+        <field name="model">hr.contract.type</field>
+        <field name="arch" type="xml">
+            <form string="Contract Type">
+                <group col="4">
+                    <field colspan="4" name="name"/>
+                    <!-- code field exists natively on hr.contract.type in Odoo 19 -->
+                    <field colspan="4" name="code"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_contract_type_view_list" model="ir.ui.view">
+        <field name="name">hr.contract.type.list</field>
+        <field name="model">hr.contract.type</field>
+        <field name="arch" type="xml">
+            <list string="Contract Type">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <!-- code field exists natively on hr.contract.type in Odoo 19 -->
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_contract_type_view_search" model="ir.ui.view">
+        <field name="name">hr.contract.type.search</field>
+        <field name="model">hr.contract.type</field>
+        <field name="arch" type="xml">
+            <search string="Search Contract Type">
+                <field name="name" string="Contract Type"/>
+                <field name="sequence" string="Sequence"/>
+                <!-- code field exists natively on hr.contract.type in Odoo 19 -->
+                <field name="code" string="Code"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_contract_type" model="ir.actions.act_window">
+        <field name="name">Contract Types</field>
+        <field name="res_model">hr.contract.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="hr_contract_type_view_search"/>
+    </record>
+
+    <!--
+        MIGRATION NOTE (Odoo 15 → 19):
+        groups changed from hr_contract.group_hr_contract_manager
+        (which belonged to the now-removed hr_contract module)
+        to hr.group_hr_user — the standard HR manager group in Odoo 19.
+    -->
+    <menuitem
+        id="hr_menu_contract_type"
+        action="action_hr_contract_type"
+        parent="hr.menu_human_resources_configuration"
+        sequence="3"
+        groups="hr.group_hr_user"/>
+</odoo>

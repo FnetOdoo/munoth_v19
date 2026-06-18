@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="manufacturing_plan_form_view" model="ir.ui.view">
+        <field name="name">production.plan.form</field>
+        <field name="model">production.plan</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Plan">
+                <header>
+                    <button name="action_confirm" groups="fnet_mrp.group_manufacturing_manager" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_production_start" groups="fnet_mrp.group_manufacturing_manager" string="Start Production" type="object" invisible="state != 'confirm'" class="oe_highlight"/>
+                    <button name="action_close" groups="fnet_mrp.group_manufacturing_manager" string="Close" type="object" invisible="state != 'in_production'" class="oe_highlight"/>
+                    <button name="action_cancel" groups="fnet_mrp.group_manufacturing_manager" string="Cancel" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="print_excel_report" type="object" string="Print XLSX"/>
+                    <!--                         <button name="check_material_available" string="Check Availability" type="object"  invisible="0"
+                                                    class="oe_highlight"/>-->
+                    <!--                         <button name="create_material_request" string="Material Request" class="btn-primary" type="object"  invisible="0"/>-->
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,in_production,close" readonly="1" clickable="0"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!--                        <button class="oe_stat_button" string="Cathode Slitting" name="open_cathode_slitting_processing" type="object" context="{'default_production_plan_id': id}" icon="fa-arrow-up" invisible="choose_stage != 'stage_1' or state not in ['in_production','close']"/>-->
+                        <!--                        <button class="oe_stat_button" string="Diaphragm Drying" name="open_diaphragm_drying_processing" type="object" context="{'default_production_plan_id': id}" icon="fa-arrow-up" invisible="choose_stage != 'stage_1' or state not in ['in_production','close']"/>-->
+                        <!--<button class="oe_stat_button" string="Cell Drying" name="open_injection_processing"
+                               type="object"
+                                context="{'default_production_plan_id': id}"
+                               icon="fa-arrow-up" attrs="{'invisible': ['|', ('choose_stage', '!=' , 'stage_2'),('state', 'not in' , ['in_production', 'close'])]}" />-->
+
+                        <button class="oe_stat_button" string="QR Code Printing" name="open_qr_code_printing" type="object" context="{'default_production_plan_id': id}" icon="fa-arrow-up" invisible="choose_stage not in ['stage_2','stage_3'] or state not in ['in_production','close']"/>
+                        <button class="oe_stat_button" name="open_production_process" type="object" context="{'default_production_plan_id': id}" icon="fa-arrow-up" invisible="not manufacturing_stages_id or state not in ['in_production','close']">
+                            <field name="first_process_type"/>
+                            -
+                            (
+                            <field name="first_production_process_count"/>
+                            )
+                        </button>
+
+                        <button name="action_view_lots" type="object" string="Show Lots" icon="fa-list"/>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="model_id" required="1" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="manufacturing_stages_id" string="Choose Stage" required="1" readonly="state != 'draft'"/>
+                            <field name="expected_production_qty" readonly="state != 'draft'"/>
+                            <field name="batch_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                        </group>
+
+                        <group>
+                            <field name="date_start" readonly="1"/>
+                            <field name="expected_end_date" readonly="state not in ['draft','confirm']"/>
+                            <field name="mrp_stage_estimation_id" invisible="not mrp_stage_estimation_id" readonly="state != 'draft'"/>
+                            <field name="qty_remaining"/>
+                            <field name="date" string="Create Date"/>
+                        </group>
+                    </group>
+
+                    <!-- Hidden Fields -->
+                    <field name="model_number" invisible="1"/>
+                    <field name="line_number" invisible="1"/>
+                    <field name="end_date" invisible="state != 'close'"/>
+                    <field name="anode_slitting" invisible="1"/>
+                    <field name="cathode_slitting" invisible="1"/>
+                    <field name="diaphragm_id" invisible="1"/>
+                    <field name="injection_id" invisible="1"/>
+                    <field name="first_process_type" invisible="1"/>
+                    <field name="first_process_type_id" invisible="1"/>
+                    <field name="first_operation_id" invisible="1"/>
+
+                    <notebook>
+                        <page string="Operation">
+                            <group>
+                                <!--                                    <field name="update_operation"/>-->
+                                <!--                                    <button name="update_default_operation" string="Load Default" type="object" icon="fa-arrow-down" class="btn btn-primary active btn-sm"/>-->
+                            </group>
+                            <field name="operation_ids" readonly="state not in ['draft','confirm']">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="manufacturing_process_type_id" string="Type" readonly="1" force_save="1"/>
+                                    <field name="operation_id" string="Operation" force_save="1" readonly="1" domain="[('product_model_id', '=', model_id),('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                                    <field name="bom_id" column_invisible="1"/>
+                                    <field name="model_id" column_invisible="1"/>
+                                    <field name="is_process_completed" readonly="1" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Material" invisible="0">
+                            <field name="component_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                    <field name="location_src_id"/>
+                                    <field name="location_dest_id" column_invisible="1"/>
+                                    <field name="lot_number" string="Serial Number"/>
+                                    <field name="lot_ids" widget="many2many_tags" column_invisible="1"/>
+                                    <field name="anode_operation_id"/>
+                                    <field name="anode_slitting_id" column_invisible="1"/>
+                                    <field name="available_qty" readonly="1" column_invisible="1"/>
+                                    <field name="product_qty" string="Required Qty"/>
+                                    <field name="stock_condition" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="manufacturing_plan_list_view" model="ir.ui.view">
+        <field name="name">production.plan.list</field>
+        <field name="model">production.plan</field>
+        <field name="arch" type="xml">
+            <list string="Manufacturing" sample="1">
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="model_number" column_invisible="1"/>
+                <field name="line_number"/>
+                <field name="expected_production_qty"/>
+                <!--                    <field name="qty_produced"/>-->
+                <field name="qty_remaining"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="manufacturing_plan_form_action" model="ir.actions.act_window">
+        <field name="name">Model Line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">production.plan</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Production Plan
+            </p>
+
+        </field>
+    </record>
+
+</odoo>

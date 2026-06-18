@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="manufacturing_machine_form_view" model="ir.ui.view">
+        <field name="name">mrp.machine.form</field>
+        <field name="model">manufacturing.machine</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Plan">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" string="Machine Name" invisible="0" required="1"/>
+                            <field name="manufacturing_process_type_id" invisible="0" string="Operation Type"/>
+                        </group>
+                        <group>
+                            <field name="is_anode_slitting_process" invisible="1"/>
+                            <field name="is_cathode_slitting_process" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Machine Live Data" invisible="not is_anode_slitting_process and not is_cathode_slitting_process">
+                            >
+                            <group>
+                                <group string="Monitor Parameter">
+                                    <field name="unwinding_diameter_diameter"/>
+                                    <field name="unwinding_diameter_actual_tension"/>
+                                    <field name="unwinding_diameter_setting_tension"/>
+                                    <field name="upper_rewinding_diameter_diameter"/>
+                                    <field name="upper_rewinding_diameter_actual_tension"/>
+                                    <field name="upper_rewinding_diameter_setting_tension"/>
+                                    <field name="down_rewinding_diameter_diameter"/>
+                                    <field name="down_rewinding_diameter_actual_tension"/>
+                                    <field name="down_rewinding_diameter_setting_tension"/>
+                                    <field name="unwinding_setting_tension"/>
+                                    <field name="upper_rewinding_setting_tension"/>
+                                    <field name="rewinding_setting_tension"/>
+                                    <field name="current_meter"/>
+                                    <field name="accumulated_meter"/>
+                                    <field name="current_electrode"/>
+                                    <field name="accumulated_electrode"/>
+                                    <field name="setting_production_meter"/>
+                                    <field name="setting_production_electrode"/>
+                                    <field name="upper_rewinding_slip_ring_qty"/>
+                                    <field name="lower_rewinding_slip_ring_qty"/>
+                                </group>
+                                <group string="Set Parameter">
+                                    <field name="low_speed"/>
+                                    <field name="high_speed"/>
+                                    <field name="guiding_speed"/>
+                                    <field name="os_edge_cut_torque"/>
+                                    <field name="ds_edge_cut_torque"/>
+                                    <field name="brush_speed_ratio"/>
+                                    <field name="edge_cut_ratio"/>
+                                    <field name="unwinding_tension_display"/>
+                                    <field name="set_unwinding_setting_tension"/>
+                                    <field name="upper_rewinding_tension_display"/>
+                                    <field name="upper_rewinding_setting_display"/>
+                                    <field name="lower_rewinding_tension_display"/>
+                                    <field name="lower_rewinding_setting_display"/>
+                                    <field name="alcohol_valve_current_meter"/>
+                                    <field name="alcohol_valve_enable_meter"/>
+                                    <field name="alcohol_valve_operation_time"/>
+                                    <field name="upper_cutter_speed_ratio"/>
+                                    <field name="lower_cutter_sped_ratio"/>
+                                    <field name="rewinding_speed_ratio"/>
+                                </group>
+
+                                <group string="Motor Monitor">
+                                    <field name="unwinding_shaft_related_speed"/>
+                                    <field name="unwinding_shaft_reduction_ratio"/>
+                                    <field name="unwinding_shaft_operation_parameter"/>
+                                    <field name="unwinding_shaft_line_speed_setting"/>
+                                    <field name="unwinding_shaft_rotation_speed_setting"/>
+
+                                    <field name="traction_shaft_related_speed"/>
+                                    <field name="traction_shaft_reduction_ratio"/>
+                                    <field name="traction_shaft_operation_parameter"/>
+                                    <field name="traction_shaft_line_speed_setting"/>
+                                    <field name="traction_shaft_rotation_speed_setting"/>
+
+                                    <field name="upper_cutter_shaft_related_speed"/>
+                                    <field name="upper_cutter_shaft_reduction_ratio"/>
+                                    <field name="upper_cutter_shaft_operation_parameter"/>
+                                    <field name="upper_cutter_shaft_line_speed_setting"/>
+                                    <field name="upper_cutter_shaft_rotation_speed_setting"/>
+
+                                    <field name="lower_cutter_shaft_related_speed"/>
+                                    <field name="lower_cutter_shaft_reduction_ratio"/>
+                                    <field name="lower_cutter_shaft_operation_parameter"/>
+                                    <field name="lower_cutter_shaft_line_speed_setting"/>
+                                    <field name="lower_cutter_shaft_rotation_speed_setting"/>
+
+                                    <field name="upper_rewinding_shaft_related_speed"/>
+                                    <field name="upper_rewinding_shaft_reduction_ratio"/>
+                                    <field name="upper_rewinding_shaft_operation_parameter"/>
+                                    <field name="upper_rewinding_shaft_line_speed_setting"/>
+                                    <field name="upper_rewinding_shaft_rotation_speed_setting"/>
+
+                                    <field name="lower_rewinding_shaft_related_speed"/>
+                                    <field name="lower_rewinding_shaft_reduction_ratio"/>
+                                    <field name="lower_rewinding_shaft_operation_parameter"/>
+                                    <field name="lower_rewinding_shaft_line_speed_setting"/>
+                                    <field name="lower_rewinding_shaft_rotation_speed_setting"/>
+
+                                    <field name="edge_shaft_related_speed"/>
+                                    <field name="edge_shaft_reduction_ratio"/>
+                                    <field name="edge_shaft_operation_parameter"/>
+                                    <field name="edge_shaft_line_speed_setting"/>
+                                    <field name="edge_shaft_rotation_speed_setting"/>
+
+                                    <field name="brush_shaft_related_speed"/>
+                                    <field name="brush_shaft_reduction_ratio"/>
+                                    <field name="brush_shaft_operation_parameter"/>
+                                    <field name="brush_shaft_line_speed_setting"/>
+                                    <field name="brush_shaft_rotation_speed_setting"/>
+
+                                    <field name="accelerate_time"/>
+                                    <field name="decelerate_time"/>
+                                    <field name="fast_decelerate_time"/>
+                                    <field name="max_line_speed"/>
+                                    <field name="rewinding_accelerate_time"/>
+                                    <field name="rewinding_decelerate_time"/>
+                                    <field name="meter_count_coefficient"/>
+                                    <field name="proximity_roller_speed"/>
+                                </group>
+
+                                <group string="Tension PID">
+                                    <field name="unwinding_start_p"/>
+                                    <field name="unwinding_end_p"/>
+                                    <field name="unwinding_speed_min"/>
+                                    <field name="unwinding_speed_max"/>
+                                    <field name="upper_rewinding_start_p"/>
+                                    <field name="upper_rewinding_end_p"/>
+                                    <field name="upper_rewinding_speed_min"/>
+                                    <field name="upper_rewinding_speed_max"/>
+                                    <field name="lower_rewinding_start_p"/>
+                                    <field name="lower_rewinding_end_p"/>
+                                    <field name="lower_rewinding_speed_min"/>
+                                    <field name="lower_rewinding_speed_max"/>
+
+                                    <field name="unwinding_valve_pid_proportion"/>
+                                    <field name="unwinding_valve_pid_differentiate"/>
+                                    <field name="unwinding_valve_pid_weight"/>
+                                    <field name="unwinding_valve_pid_tension"/>
+                                    <field name="unwinding_valve_pid_points"/>
+                                    <field name="unwinding_valve_pid_setting_tension"/>
+
+                                    <field name="upper_rewinding_valve_pid_proportion"/>
+                                    <field name="upper_rewinding_valve_pid_differentiate"/>
+                                    <field name="upper_rewinding_valve_pid_weight"/>
+                                    <field name="upper_rewinding_valve_pid_tension"/>
+                                    <field name="upper_rewinding_valve_pid_points"/>
+                                    <field name="upper_rewinding_valve_pid_setting_tension"/>
+                                    <field name="upper_rewinding_valve_pid_friction"/>
+                                    <field name="upper_rewinding_valve_pid_slip_ring"/>
+                                    <field name="upper_rewinding_valve_pid_slip_press"/>
+                                    <field name="upper_rewinding_valve_pid_out"/>
+
+                                    <field name="lower_rewinding_valve_pid_proportion"/>
+                                    <field name="lower_rewinding_valve_pid_differentiate"/>
+                                    <field name="lower_rewinding_valve_pid_weight"/>
+                                    <field name="lower_rewinding_valve_pid_tension"/>
+                                    <field name="lower_rewinding_valve_pid_points"/>
+                                    <field name="lower_rewinding_valve_pid_setting_tension"/>
+                                    <field name="lower_rewinding_valve_pid_friction"/>
+                                    <field name="lower_rewinding_valve_pid_slip_ring"/>
+                                    <field name="lower_rewinding_valve_pid_slip_press"/>
+                                    <field name="lower_rewinding_valve_pid_out"/>
+                                </group>
+
+
+                                <group string="Diameter Parameter">
+
+                                    <field name="unwinding_measured_roll_diameter"/>
+                                    <field name="unwinding_max_roll_diameter"/>
+                                    <field name="unwinding_min_roll_diameter"/>
+                                    <field name="unwinding_warnig_roll_diameter"/>
+                                    <field name="unwinding_tension_top_limit"/>
+                                    <field name="unwinding_tension_bottom_limit"/>
+
+                                    <field name="upper_unwinding_measured_roll_diameter"/>
+                                    <field name="upper_unwinding_max_roll_diameter"/>
+                                    <field name="upper_unwinding_min_roll_diameter"/>
+                                    <field name="upper_unwinding_warnig_roll_diameter"/>
+                                    <field name="upper_unwinding_tension_top_limit"/>
+                                    <field name="upper_unwinding_tension_bottom_limit"/>
+                                    <field name="upper_unwinding_taper_type"/>
+                                    <field name="upper_unwinding_taper_diameter"/>
+                                    <field name="upper_unwinding_taper_coefficient"/>
+                                    <field name="upper_unwinding_taper_value"/>
+
+                                    <field name="lower_unwinding_measured_roll_diameter"/>
+                                    <field name="lower_unwinding_max_roll_diameter"/>
+                                    <field name="lower_unwinding_min_roll_diameter"/>
+                                    <field name="lower_unwinding_warnig_roll_diameter"/>
+                                    <field name="lower_unwinding_tension_top_limit"/>
+                                    <field name="lower_unwinding_tension_bottom_limit"/>
+                                    <field name="lower_unwinding_taper_type"/>
+                                    <field name="lower_unwinding_taper_diameter"/>
+                                    <field name="lower_unwinding_taper_coefficient"/>
+                                    <field name="lower_unwinding_taper_value"/>
+                                    <field name="calibration_of_roll_dia"/>
+                                    <field name="front_end_calibration"/>
+                                    <field name="rear_end_calibration"/>
+                                </group>
+
+
+                                <group string="Operation Parameter">
+                                    <field name="traction_jogging_speed"/>
+                                    <field name="upper_cutting_jogging_speed"/>
+                                    <field name="lower_cutting_jogging_speed"/>
+                                    <field name="upper_rewinder_jogging_speed"/>
+                                    <field name="lower_rewinder_jogging_speed"/>
+                                    <field name="os_edge_cut_jogging_speed_1"/>
+                                    <field name="os_edge_cut_jogging_speed_2"/>
+                                    <field name="brush_jogging"/>
+                                    <field name="proximity_roller_jogging_speed"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_machine_list_view" model="ir.ui.view">
+        <field name="name">mrp.machine.list</field>
+        <field name="model">manufacturing.machine</field>
+        <field name="arch" type="xml">
+            <list string="Machine" sample="1">
+                <field name="name" string="Machine Name"/>
+                <field name="manufacturing_process_type_id" string="Operation Type"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mrp_machine_search_view" model="ir.ui.view">
+        <field name="name">manufacturing.bom.search</field>
+        <field name="model">manufacturing.machine</field>
+        <field name="arch" type="xml">
+            <search string="Machine">
+                <field name="name" string="Machine Name"/>
+                <field name="manufacturing_process_type_id" string="Operation Type"/>
+                <group>
+                    <filter string="Type" name="manufacturing_process_type_id" domain="[]" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+    <record id="action_mrp_machine_form_action" model="ir.actions.act_window">
+        <field name="name">Manufacturing Machine</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">manufacturing.machine</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manufacturing Machine
+            </p>
+
+        </field>
+    </record>
+
+
+</odoo>

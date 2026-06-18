@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        hr.payslip form view — adds "Send Mail" button.
+        Odoo 19 migration notes:
+        - inherit_id ref updated from hr_payroll_community to payroll module.
+        - action_compute_sheet xpath target unchanged (still present in v19).
+        - invisible attribute syntax unchanged (Odoo 17+ boolean expression).
+    -->
+    <record id="hr_payslip_view_form" model="ir.ui.view">
+        <field name="name">hr.payslip.view.form.inherit.hr.payslip.monthly.report</field>
+        <field name="model">hr.payslip</field>
+        <!-- Odoo 19: payroll.hr_payslip_view_form -->
+        <field name="inherit_id" ref="hr_payroll_community.hr_payslip_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr='//button[@name="action_compute_sheet"]' position='after'>
+                <button string="Send Mail"
+                        name="action_payslip_send"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="is_send_mail == True"/>
+                <field name="is_send_mail" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

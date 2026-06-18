@@ -1,0 +1,79 @@
+<odoo>
+    <data>
+        <record id="engineering_change_request_view_form" model="ir.ui.view">
+            <field name="name">engineering.change.request.form</field>
+            <field name="model">engineering.change.request</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" string="Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="eng_change_detail"/>
+                                <field name="partner_id"/>
+                                <field name="implement"/>
+                                <field name="existing_stock"/>
+                                <field name="testing_done"/>
+                                <field name="cft_decision"/>
+                                <field name="cft_comment" string="CFT Review Comments"/>
+                            </group>
+                            <group>
+                                <field name="deliverables"/>
+                                <field name="process"/>
+                                <field name="cft_reviewers"/>
+                                <field name="signing"/>
+                                <field name="ecn"/>
+                                <field name="backward_compatibility"/>
+                                <field name="backward_compatibility_details" string="Backward Compatibility Details"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Revision Details">
+                                <group>
+                                    <group>
+                                        <field name="doc_no"/>
+                                        <field name="date_revision"/>
+                                        <field name="revision_no"/>
+                                    </group>
+                                    <group/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="engineering_change_request_view_list" model="ir.ui.view">
+            <field name="name">engineering.change.request.list</field>
+            <field name="model">engineering.change.request</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="cft_reviewers"/>
+                    <field name="implement"/>
+                    <field name="existing_stock"/>
+                </list>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_engineering_change_request">
+            <field name="name">engineering.change.request</field>
+            <field name="res_model">engineering.change.request</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_engineering_change_request" name="Engineering Change Request"
+                  parent="maintenance.menu_m_request"
+                  action="action_engineering_change_request"
+                  sequence="11"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+<odoo>
+    <data>
+        <record id="purchase_data_po_order" model='purchase.terms'>
+            <field name="name">1.Please mention Purchase Order No in the invoice.</field>
+        </record>
+        <record id="purchase_data" model='purchase.terms'>
+            <field name="name">2.All deliveries to be made to the shipping address mentioned above.</field>
+        </record>
+        <record id="purchase_data_reserve_reject" model='purchase.terms'>
+            <field name="name">3.We reserve the right to reject the goods that are not in good order or condition as determined by our quality control.</field>
+        </record>
+        <record id="purchase_data_Delivery" model='purchase.terms'>
+            <field name="name">4.Delivery:Immediate.</field>
+        </record>
+        <record id="purchase_data_payment" model='purchase.terms'>
+            <field name="name">5.payment:100% advance.</field>
+        </record>
+        <record id="purchase_data_gst" model='purchase.terms'>
+            <field name="name">6.GST as applicable as per laws.</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Salary Revision Wizard Form -->
+    <record id="salary_revision_wizard" model="ir.ui.view">
+        <field name="name">salary.revision.form</field>
+        <field name="model">salary.revision</field>
+        <field name="arch" type="xml">
+            <form string="Salary Revision">
+                <group col="4">
+                    <!--
+                        v15: contract_id (Many2one hr.contract)
+                        v19: employee_id (Many2one hr.employee) — hr.contract removed
+                    -->
+                    <field name="employee_id" invisible="1"/>
+                    <field name="basic"/>
+                    <field name="wage"/>
+                    <field name="effective_date"/>
+                    <field name="structure_id"/>
+                </group>
+                <group>
+                    <group string="Allowance">
+                        <field name="travel_allowance"/>
+                        <field name="ea_allowance"        invisible="1"/>
+                        <field name="data_allowance"      invisible="1"/>
+                        <field name="overtime_allowance"  invisible="1"/>
+                        <field name="hra"/>
+                        <field name="bonus"               invisible="1"/>
+                        <field name="medical"/>
+                        <field name="meal_allowance"/>
+                        <field name="conveyance"          invisible="1"/>
+                        <field name="other"/>
+                    </group>
+                    <group string="Deduction">
+                        <field name="tds_deduction"/>
+                        <field name="employee_pf"/>
+                        <field name="voluntary_pf"/>
+                        <field name="employer_pf"/>
+                        <field name="mobile_deduction"    invisible="1"/>
+                        <field name="other_deduction"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="update_salary"
+                            string="Update"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window action — opened from hr.employee form button -->
+    <record id="action_salary_revision_wiz" model="ir.actions.act_window">
+        <field name="name">Salary Revision</field>
+        <field name="res_model">salary.revision</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <!-- binding_model_id ensures action appears on hr.employee -->
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+    </record>
+
+</odoo>

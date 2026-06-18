@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_purchase_approval" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.approval</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="30"/>
+        <field name="inherit_id" ref="purchase_discount.res_config_settings_view_form_purchase_inherit"/>
+        <field name="arch" type="xml">
+
+            <!-- Insert inside existing Supplier Discount block -->
+            <xpath expr="//block[@name='supplier_discount_settings_container']" position="inside">
+
+                <setting id="purchase_order_approval_real_setting" string="Set Purchase Approval Rule" help="Purchase Approval Rule">
+                    <field name="purchase_order_approval"/>
+                    Set Purchase Approval Rule
+                    <field name="purchase_order_approval_rule_id" invisible="not purchase_order_approval" required="purchase_order_approval"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_order_apporval_rule_form_view" model="ir.ui.view">
+        <field name="name">purchase.order.approval.rule.form</field>
+        <field name="model">purchase.order.approval.rule</field>
+        <field name="arch" type="xml">
+            <form string="Approval Rule">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <notebook>
+
+                        <page string="Approval Rules" name="page_approval_rules">
+                            <group>
+                                <field name="approval_rule_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="approval_role"/>
+                                        <field name="approval_category"/>
+                                        <field name="quotation_lower_limit"/>
+                                        <field name="quotation_upper_limit"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="purchase_order_approval_rule_form_action" model="ir.actions.act_window">
+        <field name="name">Purchase Approval Rules</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order.approval.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to add a new Approval Rule.
+            </p>
+        </field>
+    </record>
+    <menuitem action="purchase_order_approval_rule_form_action" id="menu_purchase_order_approval_rule_form_action" parent="purchase_approval.menu_purchase_approval" sequence="103" groups="base.group_no_one"/>
+</odoo>

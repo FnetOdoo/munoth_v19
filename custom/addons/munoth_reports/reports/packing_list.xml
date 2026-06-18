@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_packing_list_report" model="report.paperformat">
+            <field name="name">A4 Expense Claim Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">50</field>
+            <field name="margin_bottom">30</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">37</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="list_packing_reports" model="ir.actions.report">
+            <field name="name">Packing List</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.packing_list_munoth_reports</field>
+            <field name="report_file">munoth_reports.packing_list_munoth_reports</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_packing_list_report"/>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="packing_list_munoth_reports">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class="page">
+                            <div class="header">
+                                <div style="width:20%;float:right;font-size:20px;">
+                                    Doc No:<span t-esc="o.doc_no"/><br/>
+                                    Rev No:<span t-esc="o.rev_no"/><br/>
+                                    Date:<span t-field="o.rev_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/><br/>
+                                </div>
+
+                                <h1 style="text-align:center;color:purple!important;"><strong><h1 style="font-weight:bold;font-size:50px;"><img src="/web/binary/company_logo" style="height:65px;"/>MUNOTH INDUSTRIES LIMITED</h1></strong></h1>
+                                <strong style="font-weight:bold;font-size:20px;"><center>19,EMC-11,Vikruthamala Village,  Yerpedu Mandai ,  Renigunta,  Tirupati-517526</center></strong>
+                                <strong style="font-weight:bold;font-size:25px;"><center>GSTIN: 37AAACM2621C1Z2</center></strong>
+                            </div>
+                            <div class="page">
+                                <div style="width:60%;height:100px;float:left;border-left:1px solid black;border-top:1px solid black;">
+                                    <strong> Gate Doc No :</strong><span t-field="o.gate_doc"/>
+                                    <P/>
+                                    <br/>
+                                    <strong>Outward Register Sl.No : </strong><span  t-field="o.name"/>
+                                    <p/>
+                                </div>
+                                <div style="width:40%;height:100px;float:right;border-right:1px solid black;border-top:1px solid black;">
+                                    <strong>Invoice Date :</strong><span t-field="o.invoice_date"/>
+                                    <p/>
+                                    <br/>
+                                    <strong>Invoice No:</strong><span t-field="o.invoice_no"/>
+                                    <p/>
+                                </div>
+                                <!--                                <h2 style="border:1px solid black;text-align:center;">Packing List</h2>-->
+                                <div style="width:100%;height:100px;float:left;border-left:1px solid black;border-top:1px solid black;border-bottom:1px solid black;border-right:1px solid black;">
+                                    <h2 style="border-bottom:1px solid black;text-align:center;">Packing List</h2>
+                                    <strong><span t-field="o.partner_id"/></strong>
+                                    <br/>
+                                    <strong>Plot No : </strong>
+                                    <t t-if="o.partner_id.street">
+                                        <span t-field="o.partner_id.street"/>
+                                    </t>
+                                    <t t-if="o.partner_id.street2">,
+                                        <span t-field="o.partner_id.street2"/>
+                                    </t>
+                                    <t t-if="o.partner_id.city">,
+                                        <span t-field="o.partner_id.city"/>
+                                    </t>
+                                    <t t-if="docs.partner_id.state_id">,
+                                        <span t-field="o.partner_id.state_id.name"/>
+                                    </t>
+                                    <t t-if="o.partner_id.zip">,<span t-field="o.partner_id.zip"/>.
+                                    </t>
+                                </div>
+                                <table style="width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;page-break-before: avoid;max-height:500px;" cellspacing="0">
+                                    <thead style="line-height: 1.5;">
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:25%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Items
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Quantity / No's
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Net Weight (g)
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Total Net Weight (kg)
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Total Gross weight (kg)
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Final Package Dimension
+                                        </th>
+                                        <th style="font-weight:bold;font-size:15px;height:10px;width:25%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                            Remarks
+                                        </th>
+                                    </thead>
+                                    <tbody>
+                                        <!--                                        <t t-set="counter" t-value="1"/>-->
+                                        <tr style="font-size: 16px;" t-foreach="docs.move_ids" t-as="t">
+                                            <td style="width:25%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;">
+                                                <span t-field="t.product_id"/>
+                                            </td>
+                                            <td style="width:10%;padding-left:2px;border-right:1px solid black;text-align:center;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-field="t.product_uom_qty"/>
+                                            </td>
+                                            <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-field="t.product_uom"/>
+                                            </td>
+                                            <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.net_weight"/>
+                                            </td>
+                                            <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.total_net_weight"/>
+                                            </td>
+                                            <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.final_description"/>
+                                            </td>
+                                            <td style="width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                <span t-esc="t.remarks"/>
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <br/>
+                                <br/>
+                                <div>
+                                    <b style="font-size:20px;width:75%;text-align:center;">Shipping Mark : Munoth</b>
+                                </div>
+                                <div style="float:right;width:50%;">
+                                    <p id="note" t-if="o.note and not is_html_empty(o.note)">
+                                        <strong>Note:</strong>
+                                        <span t-field="o.note"/>
+                                    </p>
+                                </div>
+                                <div>
+                                    <table style="width:100%;">
+                                        <th style="width:50%;text-align:center;">
+                                            <strong>Prepared By</strong>
+                                        </th>
+                                        <th style="width:50%;text-align:center;">
+                                            <strong>Authorised By</strong>
+                                        </th>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+        <template id="packing_list_munoth_reports_new">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="docs">
+                    <t t-call="munoth_reports.packing_list_munoth_reports"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

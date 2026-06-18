@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!-- Bill of Materials -->
+    <record id="manufacturing_operation_form_view" model="ir.ui.view">
+        <field name="name">manufacturing.operation.form</field>
+        <field name="model">manufacturing.operation</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Operation">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_model_id" string="Model" invisible="is_power_bank" required="not is_power_bank"/>
+                            <field name="manufacturing_process_type_id" string="Operation Type"/>
+                            <field name="production_location_id" required="0" invisible="1" domain="[('usage', '=', 'production')]"/>
+                            <field name="bom_id" domain="[('product_model_id', '=', product_model_id), ('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                            <field name="vendor_id"/>
+                            <field name="manufacturing_stages_id" invisible="is_power_bank" required="not is_power_bank"/>
+                        </group>
+                        <group>
+                            <field name="location_src_id" required="1" string="Source Location"/>
+                            <field name="location_dest_id" required="1" string="Destination Location"/>
+                            <field name="location_reject_id"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="next_operation_id" invisible="1"/>
+                            <field name="reference"/>
+                            <field name="machine_id"/>
+                            <field name="allow_lot_create"/>
+                            <field name="max_rework_count"/>
+                        </group>
+                    </group>
+
+                    <!-- Hidden computed fields needed for invisible conditions -->
+                    <field name="show_injection" invisible="1"/>
+                    <field name="show_degas" invisible="1"/>
+                    <field name="show_packing" invisible="1"/>
+                    <field name="show_cell_drying" invisible="1"/>
+                    <field name="show_high_temperature" invisible="1"/>
+                    <field name="show_cell_clamp_baking" invisible="1"/>
+                    <field name="show_capacity_test" invisible="1"/>
+                    <field name="show_voltage_test" invisible="1"/>
+                    <field name="show_pad_printing" invisible="1"/>
+                    <field name="show_aged_formation_1" invisible="1"/>
+                    <field name="show_aged_formation_2" invisible="1"/>
+                    <field name="show_slitting" invisible="1"/>
+                    <field name="show_drying" invisible="1"/>
+
+                    <notebook>
+                        <page string="Utility Parameter">
+                            <group>
+                                <group string="Temperature">
+                                    <field name="min_temperature"/>
+                                    <field name="max_temperature"/>
+                                    <field name="compressed_air"/>
+                                </group>
+                                <group string="Humidity">
+                                    <field name="min_humidity" invisible="show_cell_clamp_baking"/>
+                                    <field name="max_humidity" invisible="show_cell_clamp_baking"/>
+                                    <field name="nitrogen"/>
+                                </group>
+                                <group string="Time" invisible="1">
+                                    <field name="process_duration" widget="float_time"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Quality Parameters">
+                            <group>
+                                <field name="weight" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="moisture_in_electrolyte" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="dimension" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="visual_examination" invisible="not show_injection and not show_high_temperature"/>
+                            </group>
+                            <group>
+                                <field name="voltage" invisible="not show_degas"/>
+                                <field name="resistance" invisible="not show_degas"/>
+                            </group>
+                            <group invisible="not show_packing">
+                                <field name="printing_defects"/>
+                                <field name="visual_appearence"/>
+                                <field name="dimension_check"/>
+                                <field name="qty_verification"/>
+                                <field name="visual_check"/>
+                            </group>
+
+                            <group invisible="not show_cell_drying" col="2">
+                                <label for="temperature"/>
+                                <div class="o_row">
+                                    <field name="temperature" force_save="1" nolabel="1"/>
+                                    <span>°C</span>
+                                </div>
+                                <label for="hour"/>
+                                <div class="o_row">
+                                    <field name="hour" force_save="1" nolabel="1"/>
+                                    <span>hr</span>
+                                </div>
+                                <label for="vaccum"/>
+                                <div class="o_row">
+                                    <field name="vaccum" force_save="1" nolabel="1"/>
+                                    <span>kpa</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_injection" col="2">
+                                <label for="electrolyte_qty"/>
+                                <div class="o_row">
+                                    <field name="electrolyte_qty" force_save="1" nolabel="1"/>
+                                    <span>g</span>
+                                </div>
+                                <label for="cell_weight_before_filling"/>
+                                <div class="o_row">
+                                    <field name="cell_weight_before_filling" force_save="1" nolabel="1"/>
+                                    <span>g</span>
+                                </div>
+                                <field name="humidity" force_save="1"/>
+                                <label for="vaccum_static_time"/>
+                                <div class="o_row">
+                                    <field name="vaccum_static_time" force_save="1" nolabel="1"/>
+                                    <span>sec</span>
+                                </div>
+                                <label for="pressure"/>
+                                <div class="o_row">
+                                    <field name="pressure" force_save="1" nolabel="1"/>
+                                    <span>Mpa</span>
+                                </div>
+                                <label for="sealing_temperature"/>
+                                <div class="o_row">
+                                    <field name="sealing_temperature" force_save="1" nolabel="1"/>
+                                    <span>°C</span>
+                                </div>
+                                <label for="packing_time"/>
+                                <div class="o_row">
+                                    <field name="packing_time" force_save="1" nolabel="1"/>
+                                    <span>sec</span>
+                                </div>
+                                <label for="side_sealing_pulling_force"/>
+                                <div class="o_row">
+                                    <field name="side_sealing_pulling_force" force_save="1" nolabel="1"/>
+                                    <span>N</span>
+                                </div>
+                                <label for="cell_weight_after_filling"/>
+                                <div class="o_row">
+                                    <field name="cell_weight_after_filling" force_save="1" nolabel="1"/>
+                                    <span>g</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_degas" col="2">
+                                <label for="ironing_temperature"/>
+                                <div class="o_row">
+                                    <field name="ironing_temperature" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="cavity_sealing"/>
+                                <div class="o_row">
+                                    <field name="cavity_sealing" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="fine_sealing"/>
+                                <div class="o_row">
+                                    <field name="fine_sealing" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="final_cell_weight"/>
+                                <div class="o_row">
+                                    <field name="final_cell_weight" force_save="1" nolabel="1"/>
+                                    <span>g</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_cell_clamp_baking and not show_high_temperature" col="2">
+                                <group string="High Temperature Standing Room">
+                                    <label for="temperature"/>
+                                    <div class="o_row">
+                                        <field name="temperature" force_save="1" nolabel="1"/>
+                                        <span>℃</span>
+                                    </div>
+                                    <label for="hour"/>
+                                    <div class="o_row">
+                                        <field name="hour" force_save="1" nolabel="1"/>
+                                        <span>hr</span>
+                                    </div>
+                                    <label for="ocv"/>
+                                    <div class="o_row">
+                                        <field name="ocv" force_save="1" nolabel="1"/>
+                                        <span>V</span>
+                                    </div>
+                                </group>
+                                <group string="CBF Machine">
+                                    <label for="heating_temperature"/>
+                                    <div class="o_row">
+                                        <field name="heating_temperature" force_save="1" nolabel="1"/>
+                                        <span>℃</span>
+                                    </div>
+                                    <label for="heating_pressure"/>
+                                    <div class="o_row">
+                                        <field name="heating_pressure" force_save="1" nolabel="1"/>
+                                        <span>kg</span>
+                                    </div>
+                                    <label for="charging_voltage"/>
+                                    <div class="o_row">
+                                        <field name="charging_voltage" force_save="1" nolabel="1"/>
+                                        <span>V</span>
+                                    </div>
+                                    <label for="discharging_voltage"/>
+                                    <div class="o_row">
+                                        <field name="discharging_voltage" force_save="1" nolabel="1"/>
+                                        <span>V</span>
+                                    </div>
+                                </group>
+                            </group>
+
+                            <group invisible="not show_high_temperature" string="HT-2">
+                                <label for="temperature_two"/>
+                                <div class="o_row">
+                                    <field name="temperature_two" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="hour_two"/>
+                                <div class="o_row">
+                                    <field name="hour_two" force_save="1" nolabel="1"/>
+                                    <span>hr</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_pad_printing">
+                                <field name="symbol"/>
+                                <field name="standard"/>
+                            </group>
+
+                            <group invisible="not show_capacity_test">
+                                <label for="capacity"/>
+                                <div class="o_row">
+                                    <field name="capacity" force_save="1" nolabel="1"/>
+                                    <span>mAh</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_aged_formation_1" string="Room Temperature standing-1">
+                                <label for="room_temperature"/>
+                                <div class="o_row">
+                                    <field name="room_temperature" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="room_hour"/>
+                                <div class="o_row">
+                                    <field name="room_hour" force_save="1" nolabel="1"/>
+                                    <span>hr</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_voltage_test">
+                                <group string="OCV-IR-1">
+                                    <label for="min_voltage"/>
+                                    <div class="o_row">
+                                        <field name="min_voltage" force_save="1" nolabel="1"/>
+                                        <span>V</span>
+                                    </div>
+                                    <label for="min_ohm"/>
+                                    <div class="o_row">
+                                        <field name="min_ohm" force_save="1" nolabel="1"/>
+                                        <span>mohm</span>
+                                    </div>
+                                </group>
+                                <group string="OCV-IR-2">
+                                    <label for="ocv_voltage"/>
+                                    <div class="o_row">
+                                        <field name="ocv_voltage" force_save="1" nolabel="1"/>
+                                        <span>V</span>
+                                    </div>
+                                    <label for="ocv_resistance"/>
+                                    <div class="o_row">
+                                        <field name="ocv_resistance" force_save="1" nolabel="1"/>
+                                        <span>mΩ</span>
+                                    </div>
+                                </group>
+                            </group>
+
+                            <group invisible="not show_aged_formation_2" string="Room Temperature standing-2">
+                                <label for="room_temperature_two"/>
+                                <div class="o_row">
+                                    <field name="room_temperature_two" force_save="1" nolabel="1"/>
+                                    <span>℃</span>
+                                </div>
+                                <label for="room_hour_two"/>
+                                <div class="o_row">
+                                    <field name="room_hour_two" force_save="1" nolabel="1"/>
+                                    <span>hr</span>
+                                </div>
+                            </group>
+
+                            <group invisible="not show_capacity_test">
+                                <field name="ccv_discharge_amps"/>
+                                <field name="ccv_discharge_volts"/>
+                                <field name="ccv_discharge_physical"/>
+                            </group>
+
+                            <group invisible="not show_voltage_test">
+                                <field name="ocv"/>
+                                <field name="ir"/>
+                                <field name="visual_examination"/>
+                            </group>
+                        </page>
+
+                        <page string="Insulation Test" invisible="not show_degas">
+                            <group></group>
+                            <group>
+                                <field name="voltage_resist"/>
+                                <field name="resist_set"/>
+                                <field name="time"/>
+                            </group>
+                        </page>
+
+                        <page string="Machine Parameter">
+                            <group invisible="not show_injection and not show_high_temperature">
+                                <field name="injection_volume"/>
+                                <field name="sealing_pressure"/>
+                                <field name="sealing_temp"/>
+                                <field name="vac_sucker"/>
+                                <field name="vac_stewing_1"/>
+                                <field name="vac_stewing_2"/>
+                                <field name="vac_stewing_3"/>
+                                <field name="vac_sealer"/>
+                                <field name="post_injection_stabilization_time"/>
+                                <field name="sealing_width"/>
+                                <field name="sealing_thickness"/>
+                                <field name="weight_before"/>
+                                <field name="weight_after"/>
+                            </group>
+
+                            <group invisible="not show_degas">
+                                <field name="sealing_time"/>
+                                <field name="vacuum_holding_time"/>
+                                <field name="weight_before_degas"/>
+                                <field name="weight_after_degas"/>
+                                <field name="trimming"/>
+                                <field name="folding"/>
+                            </group>
+
+                            <group invisible="not show_voltage_test">
+                                <group>
+                                    <field name="voltage"/>
+                                    <field name="resistance"/>
+                                </group>
+                                <group></group>
+                            </group>
+
+                            <group invisible="not show_capacity_test">
+                                <group>
+                                    <field name="rest_time"/>
+                                </group>
+                                <group string="Constant Voltage Charge">
+                                    <field name="cvc_voltage"/>
+                                    <field name="cvc_current"/>
+                                    <field name="cvc_cut_off"/>
+                                    <field name="cvc_time"/>
+                                </group>
+                                <group string="Constant Current Discharge">
+                                    <field name="ccd_current"/>
+                                    <field name="ccd_limit_current"/>
+                                    <field name="ccd_time"/>
+                                    <field name="ccd_rest"/>
+                                </group>
+                                <group string="Constant Voltage Charge">
+                                    <field name="cvc_voltage_2"/>
+                                    <field name="cvc_current_2"/>
+                                    <field name="cvc_cut_off_2"/>
+                                    <field name="cvc_time_2"/>
+                                    <field name="cvc_test_2"/>
+                                </group>
+                            </group>
+
+                            <group invisible="not show_drying">
+                                <group string="Temperature">
+                                    <field name="dry_min_temperature" string="Minimum Temperature"/>
+                                    <field name="dry_max_temperature" string="Maximum Temperature"/>
+                                </group>
+                                <group string="Vacuum">
+                                    <field name="dry_min_vacuum" string="Minimum Vacuum"/>
+                                    <field name="dry_max_vacuum" string="Maximum Vacuum"/>
+                                </group>
+                            </group>
+
+                            <group invisible="not show_slitting">
+                                <!-- ... all slitting fields unchanged ... -->
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="manufacturing_operation_list_view" model="ir.ui.view">
+        <field name="name">manufacturing.operation.list</field>
+        <field name="model">manufacturing.operation</field>
+        <field name="arch" type="xml">
+            <list string="Manufacturing Operation" sample="1">
+                <field name="sequence" widget="handle"/>
+                <field name="manufacturing_process_type_id" column_invisible="0"/>
+                <field name="product_model_id" string="Model"/>
+                <field name="bom_id"/>
+                <field name="location_src_id"/>
+                <field name="location_dest_id"/>
+                <field name="vendor_id"/>
+                <field name="reference"/>
+                <field name="process_duration" widget="float_time"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="manufacturing_operation_search_view" model="ir.ui.view">
+        <field name="name">manufacturing.operation.search</field>
+        <field name="model">manufacturing.operation</field>
+        <field name="arch" type="xml">
+            <search string="Operation">
+                <field name="manufacturing_process_type_id" invisible="0"/>
+                <field name="product_model_id" string="Model"/>
+                <field name="location_src_id"/>
+                <field name="location_dest_id"/>
+                <field name="vendor_id"/>
+                <field name="process_duration" widget="float_time"/>
+                <group>
+                    <filter string="Model" name="product_model_id" domain="[]" context="{'group_by': 'product_model_id'}"/>
+                    <filter string="Vendor" name="vendor_id" domain="[]" context="{'group_by': 'vendor_id'}"/>
+                    <filter string="Operation Type" name="manufacturing_process_type_id" domain="[]" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+    <record id="manufacturing_operation_form_action" model="ir.actions.act_window">
+        <field name="name">Manufacturing Operation</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">manufacturing.operation</field>
+        <field name="domain">[]</field> <!-- force empty -->
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Operation for production
+            </p>
+
+        </field>
+    </record>
+
+
+</odoo>

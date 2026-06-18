@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="account_terms_conditions_rule" model="ir.rule">
+        <field name="name">Terms &amp; Conditions</field>
+        <field name="model_id" ref="terms_condition.model_account_terms"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field>
+    </record>
+</odoo>

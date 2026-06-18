@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_goods_recevies_note_report2" model="report.paperformat">
+            <field name="name">A4 Expense Claim Form</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">50</field>
+            <field name="margin_bottom">15</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">36</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="good_received_report_1" model="ir.actions.report">
+            <field name="name">Goods Received Report Duplicate</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.grn_report_munoth_1</field>
+            <field name="report_file">munoth_reports.grn_report_munoth_1</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_goods_recevies_note_report2"/>
+        </record>
+
+        <template id="grn_report_munoth_1">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+                    <!--                <link rel="stylesheet" type="text/css" href="/munoth_reports/static/custom_css/custom_style.css"/>-->
+                    <t t-foreach="docs" t-as="o">
+                        <t t-if="doc and 'company_id' in doc">
+                            <t t-set="company" t-value="doc.company_id"></t>
+                        </t>
+                        <t t-if="not doc or not 'company_id' in doc">
+                            <t t-set="company" t-value="res_company"></t>
+                        </t>
+                        <div style="border:1px solid black;">
+                            <div class="page_border" style="height:100%;padding-right:0px;padding-left:0px;height:265.4mm;">
+                                <div class="header" style="border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;">
+                                    <h1 style="text-align:center;color:black!important;"><strong><img src="/web/binary/company_logo" style="height:65px;"/><span t-field="company.name"/></strong></h1>
+                                    <h5 style="text-align:center;color:black!important;"><center><span t-field="company.street"/>,<span t-field="company.street2"/>,<br/><span t-field="company.city"/>-<span t-field="company.zip"/></center></h5>
+                                    <!--                                <t t-if="company.phone">-->
+                                    <!--                                    <h5 style="text-align:center;color:black!important;"><center>Phone No:<span t-field="company.phone"/></center></h5>-->
+                                    <!--                                </t>-->
+                                    <br/>
+                                    <t t-if="company.vat">
+                                        <h5 style="text-align:center;color:black!important;"><center>GSTIN:<span t-field="company.vat"/></center></h5>
+                                    </t>
+                                </div>
+                                <div>
+                                    <br/>
+                                    <center><b style="font-size:20px;"><u>Goods Received Note</u></b></center>
+                                    <div style="width:65%;height:200px;float:left;padding-left:20px;">
+                                        <strong> GRN NO :</strong><span t-field="docs.name"/>
+                                        <p/>
+                                        <strong>PO Date:</strong><span t-field="docs.sale_id.proforma_invoice"/>
+                                        <p/>
+                                        <strong>PO No:</strong><span t-field="docs.sale_id.proforma_no"/>
+                                        <p/>
+                                        <strong>Name &amp; Address of the Supplier:</strong>
+                                        <span t-field="docs.partner_id.name"/>.
+                                        <t t-if="docs.partner_id.street">
+                                            <span t-field="docs.partner_id.street"/>
+                                        </t>
+                                        <t t-if="docs.partner_id.street2">,
+                                            <span t-field="docs.partner_id.street2"/>
+                                        </t>
+                                        <t t-if="docs.partner_id.city">,
+                                            <span t-field="docs.partner_id.city"/>
+                                        </t>
+                                        <t t-if="docs.partner_id.state_id">,
+                                            <span t-field="docs.partner_id.state_id.name"/>
+                                        </t>
+                                        <t t-if="docs.partner_id.zip">,<span t-field="docs.partner_id.zip"/>.
+                                        </t>
+                                    </div>
+                                    <div style="width:35%;height:200px;float:right;padding-right:10px;">
+                                        <strong>Inward Date :</strong><span/>
+                                        <p/>
+                                        <strong> Security Sl no :</strong><span/>
+                                        <p/>
+                                        <strong> Invoice Date:</strong><span t-field="docs.sale_id.invoice_ids.invoice_date"/>
+                                        <p/>
+                                        <strong>Invoice No:</strong><span t-field="docs.sale_id.invoice_ids.name"/>
+                                        <p/>
+                                    </div>
+                                    <div class="page" style="height-top:10mm;padding-right:20px;padding-left:20px;">
+                                        <table style="width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;page-break-before: avoid;height:500px;" cellspacing="0">
+                                            <thead style="line-height: 1.5;">
+                                                <th style="font-weight:bold;font-size:15px;width:10%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                                    SI.No
+                                                </th>
+                                                <th style="font-weight:bold;font-size:15px;width:30%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                                    Item Description
+                                                </th>
+                                                <th style="font-weight:bold;font-size:15px;width:17%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                                    Items Received
+                                                </th>
+                                                <th style="font-weight:bold;font-size:15px;width:12%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;">
+                                                    Items Accepted
+                                                </th>
+                                                <th style="font-weight:bold;font-size:15px;width:15%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;">
+                                                    Items Rjected
+                                                </th>
+                                                <th style="font-weight:bold;font-size:15px;width:15%;border-right:1px solid black;text-align:left;border-bottom:1px solid black;border-top:1px solid black;vertical-align:bottom;">
+                                                    on For Rejection
+                                                </th>
+                                            </thead>
+                                            <tbody>
+                                                <t t-set="counter" t-value="1"/>
+                                                <tr style="font-size: 16px;border:1px solid black;" t-foreach="docs.move_ids" t-as="t">
+                                                    <td style="width:5%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;border:1px solid black;">
+                                                        <span style="text-align:center;" t-esc="counter"/>
+                                                        <t t-set="counter" t-value="counter+1"/>
+                                                    </td>
+                                                    <td style="width:50%;padding-left:2px;border-right:1px solid black;border-left:1px;vertical-align:top;text-align:left;padding-top:0px;">
+                                                        <span t-esc="t.description_picking"/>
+                                                    </td>
+                                                    <td style="width:15%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                        <span t-esc="t.forecast_availability"/>
+                                                    </td>
+                                                    <td style="width:7%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                        <!--                                                <span t-esc="t.product_uom_qty"/>-->
+                                                    </td>
+                                                    <td style="width:8%;text-align:right;padding-right:1px;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                                        <!--                                                <span t-esc="'{:,.4f}'.format(t.price_unit)"/>-->
+                                                    </td>
+                                                    <td style="width:15%;text-align:right;padding-right:1px;valign:top;vertical-align:top;border-right:1px solid black;padding-top:0px;">
+                                                        <!--                                                <span t-esc="'{:,.2f}'.format(t.price_subtotal)"/>-->
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="width:60%;height:210px;float:left;padding-left:2px;">
+                                        <br/>
+                                        <strong style="height:20px;">Transporter : </strong><span/>
+                                        <p/>
+                                        <strong style="height:20px;"> Type of Vehicle :</strong><span />
+                                        <p/>
+                                        <strong style="height:20px;"> Vehicle Number :</strong><span/>
+                                        <p/>
+                                        <strong style="height:20px;">Driver's Name :</strong><span/>
+                                        <p/>
+                                        <strong style="height:20px;">Driver's Signature : </strong><span/>
+                                        <p/>
+                                    </div>
+                                    <div style="width:40%;height:210px;float:right;padding-left:2px;">
+                                        <br/>
+                                        <strong>Received By: </strong><span/>
+                                        <p/>
+                                        <strong>Sign with date: </strong><span/><br/>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--                            <div class="footer" style="border-top:1px solid black;">-->
+                            <!--                                <table style="width:100%;">-->
+                            <!--                                    <th style="width:50%;text-align:center;">-->
+                            <!--                                        <strong>Prepared By</strong>-->
+                            <!--                                    </th>-->
+                            <!--                                    <th style="width:50%;text-align:center;">-->
+                            <!--                                        <strong>Approved By</strong>-->
+                            <!--                                    </th>-->
+                            <!--                                </table>-->
+                            <!--                            </div>-->
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_goods_inward_checklist_report" model="report.paperformat">
+        <field name="name">A4 Goods Inward Checklist</field>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">25</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">20</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="_goods_inward_checklist_report" model="ir.actions.report">
+            <field name="name">Goods Checklist Report</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.report_goods_inward_checklist_report</field>
+            <field name="report_file">munoth_reports.report_goods_inward_checklist_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_goods_inward_checklist_report"/>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+        </record>
+
+
+    <template id="report_goods_inward_checklist_report">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <t t-foreach="docs" t-as="o">
+                    <div class="header">
+                        <table style="padding: 5px;height:100px;">
+<!--                            <div style="padding: 5px;float:left;border:1px solid black;">-->
+<!--                                <center><img src="/web/binary/company_logo" style='height:90px;' class="center"/></center>-->
+<!--                            </div>-->
+                            <div>
+                                <tr style="padding: 5px;height:50px;padding-top:5px;">
+                                    <td rowspan="2" style="padding: 5px;border:1px solid black;">
+                                        <center><img src="/web/binary/company_logo" style='height:90px;width:90%;' class="center"/></center>
+                                    </td>
+                                    <td style="padding: 5px;width:70%;border:1px solid black;vertical-align:middle;">
+                                        <h3 style="padding: 5px;text-align:center;color:purple!important;"><strong><h3 style="padding: 5px;font-weight:bold;font-size:25px;">MUNOTH INDUSTRIES LIMITED</h3></strong></h3>
+                                    </td>
+                                    <td style="padding: 5px;width:20%;border:1px solid black;">
+                                        <b style="padding: 5px;font-size:10px;">Doc No:<span style='font-size:13px;' t-esc="o.doc_no"/></b><br/>
+                                        Rev No:<span t-esc="o.rev_no"/><br/>
+                                        Date:<span t-field="o.rev_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/><br/>
+                                    </td>
+                                </tr>
+                            </div>
+                            <div style="padding: 5px;float:right;">
+                                 <tr style="padding: 5px;height:50px;padding-top:5px;">
+                                    <td style="padding: 5px;width:70%;border:1px solid black;height:30px;text-align:center;vertical-align:middle;">
+                                        <b>GOODS  INWARD CHECKLIST</b>
+                                    </td>
+                                    <td style="padding: 5px;width:20%;border:1px solid black;">
+                                        Date :<span t-esc="o.scheduled_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                    </td>
+                                </tr>
+                            </div>
+                        </table>
+                    </div>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <div class="page" style="padding: 5px;height:100%;">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td style="padding: 5px;width: 200px;padding-left: 5px;"> Name of the Supplier</td>
+                                <td style="padding: 5px;width: 5px; padding-right: 5px;">:</td>
+                                <td style="padding: 5px;width: calc(100% - 150px);"><span t-field="o.partner_id"/></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;width: 250px;padding-left: 5px;">Address of the Supplier</td>
+                                <td style="padding: 5px;width: 5px;">:</td>
+                                <td style="padding: 5px;width: calc(100% - 130px);">
+                                    <t t-if="o.partner_id.street">
+                                        <span t-field="o.partner_id.street"/>
+                                    </t>
+                                    <t t-if="o.partner_id.street2">,
+                                        <span t-field="o.partner_id.street2"/>
+                                    </t>
+                                    <t t-if="o.partner_id.city">,
+                                        <span t-field="o.partner_id.city"/>
+                                    </t>
+                                    <t t-if="o.partner_id.state_id">,
+                                        <span t-field="o.partner_id.state_id.name"/>
+                                    </t>
+                                    <t t-if="o.partner_id.zip">,<span t-field="o.partner_id.zip"/>.
+                                    </t>
+                                </td>
+                            </tr>
+                            <br/>
+                            <br/>
+                            <tr>
+                                <td style="padding: 5px;width: 125px;padding-left: 5px;">Invoice Date</td>
+                                <td style="padding: 5px;width: 5px;">:</td>
+                                <td style="padding: 5px;width: calc(100% - 130px);"><span t-field="o.invoice_date" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;width: 125px;padding-left: 5px;">Invoice No</td>
+                                <td style="padding: 5px;width: 5px;">:</td>
+                                <td style="padding: 5px;width: calc(100% - 130px);"><span t-field=" o.invoice_no"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;width: 250px;padding-left: 5px;">Date of receipt of goods</td>
+                                <td style="padding: 5px;width: 5px;">:</td>
+                                <td style="padding: 5px;width: calc(100% - 130px);"><span t-field="o.date_done" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/>
+                                </td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <center><b style="padding: 5px;font-weight:bold;font-size:20px;"><u>Goods Inward Checklist</u></b></center>
+                        <table style="padding: 5px;width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;" cellspacing="0">
+                            <thead style="padding: 5px;line-height: 1.2;">
+                                <th style="padding: 5px;font-weight:bold;width:65;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;padding-top:15px;">
+                                    Sl.No
+                                </th>
+                                <th style="padding: 5px;font-weight:bold;width:65;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;padding-top:15px;">
+                                    Description
+                                </th>
+                                <th style="padding: 5px;font-weight:bold;width:15%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;padding-top:15px;">
+                                    Yes/No
+                                </th>
+                                <th style="padding: 5px;font-weight:bold;width:15%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;padding-top:15px;">
+                                    Details
+                                </th>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <tr style="padding: 5px;font-size: 16px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;">
+                                        <span style="padding: 5px;text-align:right;" t-esc="counter"/>
+                                        <t t-set="counter" t-value="counter+1"/>
+                                    </td>
+                                    <td style="padding: 5px;width:60%;padding-left:2px;border-right:1px solid black;vertical-align:top;padding-top:0px;text-align:left;">
+                                        Security Inward Stamp.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.security_inward == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.security_inward != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.security_inward_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;vertical-align:top;padding-top:0px;">
+                                        2
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;vertical-align:top;padding-top:0px;">
+                                        Purchase Order
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.purchase_order == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.purchase_order != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.purchase_order_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        3
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Commercial Invoice
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.commercial_invoice == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.commercial_invoice != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.commercial_invoice_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        4
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Verify Vendor Details
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.verify_code == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.verify_code != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.verify_code_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        5
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        GRN
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.grn == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.grn != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.name"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        6
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Goods received are according to the description in PO.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.purchase_descrip == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.purchase_descrip != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.purchase_descrip_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        7
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Quantity, Weights, Measurements and specifications of goods received are same to those indicated in PO and in invoice.(Note: In some cases, drawings/specifications data sheets can be referred).
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.quantity_measure == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.quantity_measure != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.quantity_measure_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        8
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        The goods and quantities received fully tally with those mentioned in delivery challan.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.supplies_review == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.supplies_review != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.supplies_review_remarks"/>
+
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        9
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Inspection of goods
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.inspect == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.inspect != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.inspect_remarks"/>
+
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        10
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Invoice value is agreeing with that in PO.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.invoice_value == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.invoice_value != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.invoice_value_remarks"/>
+
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        11
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Entry of details of goods received in your purchase &amp; stock register."
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.entry_details == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.entry_details != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.entry_details_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        12
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Handover the invoice to accounts department.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.account_depart == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.account_depart != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.account_depart_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        13
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Certificate
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.certificate == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.certificate != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.certificate_remarks"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        13
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Notify the concerned department regarding receipt of goods.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.notify_goods == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.notify_goods != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.notify_goods_remarks"/>
+
+                                    </td>
+                                </tr>
+                                <tr style="padding: 5px;border:1px solid black;">
+                                    <td style="padding: 5px;width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        14
+                                    </td>
+                                    <td style="padding: 5px;width:60%;text-align:left;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        Storage of goods.
+                                    </td>
+                                    <td style="padding: 5px;width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <t t-if="o.storage == True">
+                                            <span>Yes</span>
+                                        </t>
+                                        <t t-if="o.storage != True">
+                                            <span>No</span>
+                                        </t>
+                                    </td>
+                                    <td style="padding: 5px;width:25%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                        <span t-field="o.storage_remarks"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            <p/>
+                            <table style="padding: 5px;width:100%;">
+                                <th style="padding: 5px;width:33%;text-align:center;">
+                                    <strong><u>Prepared By:</u></strong><br/>
+                                        <span t-esc="o.prepared_by.name"/>
+                                </th>
+                                <th style="padding: 5px;width:33%;text-align:center;">
+                                    <strong><u>Checked By:</u></strong><br/>
+                                        <span t-esc="o.checked_by.name"/>
+                                </th>
+                                <th style="padding: 5px;width:33%;text-align:center;">
+                                    <strong><u>Reviewed By:</u></strong><br/>
+                                        <span t-esc="o.reviewed_by.name"/>
+                                </th>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,52 @@
+/* Adjusting the margin,padding to make it look good. You can remove or change it according to your needs */
+/*.header{
+    margin-left: -15px;
+    margin-right: -15px;
+    border-top: 5px solid #000;
+    padding-left: 20px;
+    padding-top: 10px;
+    padding-right: 20px;
+}
+
+/* Adjusting the margin,padding to make it look good. You can remove or change it according to your needs */
+/*.footer{
+    margin-left: -15px;
+    margin-right: -15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    /*border-bottom: 5px solid #000;*/
+
+    /* To Fix Footer overlapping page_border div */
+   /* border-left: 5px solid #000;
+    border-right: 5px solid #000;
+}
+
+/* Adjusting the margin,padding to make it look good. You can remove or change it according to your needs */
+/*.page{
+    margin-left: -15px;
+    margin-right: -15px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
+/* Magic happens here */
+/*.page_border{
+    border-left: 5px solid #000;
+    border-right: 5px solid #000;
+    position: fixed;
+    z-index: 9999;
+/* If you don't get full page border, play around with the height */
+   /* height: 350mm;
+    left: 0px;
+    top:0;
+    width:100%
+}
+.horizontal-line {
+    border-top: 1px solid #000; /* Change color as needed */
+  /*  margin-top: 10px; /* Adjust margin as needed */
+
+/*.extended-horizontal-line tr {
+    border-bottom: 1px solid #000;*/ /* Adjust the color and width as needed */

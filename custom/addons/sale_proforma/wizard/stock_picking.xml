@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_stock_picking_inherit" model="ir.ui.view">
+        <field name="name">stock.return.picking.form</field>
+        <field name="model">stock.return.picking</field>
+        <field name="inherit_id" ref="mrp_material_request.view_stock_return_picking_inherit"/>
+        <field name="arch" type="xml">
+<!--            <xpath expr="//group//field[@name='return_value']" position="after">-->
+<!--                    <field name="return_value"/>-->
+<!--            </xpath>-->
+
+            <xpath expr="//field[@name='product_return_moves']//list" position="inside">
+                <field name="reason"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

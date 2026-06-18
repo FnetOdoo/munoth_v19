@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="purchase_order_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//label[@for='date_approve']" position="attributes">
+                <attribute name="string">PO Confirmation Date</attribute>
+            </xpath>
+            <xpath expr="//label[@for='date_planned']" position="attributes">
+                <attribute name="string">Expected Delivery Date</attribute>
+            </xpath>
+            <xpath expr="//field[@name='effective_date']" position="attributes">
+                <attribute name="string">Material Received Date</attribute>
+            </xpath>
+            <xpath expr="//button[4]" position="after">
+                <button name="bid_received" string="Bid Received" type="object" invisible="state != 'sent'" class="btn-primary" groups="purchase.group_purchase_user,purchase.group_purchase_manager"/>
+            </xpath>
+            <xpath expr="//button[@name='print_quotation']" position="after">
+                <button name="send_rfq" type="object" string="Confirm RFQ" invisible="state != 'draft'"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar" statusbar_visible="draft,sent,purchase,done" readonly="1"/>
+            </xpath>
+            <xpath expr="//button[@id='bid_confirm']" position="attributes">
+                <attribute name="invisible">state != 'bid received'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='draft_confirm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <button name="button_cancel" position="attributes">
+                <attribute name="invisible">state not in ('bid received', 'draft', 'to approve', 'sent', 'purchase')
+                </attribute>
+            </button>
+            <field name="partner_id" position="after">
+                <field name="purchase_type"/>
+            </field>
+            <field name="partner_id" position="after">
+                <field name="quotation_number" invisible="state not in ('purchase', 'done')" readonly="1" force_save="1"/>
+            </field>
+            <field name="payment_term_id" position="after">
+                <field name="delivery_term_id"/>
+            </field>
+            <page name="purchase_delivery_invoice" position="inside">
+                <group>
+                    <group>
+                        <field name="rev_no"/>
+                        <field name="doc_no"/>
+                        <field name="rev_date"/>
+                    </group>
+                    <group>
+                        <field name="po_rev_no"/>
+                        <field name="po_doc_no"/>
+                        <field name="po_rev_date"/>
+                    </group>
+                </group>
+            </page>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="before">
+                <field name="s_no"/>
+            </xpath>
+
+            <!-- Readonly based on state -->
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='purchase_type']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='requisition_id']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+             <xpath expr="//field[@name='currency_id']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='picking_type_id']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_search_inherit_extended" model="ir.ui.view">
+        <field name="name">purchase.order.list.select.inherit.extended</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="replace">
+                <field name="name" string="Reference" filter_domain="['|', '|', '|',
+                           ('quotation_number', 'ilike', self),
+                           ('name', 'ilike', self),
+                           ('partner_ref', 'ilike', self),
+                           ('partner_id', 'child_of', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_form_view_inherit_rev" model="ir.ui.view">
+        <field name="name">stock.picking.view.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page//group[@name='other_infos']" position="inside">
+                <field name="doc_no"/>
+                <field name="rev_no"/>
+                <field name="rev_date"/>
+                <field name="invoice_date"/>
+                <field name="invoice_no"/>
+                <field name="checked_by"/>
+                <field name="reviewed_by"/>
+                <field name="prepared_by" invisible="1"/>
+                <field name="received_by"/>
+            </xpath>
+            <xpath expr="//field[@name='location_id']" position="attributes">
+                <attribute name="readonly">False</attribute>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="res_config_settings_view_form_purchase_rev" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.rev</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="25"/>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='purchase']" position="inside">
+                <h2>Document Revision Details</h2>
+                <div class="row mt16 o_settings_container" name="revision_details">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_panel"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="po_rev_no" class="col-lg-5 o_light_label"/>
+                                    <field name="po_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="po_doc_no" class="col-lg-5 o_light_label"/>
+                                    <field name="po_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="po_rev_date" class="col-lg-5 o_light_label"/>
+                                    <field name="po_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="checklist_rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="checklist_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="checklist_doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="checklist_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="checklist_rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="checklist_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="picking_rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="picking_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="picking_doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="picking_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="picking_rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="picking_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="receipt_rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="receipt_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="receipt_doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="receipt_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="receipt_rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="receipt_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="packing_rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="packing_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="packing_doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="packing_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="packing_rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="packing_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="gate_pass_rev_no" class="col-lg-4 o_light_label"/>
+                                    <field name="gate_pass_rev_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="gate_pass_doc_no" class="col-lg-4 o_light_label"/>
+                                    <field name="gate_pass_doc_no"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="gate_pass_rev_date" class="col-lg-4 o_light_label"/>
+                                    <field name="gate_pass_rev_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2>Store Email</h2>
+                <div class="row mt16 o_settings_container" name="store_mail">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"></div>
+                        <div class="o_setting_right_pane">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="store_mail_id" class="col-lg-4 o_light_label"/>
+                                    <field name="store_mail_id" force_save="1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="manufacturing_product_tray_insert" model="ir.ui.view">
+        <field name="name">tray.product.lot.form</field>
+        <field name="model">tray.product.lot</field>
+        <field name="arch" type="xml">
+            <form string="Scrap">
+                <group>
+                    <group>
+                        <field name="product_tray_id"/>
+                    </group>
+                    <group>
+                        <field name="location_src_id"/>
+                        <field name="dest_location_id"/>
+                        <field name="cell_drying_id" invisible="1"/>
+                        <field name="aged_formation_id" invisible="1"/>
+                        <field name="capacity_id" invisible="1"/>
+                        <field name="clamp_baking_id" invisible="1"/>
+                        <field name="degas_id" invisible="1"/>
+                        <field name="ht_cell_id" invisible="1"/>
+                        <field name="injection_id" invisible="1"/>
+                        <field name="packing_id" invisible="1"/>
+                        <field name="pad_printing_id" invisible="1"/>
+                        <field name="voltage_test_id" invisible="1"/>
+
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Serial Number">
+                        <button name="action_select_all" type="object" string="Select All" class="oe_highlight"/>
+                        <button name="action_unselect_all" type="object" string="Unselect All"/>
+                        <field name="tray_lot_ids">
+                            <list editable="bottom" limit="200" create="0" delete="0">
+                                <field name="select_record"/>
+                                <field name="serial_number_id"/>
+<!--                                <field name="serial_number" required="1"/>-->
+                                <field name="product_id"/>
+                                <field name="product_uom_category_id" column_invisible="1"/>
+                                <field name="product_uom_id"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+                <footer>
+                    <button name="action_update_the_lot" string="Update" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_manufacturing_lot_update">
+            <field name="name">Product tray</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tray.product.lot</field>
+            <field name="view_mode">list,form</field>
+        <field name="view_id" ref="manufacturing_scrap_form_view2"/>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Lot Update
+              </p>
+            </field>
+    </record>
+
+</odoo>

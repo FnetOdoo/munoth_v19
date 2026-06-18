@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_customer_complaint_register" model="report.paperformat">
+            <field name="name">A4 Customer Complaint Register</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">35</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">5</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="customer_complaint" model="ir.actions.report">
+            <field name="name">Customer Complaint</field>
+            <field name="model">complaint.register</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.complaint_register_report</field>
+            <field name="report_file">munoth_reports.complaint_register_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_customer_complaint_register"/>
+            <field name="binding_model_id" ref="fnet_mrp.model_complaint_register"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="complaint_register_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="web.basic_layout">
+                        <div class="page">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:30%;">
+                                        <img src="/web/binary/company_logo" style="height:68px;" class="right"/>
+                                    </td>
+                                    <td style="width:70%;">
+                                        <strong style="text-align:center;font-size:25px;">Customer Complaint - Call Register</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br/>
+                            <br/>
+                            <table style="width:100%;" cellspacing="0">
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Customer</td>
+                                    <td style="width: 5px; padding-right: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.customer_id"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Product</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.product_id"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Model No</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.product_model_id"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Address</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);">
+                                        <t t-if="doc.customer_loc_street"><span t-field="doc.customer_loc_street"/>
+                                        </t>
+                                        <t t-if="doc.customer_loc_street2">, <span t-field="doc.customer_loc_street2"/>
+                                        </t>
+                                        <t t-if="doc.customer_city">, <span t-field="doc.customer_city"/>
+                                        </t>
+                                        <t t-if="doc.customer_state">
+                                            , <span t-field="doc.customer_state"/>
+                                        </t>
+                                        <t t-if="doc.customer_zip">, <span t-field="doc.customer_zip"/>.
+                                        </t>
+                                        <t t-if="doc.customer_country">, <span t-field="doc.customer_country"/>.
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Modality</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.modality"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Call Date</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.call_date"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Received On</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.received_on"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Completed On</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.completed_on"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Complaint Details</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.complaint_details"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Lot Qty</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.lot_qty"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Defect Qty</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.defect_qty"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Repeated Complaint (Y/N)</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.repeated_complain"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Attended By</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.attended_by"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Call Solved through</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.call_solved"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Call Closure Status</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.status"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 125px;padding-left: 5px;">Remarks</td>
+                                    <td style="width: 5px;">:</td>
+                                    <td style="width: calc(100% - 130px);"><span t-field="doc.remark"/></td>
+                                </tr>
+
+
+
+                            </table>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

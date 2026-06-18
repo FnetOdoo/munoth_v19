@@ -1,0 +1,37 @@
+<odoo>
+    <record model="ir.ui.view" id="status_report_wizard_view_form">
+        <field name="name">Process Status Report</field>
+        <field name="model">process.status.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group style="width:50%;">
+                        <field name="product_model_id"/>
+                    </group>
+                    <group col="5">
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="generate_report" string="Generate Report" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_process_status_report">
+        <field name="name">Process Status Report</field>
+        <field name="res_model">process.status.report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="status_report_wizard_view_form"/>
+        <field name="context">{}</field>
+        <field name="domain">[]</field>
+        <field name="target">new</field>
+    </record>
+
+
+
+</odoo>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.currency.rate.live</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <!--
+                Replace main_currency setting to occupy only the LEFT half,
+                then add a sibling setting for the rate fields on the RIGHT half.
+                Odoo settings use a 2-per-row grid: each <setting> is col-lg-6.
+                Two consecutive <setting> tags = left column + right column.
+            -->
+            <xpath expr="//setting[@id='main_currency']" position="replace">
+
+                <!-- LEFT COLUMN: Currency picker (unchanged from base) -->
+                <setting id="main_currency"
+                         string="Main Currency"
+                         company_dependent="1"
+                         help="Main currency of your company"
+                         documentation="/applications/finance/accounting/others/multi_currency.html">
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label for="currency_id" class="col-lg-3 o_light_label"/>
+                            <field name="currency_id"
+                                   options="{'no_create_edit': True, 'no_open': True}"
+                                   context="{'active_test': False}"/>
+                            <field name="group_multi_currency" invisible="1"/>
+                        </div>
+                        <div class="mt8">
+                            <button type="action" name="66"
+                                    string="Currencies"
+                                    class="btn-link"
+                                    icon="oi-arrow-right"/>
+                        </div>
+                    </div>
+                </setting>
+
+                <!-- RIGHT COLUMN: Service / Interval / Next Run -->
+                <setting id="currency_rate_live_fields"
+                         string="Automatic Currency Rates"
+                         invisible="not module_currency_rate_live"
+                         help="Update exchange rates automatically"
+                         documentation="/applications/finance/accounting/others/multi_currency.html">
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label string="Service"
+                                   for="currency_provider"
+                                   class="col-lg-3 o_light_label"/>
+                            <field name="currency_provider"/>
+                        </div>
+                        <div class="row mt8">
+                            <label string="Interval"
+                                   for="currency_interval_unit"
+                                   class="col-lg-3 o_light_label"/>
+                            <field name="currency_interval_unit"/>
+                        </div>
+                        <div class="row mt8 align-items-center">
+                            <label string="Next Run"
+                                   for="currency_next_execution_date"
+                                   class="col-lg-3 o_light_label"/>
+                            <field name="currency_next_execution_date"/>
+                            <button name="update_currency_rates_manually"
+                                    type="object"
+                                    class="btn-link ps-1">
+                                <i title="Update now"
+                                   role="img"
+                                   aria-label="Update now"
+                                   class="fa fa-fw fa-refresh"/>
+                            </button>
+                        </div>
+                    </div>
+                </setting>
+
+            </xpath>
+
+            <!-- Hide the now-redundant update_exchange_rates row -->
+            <xpath expr="//setting[@id='update_exchange_rates']" position="replace">
+                <setting id="update_exchange_rates" invisible="1">
+                    <field name="module_currency_rate_live" widget="upgrade_boolean"/>
+                </setting>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

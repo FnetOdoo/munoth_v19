@@ -1,0 +1,13 @@
+<odoo>
+    <data noupdate="1">
+        <record id="purchase_order_receipt_remind_mail" model="ir.cron">
+            <field name="name">Purchase Order Receipt Remind Mail</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="state">code</field>
+            <field name="code">model._remind_mail_for_receipt_date()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

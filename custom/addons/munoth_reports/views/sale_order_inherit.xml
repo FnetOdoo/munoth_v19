@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_form_inherited" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="tax_details" invisible="True"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_picking_form_inherited" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="items" invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='move_ids']" position="before">
+                <group string="Upload file">
+                    <button name="action_update_boxes" type="object" string="Upload boxes"/>
+                    <button name="action_download_update_boxes_sample" type="object" string="Download Sample"/>
+                    <button name="action_download_update_boxes" type="object" string="Delivered Cells"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_employee_inherit_form" model="ir.ui.view">
+        <field name="name">hr.employee.inherit.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group/field[@name='job_id']" position="after">
+                <field name="mode_of_payment"/>
+                <field name="pf_uan_no"/>
+                <field name="esi_no"/>
+                <field name="pf_no"/>
+            </xpath>
+            <xpath expr="//field[@name='work_email']/.." position="before">
+                <h5 class="d-flex align-items-baseline mb-0">
+                    <i class="fa fa-id-badge fa-fw me-1 text-primary" title="Employee ID"/>
+                    <field name="employee_id" string="Employee ID" class="w-100 w-sm-75"/>
+                </h5>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="joining_date"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="complaint_register_view_tree" model="ir.ui.view">
+        <field name="name">complaint.register.view.tree.inherit</field>
+        <field name="model">complaint.register</field>
+        <field name="inherit_id" ref="fnet_mrp.complaint_register_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">button_in_tree</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_move_form_inherit" model="ir.ui.view">
+        <field name="name">account.move.form.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='fiscal_position_id']" position="after">
+                <field name="letter_credit"/>
+                <field name="date_lc"/>
+                <field name="buyer" invisible="False"/>
+                <field name="buyer_date" invisible="False"/>
+                <field name="proforma_no" invisible="True"/>
+                <field name="letter_credit" invisible="True"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_move_line_form_inherit" model="ir.ui.view">
+        <field name="name">stock.move.line.view.from.inherit</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="attributes">
+                <attribute name="domain">[('quant_ids.location_id', '=', location_id)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="boxes"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="complaint_register_view_list" model="ir.ui.view">
+        <field name="name">complaint.register.list</field>
+        <field name="model">complaint.register</field>
+        <field name="arch" type="xml">
+            <list default_order="received_on desc">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="received_on"/>
+                <field name="product_id"/>
+                <field name="product_model_id"/>
+                <field name="modality"/>
+                <field name="status"/>
+                <field name="call_solved"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="employee_id_view_tree" model="ir.ui.view">
+        <field name="name">employee.id.view.tree.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="employee_id"/>
+            </xpath>
+        </field>
+    </record>
+  <!-- Hide default Odoo sale order reports -->
+        <record id="sale.action_report_saleorder" model="ir.actions.report">
+            <field name="binding_model_id" eval="False"/>
+        </record>
+        <record id="sale.action_report_pro_forma_invoice" model="ir.actions.report">
+            <field name="binding_model_id" eval="False"/>
+        </record>
+<!--        <record id="sale.action_report_saleorder_raw" model="ir.actions.report">-->
+<!--            <field name="binding_model_id" eval="False"/>-->
+<!--        </record>-->
+</odoo>

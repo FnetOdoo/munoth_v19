@@ -1,0 +1,179 @@
+<odoo>
+    <data>
+        <record id="view_quality_check_injection_form" model="ir.ui.view">
+            <field name="name">quality.check.injection.form</field>
+            <field name="model">quality.check.injection</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div>
+                            <div style="float:left;">
+                                <img src="/web/binary/company_logo" style="height:68px;"/>
+
+                            </div>
+
+                            <h1 style="text-align:center;">
+                                <b><span>Process Quality Check Sheet (PQC)</span></b>
+                                <div style="float:right;">
+                                    <b style="font-size:13px;">Document:</b><field name="doc_no" style="text-align:right;width:50px;font-size:13px;"/><br/>
+                                    <b style="font-size:13px;">Date:</b><field name="date" style="text-align:right;width:80px;font-size:13px;"/>
+                                </div>
+                            </h1>
+                        </div>
+                        <br/>
+                        <hr/>
+                        <group col="6">
+                            <field name="model_id"/>
+                            <field name="product_id"/>
+                        </group>
+                        <hr/>
+                        <br/>
+                        <b><center><u>Process Quality Check Sheet (PQC) - Injection</u></center></b>
+                        <br/>
+                        <table>
+                            <thead>
+                                <th>
+                                    <th style="width:6%;"></th>
+                                    <th  style="width:7.6%;"></th>
+                                    <th colspan='2' style="width:15.3%;text-align:right;"> CWAI-Cell Weight After Injection</th>
+                                    <th colspan='2' style="width:15.3%;text-align:center;">STEMP-Sealing Temperature</th>
+                                    <th colspan='2' style="width:15.3%;text-align:center;">SW-Sealing width</th>
+                                    <th colspan='2'  style="width:15.3%;text-align:center;">ST-Sealing Thickness</th>
+                                    <th  style="width:7.6%;text-align:center;">Remarks</th>
+                                </th>
+                            </thead>
+                            <tbody>
+                                <field name="pcq_injection_ids" style="width:100%;">
+                                    <list editable="bottom">
+                                        <field name="date_from"/>
+                                        <field name="sample_qty"/>
+                                        <field name="injection_cell_weight_before_filling_actual"/>
+                                        <field name="injection_cell_weight_before_filling_observation"/>
+                                        <field name="injection_cell_weight_after_filling_actual"/>
+                                        <field name="injection_cell_weight_after_filling_observation"/>
+                                        <field name="injection_sealing_temperature_actual"/>
+                                        <field name="injection_sealing_temperature_observation"/>
+                                        <field name="injection_sealing_width_actual"/>
+                                        <field name="injection_sealing_width"/>
+                                        <field name="injection_sealing_thickness_actual"/>
+                                        <field name="injection_sealing_thickness"/>
+                                        <field name="injection_remarks"/>
+                                    </list>
+                                </field>
+
+                            </tbody>
+                        </table>
+                        <b><center><u>Process Quality Check Sheet (PQC) - Degas</u></center></b>
+                        <br/>
+                        <table>
+                            <thead>
+                                <th>
+                                    <th style="width:6%;"></th>
+                                    <th style="width:7.6%;"></th>
+                                    <th  colspan='2' style="width:15.3%;text-align:center;"> SWAT-Sealing width after fine trimming (mm)</th>
+                                    <th colspan='2' style="width:15.3%;text-align:center;"> OCV (V)</th>
+                                    <th colspan='2' style="width:15.3%;text-align:center;">Weight (g)</th>
+                                    <th colspan='2' style="width:15.3%;text-align:center;">Final Dimension (12*60*110 mm Max)</th>
+                                    <th colspan='2'  style="width:15.3%;text-align:center;">Tools Used</th>
+                                    <th  style="width:7.6%;text-align:left;">Remarks</th>
+                                </th>
+                            </thead>
+                            <tbody>
+                                <field name="pcq_degas_ids" style="width:98%;">
+                                    <list editable="bottom">
+                                        <field name="date_from"/>
+                                        <field name="sample_qty"/>
+                                        <field name="degas_trimming_actual"/>
+                                        <field name="degas_trimming_observance"/>
+                                        <field name="degas_voltage_actual"/>
+                                        <field name="degas_voltage_observance"/>
+                                        <field name="degas_final_cell_weight_actual"/>
+                                        <field name="degas_final_cell_weight_observation"/>
+                                        <field name="degas_fd_t"/>
+                                        <field name="degas_fd_w"/>
+                                        <field name="degas_fd_l"/>
+                                        <field name="tool_used"/>
+                                        <field name="degas_remarks"/>
+                                    </list>
+                                </field>
+
+                            </tbody>
+                        </table>
+                        <b><center><u>Process Quality Check Sheet (PQC) - CBF</u></center></b>
+                        <br/>
+                        <table>
+                            <thead>
+                                <th>
+                                    <th style="width:11%;"></th>
+                                    <th  style="width:7.6%;"></th>
+                                    <th  colspan='2' style="width:15.3%;text-align:center;">CV-Charging Voltage (V)</th>
+                                    <th  colspan='2' style="width:15.5%;text-align:center;">  DV-Discharging Voltage (V)</th>
+                                    <th  colspan='2' style="width:15.3%;text-align:center;">HT-Temperature (C) </th>
+                                    <th  colspan='2' style="width:15.3%;text-align:center;">HP-Pressure (kgf)</th>
+                                    <th  colspan='2'  style="width:15.3%;text-align:center;">OCV (V)</th>
+                                    <th  style="width:10%;text-align:right;padding-left:-60px;"></th>
+                                </th>
+                            </thead>
+                            <tbody>
+                                <field name="pcq_cdf_ids" style="width:100%;">
+                                    <list editable="bottom" string="value">
+                                        <field name="date_from"/>
+                                        <field name="sample_qty"/>
+                                        <field name="cbf_cv_actual"/>
+                                        <field name="cbf_cv_observation"/>
+                                        <field name="cbf_dv_actual"/>
+                                        <field name="cbf_dv_observation"/>
+                                        <field name="cbf_heating_temperature_actual"/>
+                                        <field name="cbf_heating_temperature_observation"/>
+                                        <field name="cbf_heating_pressure_actual"/>
+                                        <field name="cbf_heating_pressure_observation"/>
+                                        <field name="cbf_ocv_actual"/>
+                                        <field name="cbf_ocv_observation"/>
+                                        <field name="ht_cbf_remarks"/>
+                                    </list>
+                                </field>
+
+                            </tbody>
+                        </table>
+                        <div>
+                            <div style="float:left;width:50%;text-align:center;">
+                                <strong>checked By</strong>
+                            </div>
+                            <div style="float:right;width:50%;text-align:center;">
+                                <strong> Verified By </strong>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="view_quality_check_process_list" model="ir.ui.view">
+            <field name="name">quality.check.injection.list.view</field>
+            <field name="model">quality.check.injection</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="date"/>
+                    <field name="model_id"/>
+                    <field name="product_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_process_quality_check_injection" model="ir.actions.act_window">
+            <field name="name">Process Quality Check</field>
+            <field name="res_model">quality.check.injection</field>
+            <field name="domain">[]</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Quality Check Process
+                </p>
+            </field>
+        </record>
+
+
+
+    </data>
+</odoo>

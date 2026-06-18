@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_vendor_evaluation_form_report" model="report.paperformat">
+        <field name="name">A4 Purchase order to vendor report</field>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">4</field>
+        <field name="margin_left">2</field>
+        <field name="margin_right">2</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">12</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="vendor_evaluation_form" model="ir.actions.report">
+        <field name="name">Vendor Evaluation Form</field>
+        <field name="model">partner.evaluation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_proforma.vendor_evaluation_sale_proforma_report</field>
+        <field name="report_file">sale_proforma.vendor_evaluation_sale_proforma_report</field>
+        <field name="print_report_name">'Vendor Evaluation - %s' % (object.vendor_code)</field>
+        <field name="binding_model_id" ref="model_partner_evaluation"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="vendor_evaluation_sale_proforma_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page">
+                        <h1 style="text-align:center;font-size:20px;font-weight:bold;margin:0 0 4px 0;">
+                            VENDOR REGISTRATION &amp; EVALUATION FORM
+                        </h1>
+                        <div style="text-align:center;font-weight:bold;font-size:20px;margin-bottom:8px;">
+                            <span t-out="o.name_of_supplier"/>
+                        </div>
+
+                        <table style="width:100%;border-collapse:collapse;border:none;">
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Address</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;">
+                                    <t t-if="o.street1"><span t-out="o.street1"/></t>
+                                    <t t-if="o.street2">, <span t-out="o.street2"/></t>
+                                    <t t-if="o.city">, <span t-out="o.city"/></t>
+                                    <t t-if="o.state_id">, <span t-out="o.state_id.name"/></t>
+                                    <t t-if="o.zip">, <span t-out="o.zip"/>.</t>
+                                </td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Contact No</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.contact_no"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Email</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.mail"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Website</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.website"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Legal Name of the Supplier</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.legal_name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Representative of the Supplier</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.representative_name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">PAN NO</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.pan_no"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Year Established</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.years"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Requested By</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.requested_by.name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Nature of Organisation</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.organisation_name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Type of Bussiness</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.bussiness_name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Average Annual Turnover</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.annual_profit"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Registered under MSME</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.registered"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Udyam Registered No</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.udyam_no"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Description of Goods &amp; Services Supplied</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.description"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Bank Name</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.bank_name.name"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">Account No</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.account_no"/></td>
+                            </tr>
+                            <tr style="height:20px;">
+                                <td style="width:200px;padding-left:5px;border:none;">IFSC Code</td>
+                                <td style="width:5px;border:none;">:</td>
+                                <td style="border:none;padding-left:4px;"><span t-out="o.ifsc_code"/></td>
+                            </tr>
+                        </table>
+
+                        <div style="font-size:15px;page-break-inside:avoid;">
+                            <h1 style="font-weight:bold;font-size:25px;text-align:center;">
+                                Vendor Evaluation
+                            </h1>
+                            <table style="width:100%;border:1px solid black;border-collapse:collapse;" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th style="font-weight:bold;width:65%;border:1px solid black;text-align:center;vertical-align:middle;">Description</th>
+                                        <th style="font-weight:bold;width:10%;border:1px solid black;text-align:center;vertical-align:middle;">Yes/No</th>
+                                        <th style="font-weight:bold;width:25%;border:1px solid black;text-align:center;vertical-align:middle;">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">Sample Submitted</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.sample == True"><span>Yes</span></t>
+                                            <t t-if="o.sample != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.sample_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">All Specification matched</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.all_matched == True"><span>Yes</span></t>
+                                            <t t-if="o.all_matched != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.all_matched_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">Trial Order Issued</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.trial == True"><span>Yes</span></t>
+                                            <t t-if="o.trial != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.trial_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">Pricing is comparable with market &amp; on lower side.</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.pricing == True"><span>Yes</span></t>
+                                            <t t-if="o.pricing != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.performance_review_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;"><b>Performance review :</b></td>
+                                        <td style="border:1px solid black;"></td>
+                                        <td style="border:1px solid black;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">a) All Supplied items are meeting specification.</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.performance_review == True"><span>Yes</span></t>
+                                            <t t-if="o.performance_review != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.material_review_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">b) Material received on time.</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.material_review == True"><span>Yes</span></t>
+                                            <t t-if="o.material_review != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.supplies_review_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">c) Supplied can be continued.</td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;">
+                                            <t t-if="o.supplies_review == True"><span>Yes</span></t>
+                                            <t t-if="o.supplies_review != True"><span>No</span></t>
+                                        </td>
+                                        <td style="text-align:center;border:1px solid black;vertical-align:top;"><span t-out="o.supplies_review_remarks"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">Reliability of materials supplied.</td>
+                                        <td style="border:1px solid black;"></td>
+                                        <td style="text-align:left;border:1px solid black;vertical-align:top;"><span t-out="o.Re_ability"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left:2px;border:1px solid black;vertical-align:top;text-align:left;">Overall Rating of Supplier.</td>
+                                        <td style="border:1px solid black;"></td>
+                                        <td style="text-align:left;border:1px solid black;vertical-align:top;"><span t-out="o.over_all"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

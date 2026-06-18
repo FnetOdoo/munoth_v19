@@ -1,0 +1,87 @@
+<odoo>
+    <data>
+        <record id="view_einvoice_configuration_form" model="ir.ui.view">
+            <field name="name">view.einvoice.configuration.form</field>
+            <field name="model">einvoice.configuration</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+<!--                        <button name="check_gateway" type="object" string="Check Gateway" class="oe_highlight"/>-->
+                        <button name="check_matergst_api" type="object" string="Check Gateway" class="oe_highlight"/>
+                        <button name="check_publicip" type="object" string="Check PublicIP" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title oe_left">
+                            <h2>
+                                <field name="name" class="oe_inline"/>
+                            </h2>
+                        </div>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                            </button>
+                        </div>
+                        <group col="2">
+                            <group string="General">
+                                <field name="url"/>
+<!--                                <field name="api_version"/>-->
+<!--                                <field name="username"/>-->
+<!--                                <field name="password"/>-->
+                                <field name="email"/>
+                                <field name="client_id"/>
+                                <field name="client_secret"/>
+<!--                                <field name="app_key"/>-->
+                                <field name="public_ip"/>
+                                <field name="company_id"/>
+<!--                                <field name="force_refresh"/>-->
+                            </group>
+                            <group string="Response">
+                                <field name="auth_key"/>
+                                <field name="sek"/>
+                                <field name="date_expiry"/>
+                            </group>
+                        </group>
+                        <group col="2">
+                            <group string="E-Invoice Details">
+                                <field name="inv_user"/>
+                                <field name="inv_password"/>
+                                <field name="inv_gst_num"/>
+                                <field name="einv_public_key"/>
+                            </group>
+                            <group string="EWay Bill Details">
+                                <field name="eway_user"/>
+                                <field name="eway_password"/>
+                                <field name="eway_gst_num"/>
+                                <field name="ewaybill_public_key"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_einvoice_configuration_tree" model="ir.ui.view">
+            <field name="name">view.einvoice.configuration.tree</field>
+            <field name="model">einvoice.configuration</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="client_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_einvoice_configuration" model="ir.actions.act_window">
+            <field name="name">E-invoice Configuration</field>
+            <field name="res_model">einvoice.configuration</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_account_einvoice_config_root" name="E-Invoice" parent="account.menu_finance_configuration"
+                  sequence="2" groups="base.group_no_one,account.group_account_manager"/>
+        <menuitem action="action_einvoice_configuration" id="menu_account_einvoice_configuration"
+                  parent="menu_account_einvoice_config_root" groups="base.group_no_one,account.group_account_manager"
+                  sequence="0"/>
+
+    </data>
+</odoo>

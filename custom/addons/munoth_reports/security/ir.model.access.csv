@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_type,access_sale_type,model_sale_type,,1,1,1,1
+access_process_status_report,access_process_status_report,model_process_status_report,,1,1,1,1
+access_gate_pass_boxes,access_gate_pass_boxes,model_gate_pass_boxes,,1,1,1,1
+access_pallets,access_pallets,model_pallets,,1,1,1,1
+access_pallet_product,access_pallet_product,model_pallet_product,,1,1,1,1
+access_stock_move_wizard_product,access_stock_move_wizard_product,model_stock_move_wizard_product,,1,1,1,1
+access_update_boxes,access_update_boxes,model_update_boxes_wizard,,1,1,1,1
+
+
+
+
+
+
+

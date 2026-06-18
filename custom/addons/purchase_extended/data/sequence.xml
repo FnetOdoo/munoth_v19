@@ -1,0 +1,43 @@
+<odoo>
+    <data noupdate="1">
+        <record id="ir_sequence_purchase_confirm" model="ir.sequence">
+            <field name="name">Purchase Confirm</field>
+            <field name="code">purchase.confirm</field>
+            <field name="prefix">MIL/PO/%(year)s/</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="ir_sequence_purchase_rfq" model="ir.sequence">
+            <field name="name">Purchase RFQ</field>
+            <field name="code">purchase.rfq</field>
+            <field name="prefix">MIL/RFQ/%(year)s/</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="ir_sequence_purchase_confirm_local" model="ir.sequence">
+            <field name="name">Purchase Confirm</field>
+            <field name="code">purchase.confirm.local</field>
+            <field name="prefix">MIL/LPO/%(year)s/</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="ir_sequence_purchase_rfq_local" model="ir.sequence">
+            <field name="name">Purchase RFQ</field>
+            <field name="code">purchase.rfq.local</field>
+            <field name="prefix">MIL/LRFQ/%(year)s/</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="delivery_term_1" model="delivery.term">
+            <field name="name">Immediate</field>
+        </record>
+        <record id="seq_vendor" model="ir.sequence">
+            <field name="name">vendor evaluation</field>
+            <field name="code">purchase.sequence</field>
+            <field name="prefix">MIL-VC</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

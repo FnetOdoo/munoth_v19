@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_process_quality_check" model="report.paperformat">
+            <field name="name">A4 Process Quality Check Report</field>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">35</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">5</field>
+            <field name="dpi">90</field>
+        </record>
+        <record id="process_quality_report" model="ir.actions.report">
+            <field name="name">Process Quality Check Report</field>
+            <field name="model">process.quality.check</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.quality_check_report</field>
+            <field name="report_file">munoth_reports.quality_check_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_process_quality_check"/>
+            <field name="binding_model_id" ref="fnet_mrp.model_process_quality_check"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="quality_check_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class='page'>
+                            <table style="width:100%;">
+                                <tr style="border:1px solid black;">
+                                    <td style="text-align:left;width:20%;"><img src="/web/binary/company_logo" style="height:68px;" class="right"/></td>
+                                    <td style="width:60%;text-align:center;font-size:25px;">
+                                        <t t-if="o.opt_id">
+                                            In Process Quality Check Sheet-<span t-field="o.opt_id.type"/>
+                                        </t>
+
+                                    </td>
+                                    <td style="width:20%;border:1px solid black;">
+                                        <t>Doc No.:<span style="font-weight:bold;" t-field="o.no_doc"/></t><br/>
+                                        <t>Rev No:<span style="font-weight:bold;" t-field="o.revision_no"/></t><br/>
+                                        <t>Rev Date:<span style="font-weight:bold;" t-field="o.revision_date"/></t>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="border-right:1px solid black;border-left:1px solid black;border-bottom:1px solid black;width:100%;height:30px;">
+
+                            </div>
+                            <div class="page">
+                                <table style="font-size:20px;width:100%; border: 1px solid black;">
+                                    <tr  style="font-size:15px;border: 1px solid black;">
+                                        <td style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Time :</span></td>
+                                        <td style="border: 1px solid black;width:5px;"><span t-field="o.quality_time_start"/> to <span t-field="o.quality_time_end"/></td>
+                                        <td style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Date :</span></td>
+                                        <td style="border: 1px solid black;width:5px;"><span t-field="o.process_date"/></td>
+                                        <td style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Part Number :</span></td>
+                                        <td style="border: 1px solid black;width:5px;"><span t-field="o.part_no"/></td>
+                                        <td style="border: 1px solid black;width:10px;"><span style="font-weight:bold;">Part description:</span></td>
+                                        <td style="border: 1px solid black;width:20px;"><span t-field="o.part_desc"/></td>
+                                        <td  style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Model No</span></td>
+                                        <td style="border: 1px solid black;width:10px;"><span t-field="o.opt_id.product_model_id"/></td>
+                                        <td style="border: 1px solid black;width:3px;"><span style="font-weight:bold;">Shift: </span></td>
+                                        <td style="border:1px solid black;width:5px;"><span t-field="o.shift_process"/></td>
+                                        <td style="border: 1px solid black;width:5px;"><span style="font-weight:bold;">Others: </span></td>
+                                        <td style="border: 1px solid black;width:17px;"><p><span t-field="o.doc"/></p></td>
+
+                                    </tr>
+
+                                </table>
+                                <table style="font-size:17px;border: 1px solid black;width:100%;">
+                                    <tr>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th colspan="5" style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-border:1px solid black;text-align:center;">Observation</th>
+                                        <!--                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>-->
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;"> </th>
+
+                                    </tr>
+                                    <tr  style="line-height: 1.5;">
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:5%;text-align:center;">Sl.#</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:10%;text-align:center;">Test Name</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:15%;text-align:center;">Standard Parameter</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Sort</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:10%;text-align:center;">Test Method</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">1</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">2</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">3</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">4</th>
+                                        <th style="border:1px solid black;width:5%;text-align:center;">5</th>
+                                         <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Min</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Max</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:7%;text-align:center;">Result</th>
+                                        <th style="border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;padding-top:-15px;width:16%;text-align:center;">Remark</th>
+                                    </tr>
+
+                                    <t t-set="counter" t-value="1"/>
+                                    <tbody t-foreach="o.process_line_ids" t-as="doc" style="font-size:15px;border: 1px solid black;">
+                                        <td style="text-align:center;border: 1px solid black;width:5%;"><t t-esc="counter"/><t t-set="counter" t-value="counter+1"/></td>
+                                        <td style="border: 1px solid black;width:10%;"><span t-field="doc.name"/></td>
+                                        <td style="border: 1px solid black;width:15%;"><span t-field="doc.parameter"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.sort"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:10%;"><span t-esc="doc.test_method"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:5%;"><span t-esc="doc.sample_1"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:5%;"><span t-field="doc.sample_2"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:5%;"><span t-esc="doc.sample_3"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:5%;"><span t-esc="doc.sample_4"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:5%;"><span t-esc="doc.sample_5"/></td>
+                                        <!--                                        <td style="text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.min_value"/></td>-->
+                                         <td style="text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.min_value"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.max_value"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:7%;"><span t-esc="doc.state"/></td>
+                                        <td style="text-align:right;border: 1px solid black;width:16%;"><span t-esc="doc.remark"/></td>
+                                    </tbody>
+                                </table>
+
+
+
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

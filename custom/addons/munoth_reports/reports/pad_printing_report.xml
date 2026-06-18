@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="paperformat_pad_printing_production_report" model="report.paperformat">
+        <field name="name">A4 Pad Printing Production</field>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">50</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">15</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="pad_printing_test" model="ir.actions.report">
+            <field name="name">Pad Printing Production</field>
+            <field name="model">pad.printing</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">munoth_reports.pad_printing_production_munoth_report</field>
+            <field name="report_file">munoth_reports.pad_printing_production_munoth_report</field>
+            <field name="paperformat_id" ref="munoth_reports.paperformat_pad_printing_production_report"/>
+            <field name="binding_model_id" ref="fnet_mrp.model_pad_printing"/>
+            <field name="binding_type">report</field>
+        </record>
+        <template id="pad_printing_production_munoth_report">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+                    <t t-foreach="docs" t-as="o">
+                        <div class="header">
+                            <div style="width:20%;float:left;border-top:1px solid black;border-bottom:1px solid black;border-left:1px solid black;height:70px;">
+                                <center><img src="/web/binary/company_logo" style="height:68px;" class="center"/></center>
+                            </div>
+                            <div style="width:80%;float:right;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black;padding-right:5px;height:70px;">
+                                <h3 style="text-align:center;color:purple!important;"><strong><h3 style="font-weight:bold;font-size:30px;text-align:center;padding-top:10px;">MUNOTH INDUSTRIES LIMITED</h3></strong></h3>
+                            </div>
+                        </div>
+                        <div class='page'>
+                            <div>
+                                <table style="width:100%;">
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td style="text-align:left;width:70%;border-top:1px solid black;border-right:1px solid black;border-left:1px solid black;">
+                                            <b style="font-size:25px;">Machine Name: <span t-field="o.machine_id.name"/> </b>
+                                        </td>
+                                        <td style="text-align:left;width:30%;border-top:1px solid black;padding-left:3px;">
+<!--                                            <b>Date:<span t-esc="o.start_time" t-options='{"widget": "date","format": "dd-MM-yyyy"}'/></b>-->
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <table style="width:100%;">
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td style="text-align:center;width:70%;border:1px solid black;">
+                                            <b style="font-size:25px;">Hourly Production Report</b>
+                                        </td>
+                                        <td style="text-align:left;width:30%;border:1px solid black;padding-left:3px;">
+                                            <b>Shift:<span t-esc="o.name"/></b>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <table style="width:100%;">
+                                    <tr style="height:50px;padding-top:5px;">
+                                        <td style="text-align:left;width:70%;border:1px solid black;">
+                                            <b style="font-size:20px;">Hourly production target:</b>
+                                        </td>
+                                        <td style="text-align:left;width:30%;border:1px solid black;padding-left:3px;">
+                                            <b>Model No:<span t-esc="o.product_model_id.name"/></b>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <table style="width:100%;border-right:1px solid black;border-bottom:1px solid black;border-top:1px solid black;border-left:1px solid black;page-break-before: avoid;max-height:500px;" cellspacing="0">
+                                <thead style="line-height: 1.5;">
+                                    <th style="font-weight:bold;font-size:15px;height:5px;width:5%;border-right:1px solid black;text-align:center;vertical-align:middle;">
+<!--                                        S.no-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;vertical-align:middle;">
+<!--                                        Time-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;vertical-align:middle;">
+<!--                                        Actual Production Nos-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;vertical-align:middle;">
+<!--                                        Accepted Production Nos-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;vertical-align:middle;">
+<!--                                        Rejection Nos-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-left:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+<!--                                        Cavity Damages-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Defects
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+<!--                                        Fine cutting damages-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;text-align:center;border-bottom:1px solid black;vertical-align:middle;border-right:1px solid black;">
+<!--                                        Defects-->
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:15%;text-align:center;vertical-align:middle;">
+<!--                                        Electrolyte leakages-->
+                                    </th>
+                                </thead>
+                                <thead style="line-height: 1.5;">
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:5%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        S.no
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Time
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Target Production Nos
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Actual Production Nos
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Accepted Production Nos
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;border-top:1px solid black;vertical-align:middle;">
+                                        Rejection Nos
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Physical damages
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                       Bulzing damages
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:10%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                        Letters printing issuse
+                                    </th>
+                                    <th style="font-weight:bold;font-size:15px;height:15px;width:15%;border-right:1px solid black;text-align:center;border-bottom:1px solid black;vertical-align:middle;">
+                                       Remarks
+                                    </th>
+                                </thead>
+                                <tbody>
+                                    <t t-set="counter" t-value="1"/>
+                                    <tr style="font-size: 16px;" t-foreach="docs.component_ids" t-as="t">
+                                        <td style="width:5%;border-right:1px solid black;text-align:center;vertical-align:top;padding-top:0px;border-left:1px solid black;">
+                                            <span style="text-align:center;" t-esc="counter"/>
+                                            <t t-set="counter" t-value="counter+1"/>
+                                        </td>
+                                        <td style="width:10%;padding-left:2px;border-right:1px solid black;text-align:center;valign:top;vertical-align:top;padding-top:0px;">
+                                            <span t-field="t.product_id"/>
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <span t-field="t.name"/>
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.net_weight"/>-->
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.total_net_weight"/>-->
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.final_description"/>-->
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.remarks"/>-->
+                                        </td>
+                                        <td style="width:10%;text-align:center;border-right:1px solid black;border-bottom:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.remarks"/>-->
+                                        </td>
+                                         <td style="width:10%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <span t-field="t.name"/>
+                                        </td>
+                                        <td style="width:5%;text-align:center;border-right:1px solid black;valign:top;vertical-align:top;padding-top:0px;">
+                                            <!--                                            <span t-esc="t.net_weight"/>-->
+                                        </td>
+                                    </tr>
+                                    <tr style="height:50px; border:1px solid black;">
+                                        <td colspan="10"
+                                            style="text-align:left;padding:5px;font-size:18px;vertical-align:middle;">
+                                            <b>Total Amount:
+                                                <!--                                            <span t-esc="doc.amount_total_words"/>-->
+                                            </b>
+                                        </td>
+                                    </tr>
+                                    <tr style="height:50px; border:1px solid black;">
+                                        <td colspan="3"
+                                            style="text-align:left;padding:5px;font-size:18px;vertical-align:left;">
+                                            <b>
+                                                Operator :
+                                            </b>
+                                        </td>
+                                        <td colspan="3"
+                                            style="text-align:left;padding:5px;font-size:18px;vertical-align:left;">
+                                            <b>
+                                               Supervisor :
+                                            </b>
+                                        </td>
+                                        <td colspan="4"
+                                            style="text-align:left;padding:5px;font-size:18px;border-right:1px solid black;vertical-align:left;">
+                                            <b>
+                                                Shift Incharge :
+                                            </b>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+<!--                            <div>-->
+<!--                                <strong>Total Value Of Goods:</strong>-->
+<!--                                <t t-if="o.sale_id.amount_in_company_currency">-->
+<!--                                    <span t-field="o.sale_id.amount_total_words"/>-->
+<!--                                </t> <br/>-->
+<!--                                <br/>-->
+<!--                                <strong>Transporter Name:</strong><br/>-->
+<!--                                <br/>-->
+<!--                                <strong>Vehicle No:</strong><br/>-->
+<!--                                <br/>-->
+<!--                                <strong>Purpose:</strong><br/>-->
+<!--                            </div>-->
+
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+    </data>
+
+
+
+</odoo>

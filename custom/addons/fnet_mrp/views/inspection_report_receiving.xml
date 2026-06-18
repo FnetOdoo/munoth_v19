@@ -1,0 +1,251 @@
+<odoo>
+    <data>
+        <record id="view_inspection_report_receiving_form" model="ir.ui.view">
+            <field name="name">inspection.report.receiving.form.view</field>
+            <field name="model">inspection.report.receiving</field>
+            <field name="arch" type="xml">
+                <form string="Inspection Report(Receiving)">
+                    <sheet>
+                        <div style="text-align:center;">
+                            <h1>
+                                <b><span>Inspection Report (Receiving)</span></b>
+                            </h1>
+                            <group style="text-align:right;padding-top:-150px;position:relative;top:-50px;right:-30px;">
+                                <label for="name" invisible="1"/>
+                                <field name="name" string="DOC:"/>
+                                <br/>
+                                <label for="rev" invisible="1"/>
+                                <field name="rev" string="REV:" />
+                            </group>
+                        </div>
+                        <group colspan="4" col="2">
+                            <field name="stock_id" required="1" style="width:200px;"/>
+                        </group>
+                        <hr/>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th><span><b>Supplier Name:</b></span></th>
+                                    <th colspan="5" style="vertical-align: middle; text-align: center;font-weight: normal"><span><field name="supplier_name"/></span></th>
+                                </tr>
+                                <tr>
+                                    <th><span><b>Part Number:</b></span></th>
+                                    <th><field name="part_number" style="font-weight: normal"/></th>
+                                    <th><span><b>Part Description:</b></span></th>
+                                    <th><field name="part_description" style="font-weight: normal"/></th>
+                                    <th><span><b>Drawing.,/<br/>
+                                                Rev /Dt</b></span></th>
+                                    <th><field name="drawing_rev" style="font-weight: normal"/></th>
+                                </tr>
+                                <tr>
+                                    <th><span><b>Materials For</b></span></th>
+                                    <th><field name="materials_for" style="font-weight: normal"/></th>
+                                    <th><span><b>Inspection Date:</b></span></th>
+                                    <th><field name="inspection_date" style="font-weight: normal"/></th>
+                                    <th><span><b>Received Qty</b></span></th>
+                                    <th><field name="received_qty" style="font-weight: normal"/></th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <table class="table table-bordered" style="border: 1px solid black;position:relative;top:-13px;">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" colspan="6" style="vertical-align: middle; text-align: center;"><span>Drawing Specifications</span></th>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center;width:200px;"><span>Measuring Method/ Instrument Used</span></th>
+                                    <th colspan="7"><center>INSPECTION RESULTS</center></th>
+                                    <th style="vertical-align: middle; text-align: center;">INSPECTION ANALYSIS</th>
+                                </tr>
+                                <tr>
+<!--                                    <th colspan="2"></th>-->
+                                    <th colspan="5" style="vertical-align: middle; text-align: center;">Actual</th>
+                                    <th colspan="2" style="vertical-align: middle; text-align: center;">Actual</th>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">Remarks</th>
+                                </tr>
+                                <tr>
+                                    <th style="width:10px;">S.No</th>
+                                    <th>Characteristic</th>
+                                    <th>Nom</th>
+                                    <th>+TOL</th>
+                                    <th>-TOL</th>
+                                    <th>UoM</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">1</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">2</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">3</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">4</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">5</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">Max</th>
+                                    <th style="vertical-align: middle; text-align: center; width:50px;">Min</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1.</td>
+                                    <td>Width (W)</td>
+                                    <td>125</td>
+                                    <td>0.5</td>
+                                    <td>0.5</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Vernier Caliber</td>
+                                    <td><field name="first_width_actual" style="width:50px;"/></td>
+                                    <td><field name="second_width_actual" style="width:50px;"/></td>
+                                    <td><field name="third_width_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_width_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_width_actual" style="width:50px;"/></td>
+                                    <td><field name="width_max" style="width:50px;"/></td>
+                                    <td><field name="width_min" style="width:50px;"/></td>
+                                    <td><field name="width_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>2.</td>
+                                    <td>Thickness (T)</td>
+                                    <td>60</td>
+                                    <td>0.5</td>
+                                    <td>0.5</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Thickness Gauge</td>
+                                    <td><field name="first_thick_actual" style="width:50px;"/></td>
+                                    <td><field name="second_thick_actual" style="width:50px;"/></td>
+                                    <td><field name="third_thick_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_thick_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_thick_actual" style="width:50px;"/></td>
+                                    <td><field name="thickness_max" style="width:50px;"/></td>
+                                    <td><field name="thickness_min" style="width:50px;"/></td>
+                                    <td><field name="thickness_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>3.</td>
+                                    <td>Length (L)</td>
+                                    <td>110</td>
+                                    <td>0.5</td>
+                                    <td>0.5</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Vernier Caliber</td>
+                                    <td><field name="first_length_actual" style="width:50px;"/></td>
+                                    <td><field name="second_length_actual" style="width:50px;"/></td>
+                                    <td><field name="third_length_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_length_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_length_actual" style="width:50px;"/></td>
+                                    <td><field name="length_max" style="width:50px;"/></td>
+                                    <td><field name="length_min" style="width:50px;"/></td>
+                                    <td><field name="length_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>4.</td>
+                                    <td>Tab Length W/O film</td>
+                                    <td>17</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Vernier Caliber</td>
+                                    <td><field name="first_tab_length_actual" style="width:50px;"/></td>
+                                    <td><field name="second_tab_length_actual" style="width:50px;"/></td>
+                                    <td><field name="third_tab_length_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_tab_length_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_tab_length_actual" style="width:50px;"/></td>
+                                    <td><field name="tab_length_max" style="width:50px;"/></td>
+                                    <td><field name="tab_length_min" style="width:50px;"/></td>
+                                    <td><field name="tab_length_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>5.</td>
+                                    <td>Tab Width</td>
+                                    <td>6</td>
+                                    <td>0.3</td>
+                                    <td>0.3</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Vernier Caliber</td>
+                                    <td><field name="first_tab_width_actual" style="width:50px;"/></td>
+                                    <td><field name="second_tab_width_actual" style="width:50px;"/></td>
+                                    <td><field name="third_tab_width_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_tab_width_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_tab_width_actual" style="width:50px;"/></td>
+                                    <td><field name="tab_width_max" style="width:50px;"/></td>
+                                    <td><field name="tab_width_min" style="width:50px;"/></td>
+                                    <td><field name="tab_width_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>6.</td>
+                                    <td>Tab Distance</td>
+                                    <td>28</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>mm</td>
+                                    <td style="vertical-align: middle; text-align: center;">Vernier Caliber</td>
+                                    <td><field name="first_tab_dist_actual" style="width:50px;"/></td>
+                                    <td><field name="second_tab_dist_actual" style="width:50px;"/></td>
+                                    <td><field name="third_tab_dist_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_tab_dist_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_tab_dist_actual" style="width:50px;"/></td>
+                                    <td><field name="tab_distance_max" style="width:50px;"/></td>
+                                    <td><field name="tab_distance_min" style="width:50px;"/></td>
+                                    <td><field name="tab_dist_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>7.</td>
+                                    <td>Weight</td>
+                                    <td>146</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>g</td>
+                                    <td style="vertical-align: middle; text-align: center;">Weighing bal</td>
+                                    <td><field name="first_weight_actual" style="width:50px;"/></td>
+                                    <td><field name="second_weight_actual" style="width:50px;"/></td>
+                                    <td><field name="third_weight_actual" style="width:50px;"/></td>
+                                    <td><field name="forth_weight_actual" style="width:50px;"/></td>
+                                    <td><field name="fifth_weight_actual" style="width:50px;"/></td>
+                                    <td><field name="weight_max" style="width:50px;"/></td>
+                                    <td><field name="weight_min" style="width:50px;"/></td>
+                                    <td><field name="weight_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td>8.</td>
+                                    <td colspan="4"><b>Visuals :</b> Crack/ tab damages/ Pin Holes/ Pouch damges<br/> / improper sealing / Bend / Scratch / damage / Colour Shades …..</td>
+                                    <td>NA</td>
+                                    <td style="vertical-align: middle; text-align: center;">Visual</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td>None</td>
+                                    <td><field name="visual_remarks"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="15" style="vertical-align: middle; text-align: center;"><span><b>Disposition : [✔️]  Accepted / Concessional Acceptance fro one time / Rework / Rejected</b></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_inspection_report_receiving_list" model="ir.ui.view">
+            <field name="name">inspection.report.receiving.list.view</field>
+            <field name="model">inspection.report.receiving</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="supplier_name"/>
+                    <field name="stock_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_inspection_report_receiving_action" model="ir.actions.act_window">
+            <field name="name">Inspection Report</field>
+            <field name="res_model">inspection.report.receiving</field>
+            <field name="domain">[]</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Inspection Report (Receiving)
+                </p>
+            </field>
+        </record>
+
+<!--        <menuitem id="menu_mrp_inspection_report_receiving_action" name="Incoming Quality Control Inspection Report" parent="fnet_mrp.menu_mrp_quality"-->
+<!--                  sequence="3" action="view_inspection_report_receiving_action"/>-->
+
+    </data>
+</odoo>

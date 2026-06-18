@@ -1,84 +1,111 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import json
 
-from odoo import models, fields, api
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 from odoo.tools.safe_eval import safe_eval
 
+from odoo.addons.account_tax_python.tools.formula_utils import check_formula, normalize_formula
 
-class AccountTaxPython(models.Model):
+
+class AccountTax(models.Model):
     _inherit = "account.tax"
 
-    amount_type = fields.Selection(selection_add=[
-        ('code', 'Python Code')
-    ], ondelete={'code': lambda recs: recs.write({'amount_type': 'percent', 'active': False})})
+    amount_type = fields.Selection(
+        selection_add=[('code', "Custom Formula")],
+        ondelete={'code': lambda recs: recs.write({'amount_type': 'percent', 'active': False})},
+    )
+    formula = fields.Text(
+        string="Formula",
+        default="price_unit * 0.10",
+        help="Compute the amount of the tax.\n\n"
+             ":param base: float, actual amount on which the tax is applied\n"
+             ":param price_unit: float\n"
+             ":param quantity: float\n"
+             ":param product: A object representing the product\n"
+    )
+    formula_decoded_info = fields.Json(compute='_compute_formula_decoded_info')
 
-    python_compute = fields.Text(string='Python Code', default="result = price_unit * 0.10",
-        help="Compute the amount of the tax by setting the variable 'result'.\n\n"
-            ":param base_amount: float, actual amount on which the tax is applied\n"
-            ":param price_unit: float\n"
-            ":param quantity: float\n"
-            ":param company: res.company recordset singleton\n"
-            ":param product: product.product recordset singleton or None\n"
-            ":param partner: res.partner recordset singleton or None")
-    python_applicable = fields.Text(string='Applicable Code', default="result = True",
-        help="Determine if the tax will be applied by setting the variable 'result' to True or False.\n\n"
-            ":param price_unit: float\n"
-            ":param quantity: float\n"
-            ":param company: res.company recordset singleton\n"
-            ":param product: product.product recordset singleton or None\n"
-            ":param partner: res.partner recordset singleton or None")
+    @api.constrains('amount_type', 'formula')
+    def _check_amount_type_code_formula(self):
+        for tax in self:
+            if tax.amount_type == 'code':
+                self._check_and_normalize_formula(tax.formula)
 
-    def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None):
-        self.ensure_one()
-        if product and product._name == 'product.template':
-            product = product.product_variant_id
-        if self.amount_type == 'code':
-            company = self.env.company
-            localdict = {'base_amount': base_amount, 'price_unit':price_unit, 'quantity': quantity, 'product':product, 'partner':partner, 'company': company}
-            safe_eval(self.python_compute, localdict, mode="exec", nocopy=True)
-            return localdict['result']
-        return super(AccountTaxPython, self)._compute_amount(base_amount, price_unit, quantity, product, partner)
+    @api.model
+    def _eval_taxes_computation_prepare_product_fields(self):
+        # EXTENDS 'account'
+        field_names = super()._eval_taxes_computation_prepare_product_fields()
+        for tax in self.filtered(lambda tax: tax.amount_type == 'code'):
+            field_names.update(tax.formula_decoded_info['product_fields'])
+        return field_names
 
-    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, is_refund=False, handle_price_include=True, include_caba_tags=False):
-        taxes = self.filtered(lambda r: r.amount_type != 'code')
-        company = self.env.company
-        if product and product._name == 'product.template':
-            product = product.product_variant_id
-        for tax in self.filtered(lambda r: r.amount_type == 'code'):
-            localdict = self._context.get('tax_computation_context', {})
-            localdict.update({'price_unit': price_unit, 'quantity': quantity, 'product': product, 'partner': partner, 'company': company})
-            safe_eval(tax.python_applicable, localdict, mode="exec", nocopy=True)
-            if localdict.get('result', False):
-                taxes += tax
-        return super(AccountTaxPython, taxes).compute_all(price_unit, currency, quantity, product, partner, is_refund=is_refund, handle_price_include=handle_price_include, include_caba_tags=include_caba_tags)
+    @api.depends('formula')
+    def _compute_formula_decoded_info(self):
+        for tax in self:
+            if tax.amount_type != 'code':
+                tax.formula_decoded_info = None
+                continue
 
+            py_formula, accessed_fields = self._check_and_normalize_formula(tax.formula)
 
-class AccountTaxTemplatePython(models.Model):
-    _inherit = 'account.tax.template'
+            tax.formula_decoded_info = {
+                'js_formula': py_formula,
+                'py_formula': py_formula,
+                'product_fields': list(accessed_fields),
+            }
 
-    amount_type = fields.Selection(selection_add=[
-        ('code', 'Python Code')
-    ], ondelete={'code': 'cascade'})
-
-    python_compute = fields.Text(string='Python Code', default="result = price_unit * 0.10",
-        help="Compute the amount of the tax by setting the variable 'result'.\n\n"
-            ":param base_amount: float, actual amount on which the tax is applied\n"
-            ":param price_unit: float\n"
-            ":param quantity: float\n"
-            ":param product: product.product recordset singleton or None\n"
-            ":param partner: res.partner recordset singleton or None")
-    python_applicable = fields.Text(string='Applicable Code', default="result = True",
-        help="Determine if the tax will be applied by setting the variable 'result' to True or False.\n\n"
-            ":param price_unit: float\n"
-            ":param quantity: float\n"
-            ":param product: product.product recordset singleton or None\n"
-            ":param partner: res.partner recordset singleton or None")
-
-    def _get_tax_vals(self, company, tax_template_to_tax):
-        """ This method generates a dictionnary of all the values for the tax that will be created.
+    @api.model
+    def _check_and_normalize_formula(self, formula):
+        """ Check the formula is passing the minimum check to ensure the compatibility between both evaluation
+        in python & javascript.
         """
-        self.ensure_one()
-        res = super(AccountTaxTemplatePython, self)._get_tax_vals(company, tax_template_to_tax)
-        res['python_compute'] = self.python_compute
-        res['python_applicable'] = self.python_applicable
-        return res
+
+        def is_field_serializable(field_name):
+            assert isinstance(field_name, str), "Field name must be a string"
+            field = self.env['product.product']._fields.get(field_name)
+            return isinstance(field, fields.Field) and not field.relational
+
+        transformed_formula, accessed_fields = normalize_formula(
+            self.env,
+            (formula or '0.0').strip(),
+            field_predicate=is_field_serializable,
+        )
+        check_formula(self.env, transformed_formula)
+        return transformed_formula, accessed_fields
+
+    def _eval_tax_amount_formula(self, raw_base, evaluation_context):
+        """ Evaluate the formula of the tax passed as parameter.
+
+        [!] Mirror of the same method in account_tax.js.
+        PLZ KEEP BOTH METHODS CONSISTENT WITH EACH OTHERS.
+
+        :param raw_base:
+        :param evaluation_context:  The context created by '_eval_taxes_computation_prepare_context'.
+        :return:                    The tax base amount.
+        """
+        normalized_formula, accessed_fields = self._check_and_normalize_formula(self.formula_decoded_info['py_formula'])
+
+        # Safe eval.
+        formula_context = {
+            'price_unit': evaluation_context['price_unit'],
+            'quantity': evaluation_context['quantity'],
+            'product': evaluation_context['product'],
+            'base': raw_base,
+        }
+        assert accessed_fields <= formula_context['product'].keys(), "product fields used in formula must be present in the product dict"
+        try:
+            formula_context = json.loads(json.dumps(formula_context))
+        except TypeError:
+            raise ValidationError(_("Only primitive types are allowed in python tax formula context."))
+        try:
+            return safe_eval(normalized_formula, formula_context)
+        except ZeroDivisionError:
+            return 0.0
+
+    def _eval_tax_amount_fixed_amount(self, batch, raw_base, evaluation_context):
+        # EXTENDS 'account'
+        if self.amount_type == 'code':
+            return self._eval_tax_amount_formula(raw_base, evaluation_context)
+        return super()._eval_tax_amount_fixed_amount(batch, raw_base, evaluation_context)

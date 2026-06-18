@@ -949,7 +949,7 @@
 
     <!-- Menuitems -->
     <menuitem id="menu_sale_subscription_root" name="Subscriptions" sequence="40"
-              web_icon="sale_subscription,static/description/icon.png"
+              web_icon="sales_subscription,static/description/icon.png"
               groups="sales_subscription.group_sale_subscription_view"/>
 
     <menuitem id="menu_sale_subscription" name="Subscriptions" parent="menu_sale_subscription_root" sequence="5"/>

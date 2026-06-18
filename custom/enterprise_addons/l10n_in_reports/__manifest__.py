@@ -13,6 +13,8 @@ Accounting reports for India
         'account_batch_payment',
         'barcodes',
         'account_invoice_extract',
+        'mail_enterprise',
+        'account_bank_statement_import',
     ],
     'data': [
         'security/ir.model.access.csv',

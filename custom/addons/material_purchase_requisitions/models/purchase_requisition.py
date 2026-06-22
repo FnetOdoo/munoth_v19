@@ -372,7 +372,10 @@ class MaterialPurchaseRequisition(models.Model):
                 [('user_id', '=', self.env.uid)], limit=1
             )
 
-            company = rec.employee_id.company_id or self.env.user.company_id
+            employee_sudo = rec.employee_id.sudo()
+            dept_manager_sudo = rec.dept_manager_id.sudo()
+            factory_manager_sudo = rec.factory_manager_id.sudo()
+            company = employee_sudo.company_id or self.env.user.company_id
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
             today_str = fields.Date.today().strftime('%d %B %Y')
@@ -957,7 +960,9 @@ class MaterialPurchaseRequisition(models.Model):
             rec.approve_employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
             rec.state = 'factory_manager_approved'
 
-            company = rec.employee_id.company_id or self.env.user.company_id
+            employee_sudo = rec.employee_id.sudo()
+            dept_manager_sudo = rec.dept_manager_id.sudo()
+            company = employee_sudo.company_id or self.env.user.company_id
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
             today_str = fields.Date.today().strftime('%d %B %Y')

@@ -107,7 +107,7 @@ class MaterialPurchaseRequisition(models.Model):
             if not self.location_id:
                 raise UserError('Please Select the Source Location')
             if not self.dest_location_id:
-                raise UserError('Please Select the Source Location')
+                raise UserError('Please Select the Destination Location')
             if not rec.requisition_line_ids:
                 raise ValidationError(_("Please create at least one requisition line before confirming."))
 

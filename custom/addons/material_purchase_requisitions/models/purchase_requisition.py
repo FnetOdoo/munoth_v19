@@ -964,6 +964,7 @@ class MaterialPurchaseRequisition(models.Model):
             rec.approve_employee_id = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.uid)], limit=1)
             rec.state = 'factory_manager_approved'
 
+            # ✅ All employee access via sudo
             employee_sudo = rec.employee_id.sudo()
             dept_manager_sudo = rec.dept_manager_id.sudo()
             company = employee_sudo.company_id or self.env.user.company_id
@@ -971,7 +972,7 @@ class MaterialPurchaseRequisition(models.Model):
             base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
             today_str = fields.Date.today().strftime('%d %B %Y')
 
-            # ?? Recipients: Purchase group users ????????????????????????????????????
+            # ✅ Purchase group users via sudo
             purchase_group = self.env.ref(
                 'material_purchase_requisitions.group_purchase_requisition_purchase',
                 raise_if_not_found=False
@@ -979,14 +980,17 @@ class MaterialPurchaseRequisition(models.Model):
             purchase_user_emails = []
             if purchase_group:
                 purchase_users = self.env['res.users'].sudo().search(
-                    [('group_ids', 'in', purchase_group.id)]
+                    [('groups_id', 'in', purchase_group.id)]
                 )
-                purchase_user_emails = [
-                    user.work_email for user in purchase_users if user.work_email
-                ]
+                for user in purchase_users:
+                    emp = self.env['hr.employee'].sudo().search(
+                        [('user_id', '=', user.id)], limit=1
+                    )
+                    if emp and emp.work_email:
+                        purchase_user_emails.append(emp.work_email)
             purchase_user_email_to = ','.join(purchase_user_emails)
 
-            # ?? EMAIL 1: To Requester (Simple Approval Notice) ??????????????????????????
+            # EMAIL 1: To Requester
             requester_body = f"""
             <!DOCTYPE html>
             <html lang="en">
@@ -996,7 +1000,6 @@ class MaterialPurchaseRequisition(models.Model):
             </head>
             <body style="margin:0;padding:0;background-color:#E8EBF0;
                          font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                      style="background-color:#E8EBF0;padding:40px 16px;">
                 <tr>
@@ -1004,13 +1007,9 @@ class MaterialPurchaseRequisition(models.Model):
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                            style="width:100%;background:#FFFFFF;border-radius:10px;
                                   overflow:hidden;border:1px solid #E2E8F0;">
-
-                      <!-- Top accent bar -->
                       <tr>
                         <td style="background:#2D3E6F;height:4px;font-size:0;line-height:0;">&nbsp;</td>
                       </tr>
-
-                      <!-- Header -->
                       <tr>
                         <td style="padding:22px 32px 18px;border-bottom:1px solid #E2E8F0;background:#F8F9FC;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -1040,8 +1039,6 @@ class MaterialPurchaseRequisition(models.Model):
                           </table>
                         </td>
                       </tr>
-
-                      <!-- Greeting / Simple Message -->
                       <tr>
                         <td style="padding:22px 32px 26px;">
                           <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
@@ -1054,8 +1051,6 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Closing -->
                       <tr>
                         <td style="padding:4px 32px 22px;background:#F8F9FC;">
                           <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
@@ -1064,8 +1059,6 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Footer -->
                       <tr>
                         <td style="background:#F4F6F9;border-top:1px solid #E2E8F0;
                                    padding:12px 32px;text-align:center;">
@@ -1075,28 +1068,25 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Bottom accent bar -->
                       <tr>
                         <td style="background:#2D3E6F;height:3px;font-size:0;line-height:0;">&nbsp;</td>
                       </tr>
-
                     </table>
                   </td>
                 </tr>
               </table>
             </body>
             </html>
-            """  # ?? SEND EMAIL 1: To Requester ??????????????????????????????????????????
+            """
             self.env['mail.mail'].sudo().create({
                 'subject': f'Factory Manager Approved - Purchase Requisition - {rec.name}',
-                'email_from': employee_sudo.work_email,
+                'email_from': employee_sudo.work_email or company.email,
                 'email_to': employee_sudo.work_email,
                 'body_html': requester_body,
                 'auto_delete': True,
             }).send()
 
-            # ?? EMAIL 2: To Purchase User (PO Creation Request) ?????????????????????????
+            # EMAIL 2: To Purchase User
             purchase_user_body = f"""
             <!DOCTYPE html>
             <html lang="en">
@@ -1106,7 +1096,6 @@ class MaterialPurchaseRequisition(models.Model):
             </head>
             <body style="margin:0;padding:0;background-color:#E8EBF0;
                          font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                      style="background-color:#E8EBF0;padding:40px 16px;">
                 <tr>
@@ -1114,13 +1103,9 @@ class MaterialPurchaseRequisition(models.Model):
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                            style="width:100%;background:#FFFFFF;border-radius:10px;
                                   overflow:hidden;border:1px solid #E2E8F0;">
-
-                      <!-- Top accent bar -->
                       <tr>
                         <td style="background:#2D3E6F;height:4px;font-size:0;line-height:0;">&nbsp;</td>
                       </tr>
-
-                      <!-- Header -->
                       <tr>
                         <td style="padding:22px 32px 18px;border-bottom:1px solid #E2E8F0;background:#F8F9FC;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -1150,8 +1135,6 @@ class MaterialPurchaseRequisition(models.Model):
                           </table>
                         </td>
                       </tr>
-
-                      <!-- Greeting -->
                       <tr>
                         <td style="padding:22px 32px 0;">
                           <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
@@ -1166,13 +1149,10 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Detail Card -->
                       <tr>
                         <td style="padding:18px 32px;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                                  style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;">
-
                             <tr>
                               <td colspan="2"
                                   style="background:#F8F9FC;border-bottom:1px solid #E2E8F0;padding:9px 20px;">
@@ -1180,7 +1160,6 @@ class MaterialPurchaseRequisition(models.Model):
                                              text-transform:uppercase;color:#334155;">Requisition Details</span>
                               </td>
                             </tr>
-
                             <tr>
                               <td style="padding:12px 20px 8px;font-size:12px;color:#1E293B;
                                          width:38%;vertical-align:top;font-weight:600;
@@ -1194,41 +1173,36 @@ class MaterialPurchaseRequisition(models.Model):
                                 </span>
                               </td>
                             </tr>
-
                             <tr>
                               <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
                                          border-bottom:1px solid #F1F5F9;">Requested By</td>
                               <td style="padding:11px 20px;font-size:13px;color:#0F172A;
-                                         border-bottom:1px solid #F1F5F9;">{rec.employee_id.name}</td>
+                                         border-bottom:1px solid #F1F5F9;">{employee_sudo.name}</td>
                             </tr>
-
                             <tr>
                               <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
                                          border-bottom:1px solid #F1F5F9;">Department</td>
                               <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                          border-bottom:1px solid #F1F5F9;">
-                                {rec.employee_id.department_id.name or '?'}
+                                {employee_sudo.department_id.name or '?'}
                               </td>
                             </tr>
-
                             <tr>
                               <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
                                          border-bottom:1px solid #F1F5F9;">Job Position</td>
                               <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                          border-bottom:1px solid #F1F5F9;">
-                                {rec.employee_id.job_id.name or '?'}
+                                {employee_sudo.job_id.name or '?'}
                               </td>
                             </tr>
-
                             <tr>
                               <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
                                          border-bottom:1px solid #F1F5F9;">Dept. Approved By</td>
                               <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                          border-bottom:1px solid #F1F5F9;">
-                                {rec.dept_manager_id.name or '?'}
+                                {dept_manager_sudo.name or '?'}
                               </td>
                             </tr>
-
                             <tr>
                               <td style="padding:11px 20px 13px;font-size:12px;color:#1E293B;font-weight:600;">
                                 Submitted On</td>
@@ -1236,19 +1210,14 @@ class MaterialPurchaseRequisition(models.Model):
                                 {today_str}
                               </td>
                             </tr>
-
                           </table>
                         </td>
                       </tr>
-
-                      <!-- Divider -->
                       <tr>
                         <td style="padding:0 32px;">
                           <hr style="border:none;border-top:1px solid #E2E8F0;margin:0;">
                         </td>
                       </tr>
-
-                      <!-- CTA Button -->
                       <tr>
                         <td style="padding:18px 32px;">
                           <a href="{base_url}"
@@ -1259,21 +1228,17 @@ class MaterialPurchaseRequisition(models.Model):
                           </a>
                         </td>
                       </tr>
-
-                      <!-- Closing -->
                       <tr>
                         <td style="padding:4px 32px 22px;background:#F8F9FC;">
                           <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                             Thanks &amp; regards,<br>
-                            <strong style="color:#0F172A;">{rec.employee_id.name}</strong>
+                            <strong style="color:#0F172A;">{employee_sudo.name}</strong>
                             <span style="font-weight:400;color:#64748B;">
-                              &nbsp;�&nbsp; {rec.employee_id.department_id.name or company.name}
+                              &nbsp;&bull;&nbsp; {employee_sudo.department_id.name or company.name}
                             </span>
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Footer -->
                       <tr>
                         <td style="background:#F4F6F9;border-top:1px solid #E2E8F0;
                                    padding:12px 32px;text-align:center;">
@@ -1284,22 +1249,19 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                         </td>
                       </tr>
-
-                      <!-- Bottom accent bar -->
                       <tr>
                         <td style="background:#2D3E6F;height:3px;font-size:0;line-height:0;">&nbsp;</td>
                       </tr>
-
                     </table>
                   </td>
                 </tr>
               </table>
             </body>
             </html>
-            """  # ?? SEND EMAIL 2: To Purchase User ????????????????????????????????????????
+            """
             self.env['mail.mail'].sudo().create({
                 'subject': f'Factory Manager Approved - Please Create PO - {rec.name}',
-                'email_from': employee_sudo.work_email,
+                'email_from': employee_sudo.work_email or company.email,
                 'email_to': purchase_user_email_to,
                 'body_html': purchase_user_body,
                 'auto_delete': True,

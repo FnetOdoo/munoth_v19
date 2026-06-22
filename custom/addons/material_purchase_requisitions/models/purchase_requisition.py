@@ -125,9 +125,9 @@ class MaterialPurchaseRequisition(models.Model):
             rec.confirm_date = fields.Date.today()
             rec.state = 'requested'
 
-            employee = rec.employee_id.sudo()
-            manager = employee.parent_id.sudo() or employee.department_id.manager_id.sudo()
-            if not manager or not manager.work_email:
+            # employee = rec.employee_id.sudo()
+            # manager = employee.parent_id.sudo() or employee.department_id.manager_id.sudo()
+            if not self.dept_manager_id or not self.dept_manager_id.work_email:
                 continue
             from datetime import date
             today_str = date.today().strftime("%d %B %Y")

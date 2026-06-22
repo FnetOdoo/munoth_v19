@@ -1045,7 +1045,7 @@ class MaterialPurchaseRequisition(models.Model):
                       <tr>
                         <td style="padding:22px 32px 26px;">
                           <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
-                            Dear <strong style="color:#0F172A;">{rec.employee_id.name}</strong>,
+                            Dear <strong style="color:#0F172A;">{employee_sudo.name}</strong>,
                           </p>
                           <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                             Your material purchase requisition
@@ -1090,8 +1090,8 @@ class MaterialPurchaseRequisition(models.Model):
             """  # ?? SEND EMAIL 1: To Requester ??????????????????????????????????????????
             self.env['mail.mail'].sudo().create({
                 'subject': f'Factory Manager Approved - Purchase Requisition - {rec.name}',
-                'email_from': rec.employee_id.work_email,
-                'email_to': rec.employee_id.work_email,
+                'email_from': employee_sudo.work_email,
+                'email_to': employee_sudo.work_email,
                 'body_html': requester_body,
                 'auto_delete': True,
             }).send()
@@ -1159,7 +1159,7 @@ class MaterialPurchaseRequisition(models.Model):
                           </p>
                           <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                             A material purchase requisition submitted by
-                            <strong style="color:#0F172A;">{rec.employee_id.name}</strong>
+                            <strong style="color:#0F172A;">{employee_sudo.name}</strong>
                             has been approved by the Factory Manager. Please
                             <strong style="color:#1D4ED8;">create a Purchase Order</strong>
                             for this requisition. Please review the details below.
@@ -1299,7 +1299,7 @@ class MaterialPurchaseRequisition(models.Model):
             """  # ?? SEND EMAIL 2: To Purchase User ????????????????????????????????????????
             self.env['mail.mail'].sudo().create({
                 'subject': f'Factory Manager Approved - Please Create PO - {rec.name}',
-                'email_from': rec.employee_id.work_email,
+                'email_from': employee_sudo.work_email,
                 'email_to': purchase_user_email_to,
                 'body_html': purchase_user_body,
                 'auto_delete': True,

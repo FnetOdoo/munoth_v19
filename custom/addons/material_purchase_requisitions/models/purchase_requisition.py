@@ -21,7 +21,7 @@ class MaterialPurchaseRequisition(models.Model):
 
     def _default_factory_manager_id(self):
         if self.env.user.has_group('material_purchase_requisitions.group_purchase_requisition_department'):
-            employee = self.env['hr.employee'].search(
+            employee = self.env['hr.employee'].sudo().search(
                 [('user_id', '=', self.env.user.id)], limit=1
             )
             return employee.id
@@ -49,7 +49,7 @@ class MaterialPurchaseRequisition(models.Model):
     )
     request_date = fields.Date(string='Requisition Date',default=fields.Date.context_today,required=True,)
     department_id = fields.Many2one('hr.department',string='Functional Department', required=True, copy=True,)
-    employee_id = fields.Many2one('hr.employee',string='Employee', default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1),
+    employee_id = fields.Many2one('hr.employee',string='Employee', default=lambda self: self.env['hr.employee'].sudo().search([('user_id', '=', self.env.uid)], limit=1),
                                   required=True,copy=True,)
     dept_manager_id = fields.Many2one('hr.employee',string='Department Manager', readonly=True,  copy=False, related="employee_id.parent_id", store=True)
     factory_manager_id = fields.Many2one('hr.employee', string='Confirmed by', readonly=True, copy=False, default=lambda self: self._default_factory_manager_id(),)

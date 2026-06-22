@@ -121,20 +121,22 @@ class MaterialPurchaseRequisition(models.Model):
                     raise ValidationError(
                         _("Please set a Unit of Measure for product '%s'.") % line.product_id.display_name)
 
-            # rec.employee_confirm_id = rec.employee_id.id
             rec.confirm_date = fields.Date.today()
             rec.state = 'requested'
 
-            # employee = rec.employee_id.sudo()
-            # manager = employee.parent_id.sudo() or employee.department_id.manager_id.sudo()
-            if not self.dept_manager_id or not self.dept_manager_id.work_email:
+            # ✅ Use sudo() to bypass hr.employee public profile restriction
+            employee_sudo = rec.employee_id.sudo()
+
+            if not rec.dept_manager_id or not rec.dept_manager_id.sudo().work_email:
                 continue
+
             from datetime import date
             today_str = date.today().strftime("%d %B %Y")
 
             company = rec.company_id
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)  # fix: rec.id not self.id
+            base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
+
             body_html = """
                     <!DOCTYPE html>
                     <html lang="en">
@@ -144,21 +146,21 @@ class MaterialPurchaseRequisition(models.Model):
                     </head>
                     <body style="margin:0;padding:0;background-color:#E8EBF0;
                                  font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-        
+
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                              style="background-color:#E8EBF0;padding:40px 16px;">
                         <tr>
                           <td align="center">
-        
+
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                                    style="width:100%;background:#FFFFFF;border-radius:10px;
                                           overflow:hidden;border:1px solid #E2E8F0;">
-        
+
                               <!-- Top accent bar -->
                               <tr>
                                 <td style="background:#2D3E6F;height:4px;font-size:0;line-height:0;">&nbsp;</td>
                               </tr>
-        
+
                               <!-- Header -->
                               <tr>
                                 <td style="padding:22px 32px 18px;border-bottom:1px solid #E2E8F0;background:#dbe0f0;">
@@ -189,7 +191,7 @@ class MaterialPurchaseRequisition(models.Model):
                                   </table>
                                 </td>
                               </tr>
-        
+
                               <!-- Greeting -->
                               <tr>
                                 <td style="padding:22px 32px 0;">
@@ -203,13 +205,13 @@ class MaterialPurchaseRequisition(models.Model):
                                   </p>
                                 </td>
                               </tr>
-        
+
                               <!-- Detail Card -->
                               <tr>
                                 <td style="padding:18px 32px;">
                                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                                          style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;">
-        
+
                                     <!-- Card header -->
                                     <tr>
                                       <td colspan="2"
@@ -218,7 +220,7 @@ class MaterialPurchaseRequisition(models.Model):
                                                      text-transform:uppercase;color:#334155;">Requisition Details</span>
                                       </td>
                                     </tr>
-        
+
                                     <!-- Requisition No. -->
                                     <tr>
                                       <td style="padding:12px 20px 8px;font-size:12px;color:#1E293B;
@@ -235,7 +237,7 @@ class MaterialPurchaseRequisition(models.Model):
                                         </span>
                                       </td>
                                     </tr>
-        
+
                                     <!-- Requested By -->
                                     <tr>
                                       <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
@@ -247,7 +249,7 @@ class MaterialPurchaseRequisition(models.Model):
                                         {employee_name}
                                       </td>
                                     </tr>
-        
+
                                     <!-- Department -->
                                     <tr>
                                       <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
@@ -259,7 +261,7 @@ class MaterialPurchaseRequisition(models.Model):
                                         {department_name}
                                       </td>
                                     </tr>
-        
+
                                     <!-- Job Position -->
                                     <tr>
                                       <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
@@ -271,7 +273,7 @@ class MaterialPurchaseRequisition(models.Model):
                                         {job_position}
                                       </td>
                                     </tr>
-        
+
                                     <!-- Submitted On -->
                                     <tr>
                                       <td style="padding:11px 20px 13px;font-size:12px;color:#1E293B;font-weight:600;">
@@ -281,18 +283,18 @@ class MaterialPurchaseRequisition(models.Model):
                                         {today_str}
                                       </td>
                                     </tr>
-        
+
                                   </table>
                                 </td>
                               </tr>
-        
+
                               <!-- Divider -->
                               <tr>
                                 <td style="padding:0 32px;">
                                   <hr style="border:none;border-top:1px solid #E2E8F0;margin:0;">
                                 </td>
                               </tr>
-        
+
                               <!-- CTA Button -->
                               <tr>
                                 <td style="padding:18px 32px;">
@@ -304,7 +306,7 @@ class MaterialPurchaseRequisition(models.Model):
                                   </a>
                                 </td>
                               </tr>
-        
+
                               <!-- Closing -->
                               <tr>
                                 <td style="padding:4px 32px 22px;">
@@ -312,12 +314,12 @@ class MaterialPurchaseRequisition(models.Model):
                                     Thanks &amp; regards,<br>
                                     <strong style="color:#0F172A;">{employee_name}</strong>
                                     <span style="font-weight:400;color:#64748B;">
-                                      &nbsp;·&nbsp; {department_name}
+                                      &nbsp;&bull;&nbsp; {department_name}
                                     </span>
                                   </p>
                                 </td>
                               </tr>
-        
+
                               <!-- Footer -->
                               <tr>
                                 <td style="background:#dbe0f0;border-top:1px solid #E2E8F0;
@@ -329,34 +331,34 @@ class MaterialPurchaseRequisition(models.Model):
                                   </p>
                                 </td>
                               </tr>
-        
+
                               <!-- Bottom accent bar -->
                               <tr>
                                 <td style="background:#2D3E6F;height:3px;font-size:0;line-height:0;">&nbsp;</td>
                               </tr>
-        
+
                             </table>
                           </td>
                         </tr>
                       </table>
-        
+
                     </body>
                     </html>
                     """.format(
-                        manager_name=manager.sudo().name or '',
-                        rec_name=rec.name or '',
-                        employee_name=rec.employee_id.name or '',
-                        department_name=rec.employee_id.department_id.name or '—',
-                        job_position=rec.employee_id.job_id.name or '—',
-                        today_str=today_str,
-                        base_url=base_url,
-                        company_name=company.name or '',
-                    )
+                manager_name=rec.dept_manager_id.sudo().name or '',
+                rec_name=rec.name or '',
+                employee_name=employee_sudo.name or '',
+                department_name=employee_sudo.department_id.name or '?',
+                job_position=employee_sudo.job_id.name or '?',
+                today_str=today_str,
+                base_url=base_url,
+                company_name=company.name or '',
+            )
 
             mail_values = {
-                'subject': f'Purchase Requisition Approval — {rec.name}',
-                'email_from': rec.employee_id.work_email or company.email,
-                'email_to': self.dept_manager_id.sudo().work_email,
+                'subject': f'Purchase Requisition Approval - {rec.name}',
+                'email_from': employee_sudo.work_email or company.email,
+                'email_to': rec.dept_manager_id.sudo().work_email,
                 'body_html': body_html,
                 'auto_delete': True,
             }

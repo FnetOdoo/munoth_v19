@@ -11,12 +11,12 @@
                                 invisible="state != 'draft'" class="btn-primary" groups="base.group_user"/>
 
                         <button name="manager_approve" type="object" string="Manager Approve" class="btn-primary"
-                                groups="material_purchase_requisitions.group_purchase_requisition_department"
+                                groups="material_purchase_requisitions.group_purchase_requisition_department,material_purchase_requisitions.group_purchase_requisition_department_and_factory_manager"
                                 invisible="state != 'requested' or not is_manager_login"/>
 
                         <button name="action_factory_manager_approve" type="object" string="Factory Manager Approve"
                                 invisible="state != 'dept_manager_approved'" class="btn-primary"
-                                groups="material_purchase_requisitions.group_purchase_requisition_manager"/>
+                                groups="material_purchase_requisitions.group_purchase_requisition_manager,material_purchase_requisitions.group_purchase_requisition_department_and_factory_manager"/>
 
                         <button name="create_po" type="object" string="Create PO"
                                 invisible="state != 'factory_manager_approved'" class="btn-primary"
@@ -28,7 +28,7 @@
 
                         <button name="requisition_reject" type="object" string="Reject"
                                 invisible="state not in ('requested','dept_manager_approved','factory_manager_approved')"
-                                groups="material_purchase_requisitions.group_purchase_requisition_department,material_purchase_requisitions.group_purchase_requisition_manager,material_purchase_requisitions.group_purchase_requisition_purchase"/>
+                                groups="material_purchase_requisitions.group_purchase_requisition_department,material_purchase_requisitions.group_purchase_requisition_manager,material_purchase_requisitions.group_purchase_requisition_purchase,material_purchase_requisitions.group_purchase_requisition_department_and_factory_manager"/>
 
                         <button name="action_cancel" type="object" string="Cancel"
                                 invisible="state != 'draft'" groups="base.group_user"/>

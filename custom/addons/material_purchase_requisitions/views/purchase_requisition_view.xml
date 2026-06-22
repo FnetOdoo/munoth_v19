@@ -87,7 +87,7 @@
                                         <field name="product_id" readonly="parent.state != 'draft'"/>
                                         <field name="description" readonly="parent.state != 'draft'"/>
                                         <field name="qty" readonly="parent.state != 'draft'"/>
-                                        <field name="uom" readonly="1"/>
+                                        <field name="uom" readonly="parent.state != 'draft'"/>
                                         <field name="partner_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_purchase"
                                                readonly="parent.state not in  ['po_created','factory_manager_approved']"

@@ -80,9 +80,10 @@ class MaterialPurchaseRequisition(models.Model):
         default=lambda self: self.env['stock.picking.type'].search([('code', '=', 'internal')], limit=1).id)
     is_transfer_created = fields.Boolean(copy=False)
     reject_reason = fields.Text()
+
     @api.depends('dept_manager_id')
     def _compute_is_manager_login(self):
-        current_employee = self.env.user.employee_id
+        current_employee = self.env.user.sudo().employee_id
         for rec in self:
             rec.is_manager_login = (
                     bool(rec.dept_manager_id) and rec.dept_manager_id == current_employee
@@ -487,7 +488,7 @@ class MaterialPurchaseRequisition(models.Model):
                                                      border-bottom:1px solid #F1F5F9;">Department</td>
                                           <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                                      border-bottom:1px solid #F1F5F9;">
-                                            {rec.employee_id.department_id.name or '-'}
+                                            {employee_sudo.department_id.name or '-'}
                                           </td>
                                         </tr>
 
@@ -496,7 +497,7 @@ class MaterialPurchaseRequisition(models.Model):
                                                      border-bottom:1px solid #F1F5F9;">Approved By</td>
                                           <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                                      border-bottom:1px solid #F1F5F9;">
-                                            {rec.dept_manager_id.name or '-'}
+                                            {dept_manager_sudo.name or '-'}
                                           </td>
                                         </tr>
 
@@ -533,7 +534,7 @@ class MaterialPurchaseRequisition(models.Model):
                                     <td style="padding:4px 32px 22px;background:#F8F9FC;">
                                       <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                                         Thanks &amp; regards,<br>
-                                        <strong style="color:#0F172A;">{rec.dept_manager_id.name or 'Management'}</strong>
+                                        <strong style="color:#0F172A;">{dept_manager_sudo.name or 'Management'}</strong>
                                         <span style="font-weight:400;color:#64748B;">
                                           &nbsp;|&nbsp; {company.name}
                                         </span>
@@ -565,8 +566,8 @@ class MaterialPurchaseRequisition(models.Model):
 
             self.env['mail.mail'].sudo().create({
                 'subject': f'Department Approval - Purchase Requisition - {rec.name}',
-                'email_from': rec.dept_manager_id.work_email,
-                'email_to': rec.employee_id.work_email,
+                'email_from': dept_manager_sudo.work_email,
+                'email_to': employee_sudo.work_email,
                 'body_html': employee_body,
                 'auto_delete': True,
             }).send()
@@ -629,7 +630,7 @@ class MaterialPurchaseRequisition(models.Model):
                                   <tr>
                                     <td style="padding:22px 32px 0;">
                                       <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
-                                        Dear <strong style="color:#0F172A;">{rec.factory_manager_id.name}</strong>,
+                                        Dear <strong style="color:#0F172A;">{factory_manager_sudo.name}</strong>,
                                       </p>
                                       <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                                         Purchase Requisition <strong style="color:#0F172A;">{rec.name}</strong>
@@ -671,7 +672,7 @@ class MaterialPurchaseRequisition(models.Model):
                                           <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
                                                      border-bottom:1px solid #F1F5F9;">Requested By</td>
                                           <td style="padding:11px 20px;font-size:13px;color:#0F172A;
-                                                     border-bottom:1px solid #F1F5F9;">{rec.employee_id.name}</td>
+                                                     border-bottom:1px solid #F1F5F9;">{employee_sudo.name}</td>
                                         </tr>
 
                                         <tr>
@@ -679,7 +680,7 @@ class MaterialPurchaseRequisition(models.Model):
                                                      border-bottom:1px solid #F1F5F9;">Department</td>
                                           <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                                      border-bottom:1px solid #F1F5F9;">
-                                            {rec.employee_id.department_id.name or '-'}
+                                            {employee_sudo.department_id.name or '-'}
                                           </td>
                                         </tr>
 
@@ -688,7 +689,7 @@ class MaterialPurchaseRequisition(models.Model):
                                                      border-bottom:1px solid #F1F5F9;">Department Approved By</td>
                                           <td style="padding:11px 20px;font-size:13px;color:#0F172A;
                                                      border-bottom:1px solid #F1F5F9;">
-                                            {rec.dept_manager_id.name or '-'}
+                                            {dept_manager_sudo.name or '-'}
                                           </td>
                                         </tr>
 
@@ -725,7 +726,7 @@ class MaterialPurchaseRequisition(models.Model):
                                     <td style="padding:4px 32px 22px;background:#F8F9FC;">
                                       <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                                         Thanks &amp; regards,<br>
-                                        <strong style="color:#0F172A;">{rec.dept_manager_id.name or 'Management'}</strong>
+                                        <strong style="color:#0F172A;">{dept_manager_sudo.name or 'Management'}</strong>
                                         <span style="font-weight:400;color:#64748B;">
                                           &nbsp;|&nbsp; {company.name}
                                         </span>
@@ -757,8 +758,8 @@ class MaterialPurchaseRequisition(models.Model):
 
             self.env['mail.mail'].sudo().create({
                 'subject': f'Approval Required - Purchase Requisition - {rec.name}',
-                'email_from': rec.dept_manager_id.work_email,
-                'email_to': rec.factory_manager_id.work_email,
+                'email_from': dept_manager_sudo.work_email,
+                'email_to': factory_manager_sudo.work_email,
                 'body_html': factory_manager_body,
                 'auto_delete': True,
             }).send()
@@ -770,7 +771,10 @@ class MaterialPurchaseRequisition(models.Model):
             if not rec.reject_reason:
                 raise UserError('Please enter a reason for rejection in the Other Information tab.')
             rec.state = 'reject'
-            rec.reject_employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+            rec.reject_employee_id = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.uid)], limit=1)
+            reject_employee_sudo = rec.reject_employee_id.sudo()
+            employee_sudo = rec.employee_id.sudo()
+            company = rec.company_id
             rec.userreject_date = fields.Date.today()
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)  # fix: rec.id not self.id
@@ -829,7 +833,7 @@ class MaterialPurchaseRequisition(models.Model):
                       <tr>
                         <td style="padding:22px 32px 0;">
                           <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
-                            Dear <strong style="color:#0F172A;">{rec.employee_id.name}</strong>,
+                            Dear <strong style="color:#0F172A;">{employee_sudo.name}</strong>,
                           </p>
                           <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
                             Your Purchase Requisition <strong style="color:#0F172A;">{rec.name}</strong>
@@ -948,8 +952,8 @@ class MaterialPurchaseRequisition(models.Model):
 
             self.env['mail.mail'].sudo().create({
                 'subject': f'Purchase Requisition Rejected - {rec.name}',
-                'email_from': rec.reject_employee_id.work_email or company.email,
-                'email_to': rec.employee_id.work_email,
+                'email_from': reject_employee_sudo.work_email or company.email,
+                'email_to': employee_sudo.work_email,
                 'body_html': reject_body,
                 'auto_delete': True,
             }).send()

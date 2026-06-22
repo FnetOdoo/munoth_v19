@@ -980,7 +980,7 @@ class MaterialPurchaseRequisition(models.Model):
             purchase_user_emails = []
             if purchase_group:
                 purchase_users = self.env['res.users'].sudo().search(
-                    [('groups_id', 'in', purchase_group.id)]
+                    [('group_ids', 'in', purchase_group.id)]
                 )
                 for user in purchase_users:
                     emp = self.env['hr.employee'].sudo().search(

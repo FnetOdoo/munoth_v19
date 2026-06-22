@@ -108,7 +108,6 @@
                                     <group>
                                         <field name="location_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               domain="[('usage','!=', 'view')]"
                                                readonly="state in ('reject','cancel','receive','done')"/>
                                         <field name="dest_location_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"

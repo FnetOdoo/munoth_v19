@@ -368,7 +368,7 @@ class MaterialPurchaseRequisition(models.Model):
     def manager_approve(self):
         for rec in self:
             rec.managerapp_date = fields.Date.today()
-            rec.dept_manager_id = self.env['hr.employee'].search(
+            rec.dept_manager_id = self.env['hr.employee'].sudo().search(
                 [('user_id', '=', self.env.uid)], limit=1
             )
 
@@ -957,7 +957,7 @@ class MaterialPurchaseRequisition(models.Model):
     def action_factory_manager_approve(self):
         for rec in self:
             rec.userrapp_date = fields.Date.today()
-            rec.approve_employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+            rec.approve_employee_id = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.uid)], limit=1)
             rec.state = 'factory_manager_approved'
 
             employee_sudo = rec.employee_id.sudo()

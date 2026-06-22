@@ -12,39 +12,42 @@
 
                         <button name="manager_approve" type="object" string="Manager Approve" class="btn-primary"
                                 groups="material_purchase_requisitions.group_purchase_requisition_department"
-                                invisible="state != 'dept_confirm' or not is_manager_login"/>
+                                invisible="state != 'requested' or not is_manager_login"/>
 
-                        <button name="user_approve" type="object" string="Approve"
-                                invisible="state != 'ir_approve'" class="btn-primary"
+                        <button name="action_factory_manager_approve" type="object" string="Factory Manager Approve"
+                                invisible="state != 'dept_manager_approved'" class="btn-primary"
                                 groups="material_purchase_requisitions.group_purchase_requisition_manager"/>
 
-                        <button name="request_stock" type="object" string="Create Picking and PO"
-                                invisible="state != 'approve'" class="btn-primary"
+                        <button name="create_po" type="object" string="Create PO"
+                                invisible="state != 'factory_manager_approved'" class="btn-primary"
                                 groups="material_purchase_requisitions.group_purchase_requisition_purchase"/>
 
-                        <button name="action_received" type="object" string="Received"
-                                invisible="state != 'stock'" class="btn-primary"/>
+                        <button name="create_transfer" type="object" string="Create Transfer"
+                                invisible="state != 'receive' or is_transfer_created" class="btn-primary"
+                                groups="material_purchase_requisitions.group_purchase_requisition_store"/>
 
                         <button name="requisition_reject" type="object" string="Reject"
-                                invisible="state not in ('dept_confirm','approve','ir_approve')"
-                                groups="material_purchase_requisitions.group_purchase_requisition_department,material_purchase_requisitions.group_purchase_requisition_user"/>
+                                invisible="state not in ('requested','dept_manager_approved','factory_manager_approved')"
+                                groups="material_purchase_requisitions.group_purchase_requisition_department,material_purchase_requisitions.group_purchase_requisition_manager,material_purchase_requisitions.group_purchase_requisition_purchase"/>
 
                         <button name="action_cancel" type="object" string="Cancel"
                                 invisible="state != 'draft'" groups="base.group_user"/>
 
-                        <button name="reset_draft" type="object" string="Reset to Draft"
-                                invisible="state not in ('cancel','reject','receive')" class="btn-primary"/>
+                        <!--                        <button name="reset_draft" type="object" string="Reset to Draft"-->
+                        <!--                                invisible="state not in ('cancel','reject','receive')" class="btn-primary"/>-->
 
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,dept_confirm,ir_approve,approve,stock,receive"/>
+                               statusbar_visible="draft,dept_manager_approved,factory_manager_approved,po_created,receive"/>
                     </header>
 
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                             <button class="oe_stat_button" type="object" icon="fa-truck"
-                                    name="show_picking" string="Internal Picking" groups="base.group_user"/>
+                                    name="show_picking" string="Internal Picking"
+                                    groups="material_purchase_requisitions.group_purchase_requisition_store"/>
                             <button class="oe_stat_button" type="object" icon="fa-book"
-                                    name="action_show_po" string="Purchase Order"/>
+                                    name="action_show_po" string="Purchase Order"
+                                    groups="material_purchase_requisitions.group_purchase_requisition_purchase"/>
                         </div>
 
                         <div class="oe_title">
@@ -56,20 +59,19 @@
 
                         <group>
                             <group>
-                                <field name="employee_id" readonly="state != 'draft'"/>
+                                <field name="employee_id" readonly="1"/>
                                 <field name="department_id" readonly="state != 'draft'"/>
                                 <field name="is_manager_login" invisible="1"/>
                                 <field name="company_id" invisible="1"/>
-                                <field name="manager_id" readonly="state != 'draft'"/>
+                                <field name="is_transfer_created" invisible="1"/>
                             </group>
 
                             <group>
                                 <field name="request_date" readonly="1"/>
-                                <field name="receive_date" readonly="state in ('reject','cancel','receive')"/>
-                                <field name="date_end" readonly="1"/>
-<!--                                <field name="analytic_account_id"-->
-<!--                                       groups="analytic.group_analytic_accounting"-->
-<!--                                       readonly="state in ('reject','cancel','receive')"/>-->
+                                <field name="receive_date" readonly="1"/>
+                                <!--                                <field name="analytic_account_id"-->
+                                <!--                                       groups="analytic.group_analytic_accounting"-->
+                                <!--                                       readonly="state in ('reject','cancel','receive')"/>-->
                             </group>
                         </group>
 
@@ -78,22 +80,23 @@
                                 <field name="requisition_line_ids"
                                        readonly="state in ('cancel','receive')">
                                     <list editable="bottom">
-                                        <field name="requisition_type"
-                                               groups="material_purchase_requisitions.group_purchase_requisition_user,purchase.group_purchase_user,material_purchase_requisitions.group_purchase_requisition_manager,material_purchase_requisitions.group_purchase_requisition_department"/>
-                                        <field name="product_id"/>
-                                        <field name="description"/>
-                                        <field name="qty"/>
-                                        <field name="uom"/>
+                                        <control>
+                                            <create name="add_product_control" string="Add a product"
+                                                    invisible="parent.state != 'draft'"/>
+                                        </control>
+                                        <field name="product_id" readonly="parent.state != 'draft'"/>
+                                        <field name="description" readonly="parent.state != 'draft'"/>
+                                        <field name="qty" readonly="parent.state != 'draft'"/>
+                                        <field name="uom" readonly="parent.state != 'draft'"/>
                                         <field name="partner_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_purchase"
-                                               readonly="requisition_type != 'purchase'"
+                                               readonly="parent.state not in  ['po_created','factory_manager_approved']"
                                                widget="many2many_tags"/>
                                     </list>
                                 </field>
-
                                 <group>
                                     <field name="reason"
-                                           readonly="state in ('reject','cancel','receive')"
+                                           readonly="state in ('reject','cancel','receive','done')"
                                            placeholder="Add Reason for Internal Requistion ...."/>
                                 </group>
                             </page>
@@ -106,35 +109,40 @@
                                         <field name="location_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
                                                domain="[('usage','!=', 'view')]"
-                                               readonly="state in ('reject','cancel','receive')"/>
-                                    </group>
-                                    <group>
+                                               readonly="state in ('reject','cancel','receive','done')"/>
                                         <field name="dest_location_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               readonly="state in ('reject','cancel','receive')"/>
-                                        <field name="delivery_picking_id"
-                                               groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"/>
+                                               readonly="state in ('reject','cancel','receive','done')"/>
                                         <field name="custom_picking_type_id"
                                                groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               readonly="state in ('reject','cancel','receive')"/>
+                                               readonly="state in ('reject','cancel','receive','done')"/>
                                     </group>
+                                    <!--                                    <group>-->
+                                    <!--                                       -->
+                                    <!--                                        <field name="delivery_picking_id"-->
+                                    <!--                                               groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"/>-->
+
+                                    <!--                                    </group>-->
                                 </group>
                             </page>
 
                             <page string="Other Information">
                                 <group>
                                     <group>
-                                        <field name="employee_confirm_id"/>
-                                        <field name="approve_manager_id"/>
-                                        <field name="approve_employee_id"/>
+<!--                                        <field name="dept_manager_id"/>-->
+<!--                                        <field name="factory_manager_id" string="Factory Manager Approve"/>-->
                                         <field name="reject_employee_id"/>
                                     </group>
                                     <group>
-                                        <field name="confirm_date"/>
-                                        <field name="managerapp_date"/>
-                                        <field name="userrapp_date"/>
+<!--                                        <field name="managerapp_date"/>-->
+<!--                                        <field name="confirm_date"/>-->
                                         <field name="userreject_date"/>
                                     </group>
+                                </group>
+                                <group>
+                                    <field name="reject_reason"
+                                           readonly="state in ('reject','cancel','receive')"
+                                           placeholder="Please Type a Reason for Reject ...."/>
                                 </group>
                             </page>
                         </notebook>
@@ -172,7 +180,7 @@
                     <field name="company_id" groups="base.group_multi_company"/>
                     <field name="date_end"/>
                     <field name="department_id"/>
-                    <field name="approve_manager_id"/>
+                    <field name="dept_manager_id"/>
                     <field name="approve_employee_id"/>
                     <field name="location_id"/>
                     <field name="managerapp_date"/>
@@ -191,7 +199,7 @@
                         <filter string="Requisition Dedline" name="date_end" context="{'group_by':'date_end'}"/>
                         <filter string="Department" name="department" context="{'group_by':'department_id'}"/>
                         <filter string="Department Manager" name="department_manager"
-                                context="{'group_by':'approve_manager_id'}"/>
+                                context="{'group_by':'dept_manager_id'}"/>
                         <filter string="Approve By" name="approve_by" context="{'group_by':'approve_employee_id'}"/>
                         <filter string="Location" name="location" context="{'group_by':'location_id'}"/>
                         <filter string="Manager Approve Date" name="managerapp_date"

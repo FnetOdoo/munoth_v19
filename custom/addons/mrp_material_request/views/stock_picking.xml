@@ -12,14 +12,8 @@
                             string="Check Availability"
                             type="object"
                             class="btn-primary"
-                            groups="mrp_material_request.group_material_request_store_user"
-                            invisible="state not in ('draft', 'confirmed', 'assigned')
-                                       or not material_request_id
-                                       or purchase_id
-                                       or is_product_qty_checked"/>
-                <!--                <button name="action_material_reject" string="Material Reject" type="object" class="btn-danger"-->
-                <!--                        groups="mrp_material_request.group_material_request_store_user"-->
-                <!--                        invisible="state not in ('draft', 'confirmed', 'assigned') or not material_request_id or purchase_id"/>-->
+                            groups="mrp_material_request.group_material_request_store_user,material_purchase_requisitions.group_purchase_requisition_store"
+                            invisible="state not in ('draft', 'confirmed', 'assigned') or not material_request_id or purchase_id or is_product_qty_checked"/>
             </xpath>
             <xpath expr="//field[@name='location_dest_id']" position="before">
                 <field name="material_request_id" invisible="1"/>
@@ -31,36 +25,26 @@
                     <field name="mrp_request_count" widget="statinfo" string="Mrp Request"/>
                 </button>
             </div>
-<!--            <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">-->
-<!--                <attribute name="invisible">state != 'done' and not sale_id and not purchase_id or (material_request_id and not purchase_id)-->
-<!--                </attribute>-->
-<!--            </xpath>-->
             <xpath expr="//button[@name='button_validate'][1]" position="attributes">
-                <attribute name="invisible">state not in ('assigned') or (material_request_id and not is_product_qty_checked and not purchase_id)
-                </attribute>
+                <attribute name="invisible">state not in ('assigned') or (material_request_id and not is_product_qty_checked and not purchase_id) or (custom_requisition_id and not is_product_qty_checked and not purchase_id)</attribute>
             </xpath>
             <xpath expr="//button[@name='button_validate'][2]" position="attributes">
-                <attribute name="invisible">state not in ('confirmed', 'waiting') or (material_request_id and not is_product_qty_checked and not purchase_id)
-                </attribute>
+                <attribute name="invisible">state not in ('confirmed', 'waiting') or (material_request_id and not is_product_qty_checked and not purchase_id) or (custom_requisition_id and not is_product_qty_checked and not purchase_id)</attribute>
             </xpath>
-
             <xpath expr="//button[@name='action_cancel']" position="attributes">
-                <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting') or (material_request_id and not purchase_id)
-                </attribute>
+                <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting') or (material_request_id and not purchase_id) or (custom_requisition_id and not purchase_id)</attribute>
             </xpath>
             <xpath expr="//button[@name='action_assign']" position="attributes">
-                <attribute name="invisible">not show_check_availability or material_request_id</attribute>
+                <attribute name="invisible">not show_check_availability or material_request_id or custom_requisition_id</attribute>
             </xpath>
-              <xpath expr="//button[@name='do_print_picking']" position="attributes">
-                <attribute name="invisible">state != 'assigned' or material_request_id</attribute>
+            <xpath expr="//button[@name='do_print_picking']" position="attributes">
+                <attribute name="invisible">state != 'assigned' or material_request_id or custom_requisition_id</attribute>
             </xpath>
-                        <xpath expr="//button[@name='action_confirm']" position="attributes">
-                            <attribute name="invisible">state not in ('draft') or material_request_id</attribute>
-                        </xpath>
-
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="invisible">state not in ('draft') or material_request_id or custom_requisition_id</attribute>
+            </xpath>
             <xpath expr="//field[@name='move_ids']" position="attributes">
-                <attribute name="readonly">state == 'done' or material_request_id or (purchase_id and purchase_id.material_request_id)
-                </attribute>
+                <attribute name="readonly">state == 'done' or material_request_id or custom_requisition_id or (purchase_id and purchase_id.material_request_id)</attribute>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_mrp_request"
@@ -72,22 +56,49 @@
             </xpath>
         </field>
     </record>
-        <record id="stock_picking_form_view_inherit" model="ir.ui.view">
-            <field name="name">stock.picking.view.form</field>
-            <field name="model">stock.picking</field>
-            <field name="inherit_id" ref="stock.view_picking_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='move_ids']//list//field[@name='product_id']" position="after">
-                    <field name="custom_availability_state" nolabel="1"
-                           widget="badge" column_invisible="not parent.material_request_id"
-                           decoration-success="custom_availability_state == 'available'"
-                           decoration-warning="custom_availability_state == 'partial'"
-                           decoration-danger="custom_availability_state == 'not_available'"/>
-                </xpath>
-                <xpath expr="//field[@name='forecast_availability']" position="attributes">
-                    <attribute name="column_invisible">parent.state in ('cancel', 'done') or parent.picking_type_code not in ['internal', 'outgoing'] or parent.material_request_id</attribute>
-                </xpath>
-            </field>
-        </record>
+
+    <record id="stock_picking_form_view_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.view.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_ids']//list//field[@name='product_id']" position="after">
+                <field name="custom_availability_state" nolabel="1"
+                       widget="badge" column_invisible="not parent.material_request_id and not parent.custom_requisition_id"
+                       decoration-success="custom_availability_state == 'available'"
+                       decoration-warning="custom_availability_state == 'partial'"
+                       decoration-danger="custom_availability_state == 'not_available'"/>
+            </xpath>
+            <xpath expr="//field[@name='forecast_availability']" position="attributes">
+                <attribute name="column_invisible">parent.state in ('cancel', 'done') or parent.picking_type_code not in ['internal', 'outgoing'] or parent.material_request_id or parent.custom_requisition_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Override action_check_availability -->
+    <record id="stock_picking_check_availability_override" model="ir.ui.view">
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_picking_mrp_request_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_check_availability']" position="attributes">
+                <attribute name="invisible">state not in ('draft', 'confirmed', 'assigned') or (not material_request_id and not custom_requisition_id) or purchase_id or is_product_qty_checked</attribute>
+                <attribute name="groups">mrp_material_request.group_material_request_store_user,material_purchase_requisitions.group_purchase_requisition_store</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Override custom_availability_state and forecast_availability -->
+    <record id="stock_picking_form_view_inherit_override" model="ir.ui.view">
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_picking_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='custom_availability_state']" position="attributes">
+                <attribute name="column_invisible">not parent.material_request_id and not parent.custom_requisition_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='forecast_availability']" position="attributes">
+                <attribute name="column_invisible">parent.state in ('cancel', 'done') or parent.picking_type_code not in ['internal', 'outgoing'] or parent.material_request_id or parent.custom_requisition_id</attribute>
+            </xpath>
+        </field>
+    </record>
 
 </odoo>

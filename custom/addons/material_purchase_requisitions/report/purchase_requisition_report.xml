@@ -40,28 +40,28 @@
                                    <td><strong>Department </strong></td><td> <span t-field="doc.department_id.name"/></td>
                                    <td><strong>Received Date</strong></td><td> <span t-field="doc.receive_date"/></td>
                                </tr>
-                               <tr style="border: 2px solid black;">
-                                   <td><strong>Requisition Responsible</strong></td><td> <span t-field="doc.requisiton_responsible_id.sudo().name"/></td>
-                                   <td><strong>Requisition Deadline</strong></td><td> <span t-field="doc.date_end"/></td>
-                               </tr>
-                               <tr style="border: 2px solid black;">
-                                   <td><strong>Company</strong></td><td> <span t-field="doc.company_id.name"/></td>
-                                   <td><strong>Analytic Account</strong></td><td> <span t-field="doc.analytic_account_id.name"/></td>
-                               </tr>
+<!--                               <tr style="border: 2px solid black;">-->
+<!--                                   <td><strong>Requisition Responsible</strong></td><td> <span t-field="doc.requisiton_responsible_id.sudo().name"/></td>-->
+<!--                                   <td><strong>Requisition Deadline</strong></td><td> <span t-field="doc.date_end"/></td>-->
+<!--                               </tr>-->
+<!--                               <tr style="border: 2px solid black;">-->
+<!--                                   <td><strong>Company</strong></td><td> <span t-field="doc.company_id.name"/></td>-->
+<!--                                   <td><strong>Analytic Account</strong></td><td> <span t-field="doc.analytic_account_id.name"/></td>-->
+<!--                               </tr>-->
                             </table>
                             <strong><h3>Other Information</h3></strong>
                             <table class="table table-responsive">
+<!--                               <tr style="border: 2px solid black;">-->
+<!--                                   <td><strong>Confirmed By</strong></td><td> <span t-field="doc.employee_confirm_id"/></td>-->
+<!--                                   <td><strong>Confirmed Date</strong></td><td> <span t-field="doc.confirm_date"/></td>-->
+<!--                               </tr>-->
                                <tr style="border: 2px solid black;">
-                                   <td><strong>Confirmed By</strong></td><td> <span t-field="doc.employee_confirm_id"/></td>
-                                   <td><strong>Confirmed Date</strong></td><td> <span t-field="doc.confirm_date"/></td>
-                               </tr>
-                               <tr style="border: 2px solid black;">
-                                   <td><strong>Department Manager</strong></td><td> <span t-field="doc.approve_manager_id"/></td>
+                                   <td><strong>Department Manager</strong></td><td> <span t-field="doc.dept_manager_id"/></td>
                                    <td><strong>Department Approval Date</strong></td><td> <span t-field="doc.managerapp_date"/></td>
                                </tr>
                                <tr style="border: 2px solid black;">
-                                   <td><strong>Approved By </strong></td><td> <span t-field="doc.approve_employee_id"/></td>
-                                   <td><strong>Approved Date </strong></td><td> <span t-field="doc.userrapp_date"/></td>
+                                   <td><strong>Factory Manager Approved By </strong></td><td> <span t-field="doc.approve_employee_id"/></td>
+                                   <td><strong>Factory Manager Approved Date</strong></td><td> <span t-field="doc.userrapp_date"/></td>
                                </tr>
                                <tr style="border: 2px solid black;">
                                    <td><strong>Rejected By </strong></td><td> <span t-field="doc.reject_employee_id"/></td>
@@ -75,7 +75,7 @@
                                    <td><strong>Destination Location </strong></td><td> <span t-field="doc.dest_location_id.name"/></td>
                                </tr>
                                <tr style="border: 2px solid black;">
-                                   <td><strong>Internal Picking</strong></td><td> <span t-field="doc.delivery_picking_id.name"/></td>
+                                   <td><strong>Operation Type</strong></td><td> <span t-field="doc.custom_picking_type_id.name"/></td>
                                    <td></td><td></td>
                                </tr>
                             </table>

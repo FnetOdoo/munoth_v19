@@ -9,9 +9,9 @@
     'description': """
 This module provides the core of the Odoo Mobile App.
         """,
-    'depends': [
-        'web_enterprise',
-    ],
+    # 'depends': [
+    #     'web_enterprise',
+    # ],
     'data': [
         'views/views.xml',
     ],

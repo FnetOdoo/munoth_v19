@@ -67,7 +67,6 @@
             "ica_web_responsive/static/src/views/pivot/**",
         ],
         "web.assets_backend_lazy_dark": [
-            ("include", "web.dark_mode_variables"),
             # web._assets_backend_helpers
             (
                 "before",
@@ -78,13 +77,6 @@
                 "after",
                 "web/static/lib/bootstrap/scss/_functions.scss",
                 "ica_web_responsive/static/src/scss/bs_functions_overridden.dark.scss",
-            ),
-        ],
-        "web.assets_web": [
-            (
-                "replace",
-                "web/static/src/main.js",
-                "ica_web_responsive/static/src/main.js",
             ),
         ],
         # ========= Dark Mode =========
@@ -114,7 +106,6 @@
             ),
         ],
         "web.assets_web_dark": [
-            ("include", "web.dark_mode_variables"),
             # web._assets_backend_helpers
             (
                 "before",

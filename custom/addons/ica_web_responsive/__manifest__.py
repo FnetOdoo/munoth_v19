@@ -81,7 +81,11 @@
             ),
         ],
         "web.assets_web": [
-            "ica_web_responsive/static/src/main.js",
+            (
+                "replace",
+                "web/static/src/main.js",
+                "ica_web_responsive/static/src/main.js",
+            ),
         ],
         # ========= Dark Mode =========
         "web.dark_mode_variables": [

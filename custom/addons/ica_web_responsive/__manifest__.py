@@ -4,7 +4,7 @@
     "name": "ICA Responsive",
     "category": "Hidden",
     "version": "1.0",
-    "depends": ["web", "base_setup"],
+    "depends": ["web", "base_setup", "hr"],
     "auto_install": False,
     "data": [
         "views/webclient_templates.xml",

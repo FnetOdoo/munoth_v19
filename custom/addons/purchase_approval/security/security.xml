@@ -44,7 +44,7 @@
         ref('group_second_approval_user'),
         ref('group_confirm_order_user')
     ])]"/>
-        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+<!--        <field name="users" eval="[(4, ref('base.user_admin'))]"/>-->
     </record>
 
 </odoo>

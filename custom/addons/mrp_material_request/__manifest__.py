@@ -8,7 +8,7 @@
     "website": "https://www.futurenet.in",
     "author": "Futurenet",
     "category": "Stock",
-    "depends": ['stock', 'fnet_mrp', 'hr', 'material_purchase_requisitions','customers_vendors_configuration'],
+    "depends": ['stock', 'fnet_mrp', 'hr', 'material_purchase_requisitions','customers_vendors_configuration','maintenance_extended','base_maintenance'],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
@@ -18,6 +18,7 @@
         "views/product_plan.xml",
         "views/mrp_material_request_views.xml",
         # "views/production_material_request.xml",
+        "views/production_process_views.xml",
         "views/purchase_views.xml",
         "wizard/return_stock.xml",
 

@@ -1,30 +1,16 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+
 access_mrp_bom,mrp.bom,model_manufacturing_bom,group_manufacturing_user,1,1,1,1
 access_mrp_bom_line,mrp.bom.line,model_manufacturing_bom_line,group_manufacturing_user,1,1,1,1
 access_manufacturing_operation,access.manufacturing.operation,model_manufacturing_operation,,1,1,1,1
 access_manufacturing_operation_line,access.manufacturing.operation.line,model_manufacturing_operation_line,,1,1,1,1
-access_anode_slitting_roll,access.anode.slitting.roll,model_anode_slitting,,1,1,1,1
-access_cathode_slitting_roll,access.cathode.slitting.roll,model_cathode_slitting,,1,1,1,1
+
+
 access.manufacturing.component,access_manufacturing_component,model_manufacturing_component,,1,1,1,1
-access.anode.drying,access_anode_drying,model_anode_drying,,1,1,1,1
-access.cathode.drying,access_cathode_drying,model_cathode_drying,,1,1,1,1
-access.diaphragm.drying,access_diaphragm_drying,model_diaphragm_drying,,1,1,1,1
-access.anode.electrode.making,access_anode_electrode_making,model_anode_electrode_making,,1,1,1,1
-access.cathode.electrode.making,access_cathode_electrode_making,model_cathode_electrode_making,,1,1,1,1
-access.winding,access_winding,model_winding,,1,1,1,1
-access.hot.press.jelly,access_hot_press_jelly,model_hot_press_jelly,,1,1,1,1
-access.assembly.cell,access_assembly_cell,model_assembly_cell,,1,1,1,1
 access.product.serial.number,access_product_serial_number,model_product_serial_number,,1,1,1,1
-access.cell.drying,access_cell_drying,model_cell_drying,,1,1,1,1
-access.cell.injection,access_cell_injection,model_cell_injection,,1,1,1,1
-access.high.temperature.cell,access_high_temperature_cell,model_high_temperature_cell,,1,1,1,1
-access.cell.clamp.baking,access_cell_clamp_baking,model_cell_clamp_baking,,1,1,1,1
-access.aged.formation.cell,access_aged_formation_cell,model_aged_formation_cell,,1,1,1,1
-access.degas.cell,access.degas.cell,model_degas_cell,,1,1,1,1
-access.double.side.folding,access_double_side_folding,model_double_side_folding,,1,1,1,1
 access.manufacturing.scrap,access_manufacturing._scrap,model_manufacturing_scrap,,1,1,1,1
 access.product.tray,access_product_tray,model_product_tray,,1,1,1,1
-access_pad_printing,access_pad_printing,model_pad_printing,,1,1,1,1
 access_production_plan,access.production.plan,model_production_plan,,1,1,1,1
 access.machine_parameter,access.machine.parameter,model_machine_parameter,,1,1,1,1
 access_insulation_resistance_test,access.insulation.resistance.test,model_insulation_resistance_test,,1,1,1,1
@@ -38,11 +24,6 @@ access.manufacturing.machine,access_manufacturing_machine,model_manufacturing_ma
 access.operation.bom.line,access_operation_bom_line,model_operation_bom_line,,1,1,1,1
 access.standard.charge,access_standard_charge,model_standard_charge,,1,1,1,1
 access.machine.allocation,access_machine_allocation,model_machine_allocation,,1,1,1,1
-access_pouch_forming,access.pouch.forming,model_pouch_forming,,1,1,1,1
-access_assembly_sealing,access.assembly.sealing,model_assembly_sealing,,1,1,1,1
-access_voltage_test,access.voltage.test,model_voltage_test,,1,1,1,1
-access_package_move,access.package.move,model_package_move,,1,1,1,1
-access_capacity_test,access.capacity.test,model_capacity_test,,1,1,1,1
 access_production_operation,access.production.operation,model_production_operation,,1,1,1,1
 access_mrp_shift,access.mrp.shift,model_mrp_shift,,1,1,1,1
 access_mrp_stage,access.mrp.stage,model_mrp_stage,,1,1,1,1
@@ -84,7 +65,6 @@ access_fai_line_group_user,fai_line_group_user,model_fai_line,,1,1,1,1
 access_fai_template_group_user,fai_template_group_user,model_fai_template,,1,1,1,1
 access_fai_template_item_group_user,fai_template_item_group_user,model_fai_template_item,,1,1,1,1
 access_deviation_note,deviation_note,model_deviation_note,base.group_user,1,1,1,1
-access_qr_code_printing,qr_code_printing,model_qr_code_printing,base.group_user,1,1,1,1
 access_stock_inspection_approve,Stock Inspection Approve Access,model_stock_inspection,group_stock_inspection_approve,1,1,1,1
 
 

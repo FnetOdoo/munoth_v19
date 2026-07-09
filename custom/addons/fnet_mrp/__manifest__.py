@@ -6,11 +6,14 @@
     'sequence': 1,
     'summary': 'Manufacturing Orders',
     'depends': [
+        'base',
         'product',
         'stock',
         'web',
         'mail',
-        'purchase_extended',  # ensure this exists in v19
+        'sale',
+        'sale_stock',
+        # 'purchase_extended',  # ensure this exists in v19
         # 'board',  # uncomment only if confirmed available
     ],
     'description': "Manufacturing process of the Battery, Cells",

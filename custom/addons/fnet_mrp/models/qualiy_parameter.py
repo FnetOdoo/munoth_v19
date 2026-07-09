@@ -8,7 +8,7 @@ class InsulationResistance(models.Model):
     _name='insulation.resistance.test'
     _description='Insulation Resistance Test'
 
-    degas_id = fields.Many2one('degas.cell')
+    # degas_id = fields.Many2one('degas.cell')
     voltage=fields.Float()
     resistance_set=fields.Float()
     resist_time=fields.Float()

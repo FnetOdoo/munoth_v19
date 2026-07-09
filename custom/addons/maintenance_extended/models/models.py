@@ -61,7 +61,24 @@ class MaintenanceEquipment(models.Model):
     can_approve = fields.Boolean(name="Can Approve?", compute='check_approve')
     instrument_id = fields.Many2one('maintenance.instrument', string="Instrument ID")
     enable_stage = fields.Boolean()
-    maintenance_type = fields.Selection(selection_add=[('breakdown', 'Break Down')])
+    maintenance_type = fields.Selection([('breakdown', 'Break Down'), ('preventive', 'Preventive')], string='Maintenance Type', default="preventive")
+    schedule_date = fields.Datetime( default=fields.Datetime.now,)
+    duration = fields.Float(string='Duration (Hours)',compute='_compute_duration',store=True,)
+    is_progress_state = fields.Boolean("Progress State", compute='_compute_state', store=True)
+    is_draft_state = fields.Boolean("Draft State", compute='_compute_state', store=True)
+    is_done_state = fields.Boolean("Done State", compute='_compute_state', store=True)
+
+    @api.depends('stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_done_state')
+    def _compute_state(self):
+        for rec in self:
+            rec.is_progress_state = rec.stage_id.is_progress_state
+            rec.is_draft_state = rec.stage_id.is_draft_state
+            rec.is_done_state = rec.stage_id.is_done_state
+
+    @api.depends('order_ids.duration')
+    def _compute_duration(self):
+        for rec in self:
+            rec.duration = sum(rec.order_ids.mapped('duration'))
 
     def write(self, vals):
         if vals.get('stage_id', False):
@@ -101,7 +118,6 @@ class MaintenanceEquipment(models.Model):
                 raise UserError(_("Checklist not found."))
 
             existing_checklist_ids = WorkOrder.search([('maintenance_id', '=', self.id)]).mapped('checklist_id')
-            print("--------", existing_checklist_ids,"----existing_checklist_ids---\n")
 
             for checklist in self.checklist_ids.filtered(lambda x: x.id not in existing_checklist_ids.ids):
                 WorkOrder.create({
@@ -137,7 +153,12 @@ class MaintenanceEquipment(models.Model):
             alert_day = fields.Datetime.now() + relativedelta(days=category.alert_days)
             from_date = alert_day.replace(hour=0, minute=0)
             to_date = alert_day.replace(hour=23, minute=59)
-            request_ids = self.env['maintenance.request'].search([('category_id', '=', category.id), ('schedule_date', '>=', from_date), ('schedule_date', '<=', to_date), ('user_id', '!=', False)])
+            request_ids = self.env['maintenance.request'].search([
+                ('category_id', '=', category.id),
+                ('schedule_date', '>=', from_date),
+                ('schedule_date', '<=', to_date),
+                ('user_id', '!=', False)])
+
             for request in request_ids:
                 subject = 'Maintenance Alert - %s' % request.name
                 body = """
@@ -267,7 +288,9 @@ class MaintenanceStage(models.Model):
 
     enable_approval = fields.Boolean("Enable Approval")
     user_ids = fields.Many2many('res.users', string="Responsible")
-
+    is_progress_state = fields.Boolean("Progress State")
+    is_draft_state = fields.Boolean("Draft State")
+    is_done_state = fields.Boolean("Done State")
 
 class MaintenancePlan(models.Model):
     _inherit = "maintenance.plan"

@@ -10,7 +10,7 @@ Accounting reports for India
         'l10n_in',
         'apex_einvoice',
         'account_reports',
-        'account_accountant',
+        
         'account_batch_payment',
         'barcodes',
         'account_invoice_extract',

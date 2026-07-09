@@ -25,21 +25,33 @@ class StockPicking(models.Model):
 
     mrp_stock_request_id = fields.Many2one('mrp.request')
     material_request_id = fields.Many2one('mrp.material.request')
+    material_return_id = fields.Many2one('mrp.material.request')
     mrp_request_count = fields.Integer(compute='_compute_mrp_request_count')
     mrp_material_request = fields.Many2one('mrp.material.request')
     is_product_qty_checked = fields.Boolean(string="Is Qty Checked",copy=False)
+    mrp_request_id = fields.Many2one('mrp.material.request', string="Material Request")
 
 
 
     def action_view_mrp_request(self):
         self.ensure_one()
-
         return {
             'name': _('Material Request'),
             'type': 'ir.actions.act_window',
-            'res_model': 'mrp.material.request',  # IMPORTANT (check model name)
+            'res_model': 'mrp.material.request',
             'view_mode': 'form',
             'res_id': self.material_request_id.id,
+            'views': [(False, 'form')],
+            'target': 'current',
+        }
+
+    def action_view_mrp_return(self):
+        return {
+            'name': _('Material Return'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mrp.material.request',
+            'view_mode': 'form',
+            'res_id': self.material_return_id.id,
             'views': [(False, 'form')],
             'target': 'current',
         }
@@ -460,18 +472,25 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         res = super(StockPicking, self).button_validate()
-
         for rec in self:
-            mr = rec.material_request_id or (rec.purchase_id.material_request_id if rec.purchase_id else False)
+            mr = rec.material_return_id or rec.material_request_id or (
+                rec.purchase_id.material_request_id if rec.purchase_id else False)
             if not mr:
                 continue
 
             # Send notifications BEFORE clearing
-            if rec.material_request_id and not self.purchase_id:
+            if rec.material_request_id and not rec.purchase_id:
                 rec._send_material_sent_notification()
             if rec.purchase_id and rec.purchase_id.material_request_id:
                 rec.send_material_received_notification()
-                self.material_request_id = False
+                rec.material_request_id = False
+
+            # Material return picking: set state directly, skip line-satisfaction check
+            if rec.material_return_id:
+                mr.state = 'material_returned'
+                mr.returned_date = fields.Date.today()
+                continue
+
             # Check every line in the Material Request
             all_lines_satisfied = True
             mr_lines = mr.request_line_ids.filtered(lambda l: not l.display_type)
@@ -484,9 +503,8 @@ class StockPicking(models.Model):
                     ('state', '=', 'done'),
                     '|',
                     ('picking_id.material_request_id', '=', mr.id),
-                    ('picking_id.purchase_id.material_request_id', '=', mr.id)
+                    ('picking_id.purchase_id.material_request_id', '=', mr.id),
                 ]).mapped('quantity'))
-
                 if total_received >= line.quantity:
                     if line.line_state != 'done' and not line.is_transfer_complete:
                         line.line_state = 'not_yet'
@@ -497,6 +515,10 @@ class StockPicking(models.Model):
             if all_lines_satisfied:
                 if rec.picking_type_id.code == 'internal':
                     mr.state = 'material_accept'
+                    mr.date_issued = fields.Date.today()
+                elif mr.type == 'out_ward':
+                    mr.state = 'material_returned'
+                    mr.returned_date = fields.Date.today()
                 elif rec.picking_type_id.code == 'incoming':
                     mr.state = 'received'
         return res

@@ -13,16 +13,7 @@
                     <group>
                         <field name="location_src_id"/>
                         <field name="dest_location_id"/>
-                        <field name="cell_drying_id" invisible="1"/>
-                        <field name="aged_formation_id" invisible="1"/>
-                        <field name="capacity_id" invisible="1"/>
-                        <field name="clamp_baking_id" invisible="1"/>
-                        <field name="degas_id" invisible="1"/>
-                        <field name="ht_cell_id" invisible="1"/>
-                        <field name="injection_id" invisible="1"/>
-                        <field name="packing_id" invisible="1"/>
-                        <field name="pad_printing_id" invisible="1"/>
-                        <field name="voltage_test_id" invisible="1"/>
+
 
                     </group>
                 </group>

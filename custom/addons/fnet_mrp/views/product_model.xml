@@ -171,10 +171,11 @@
                             <field name="operation_ids">
                                 <list>
                                     <field name="sequence" widget="handle"/>
-<!--                                    <field name="manufacturing_stage_id" string="Stage"/>-->
-                                    <field name="manufacturing_process_type_id"/>
+                                    <field name="manufacturing_stages_id" string="Stage"/>
+                                    <field name="manufacturing_process_type_id" string="Operation Type"/>
                                     <field name="bom_id"/>
                                     <field name="machine_id" domain="[('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                                    <field name="allow_lot_create"/>
                                     <field name="location_src_id"/>
                                     <field name="location_dest_id"/>
                                 </list>

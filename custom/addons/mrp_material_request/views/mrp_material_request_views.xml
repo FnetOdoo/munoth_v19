@@ -6,66 +6,81 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="action_request" type="object" string="Request" invisible="state != 'draft'"
+                        <field name="type" invisible="1"/>
+                        <button name="action_request" type="object" string="Request"
+                                invisible="state != 'draft' or type == 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_manager_approve" type="object"
                                 groups="mrp_material_request.group_material_request_manager" string="Manager Approve"
-                                invisible="not show_approve_button"
-                                class="oe_highlight"/>                        <!--<button name="action_create_delivery" groups="mrp_material_request.group_material_request_purchase_user" type="object" string="Create Delivery" class="oe_highlight" invisible="picking_count > 0 or state in ['draft', 'request']"/>-->
+                                invisible="not show_approve_button or type == 'out_ward'"
+                                class="oe_highlight"/>
                         <button name="check_available_stock"
-                                groups="mrp_material_request.group_material_request_store_user" type="object"
+                                groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator"
+                                type="object"
                                 string="Check Availability" class="oe_highlight"
-                                invisible="state not in ['manager_approve'] or is_delivery_created"/>
+                                invisible="state not in ['manager_approve'] or is_delivery_created or type == 'out_ward'"/>
                         <button name="action_purchase_manager_request"
-                                groups="mrp_material_request.group_material_request_store_user" type="object"
+                                groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator"
+                                type="object"
                                 string="Request for Purchase"
-                                invisible="state not in ['manager_approve'] or not is_none_qty"/>
-                        <!--                        <button name="action_material_accept" type="object" string="Create Transfer"-->
-                        <!--                                class="oe_highlight" groups="mrp_material_request.group_material_request_store_user"-->
-                        <!--                                invisible="state not in ['manager_approve'] or not is_product_available or picking_count &gt; 0"/>-->
-                        <!--                        <button name="action_request_purchase_and_transfer" type="object"-->
-                        <!--                                string="Purchase Request &amp; Create Partial Transfer" class="oe_highlight"-->
-                        <!--                                invisible="not is_mixed_availability or state not in ['manager_approve']"/>-->
+                                invisible="state not in ['manager_approve'] or not is_none_qty or type == 'out_ward'"/>
                         <button name="action_raise_po"
-                                 groups="mrp_material_request.group_material_request_po_manager" type="object"
-                                string="Purchase Approve &amp; Create PO" invisible="state != 'purchase_request'"
+                                groups="mrp_material_request.group_material_request_po_manager" type="object"
+                                string="Purchase Approve &amp; Create PO"
+                                invisible="state != 'purchase_request' or type == 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_purchase_reject"
-                                 groups="mrp_material_request.group_material_request_po_manager" type="object"
-                                string="Purchase Reject" invisible="state != 'purchase_request'"/>
+                                groups="mrp_material_request.group_material_request_po_manager" type="object"
+                                string="Purchase Reject" invisible="state != 'purchase_request' or type == 'out_ward'"/>
 
-                        <!--                        <button name="action_check_location_availability" type="object" string="Check Availability"-->
-                        <!--                                class="oe_highlight"-->
-                        <!--                                invisible="state not in ['received'] or show_remaining_transfer"-->
-                        <!--                                groups="mrp_material_request.group_material_request_store_user"/>-->
-                        <!--                        <button name="action_create_remaining_transfer" type="object" string="Create Transfer"-->
-                        <!--                                class="oe_highlight"-->
-                        <!--                                invisible="state not in ['received'] or not show_remaining_transfer or not is_product_available or is_delivery_created"-->
-                        <!--                                groups="mrp_material_request.group_material_request_store_user"/>-->
                         <button name="action_reject" groups="mrp_material_request.group_material_request_manager"
                                 type="object" string="Reject"
-                                invisible="state != 'request' or not show_approve_button"/>
-                        <!--<button name="action_confirm" groups="stock.group_stock_manager" type="object" string="Confirm" invisible="state != 'purchase_approve'" class="oe_highlight"/>-->
-                        <!--                        <button name="action_raise_po" invisible="state != 'purchase_approve'" groups="mrp_material_request.group_material_request_purchase_user" type="object" string="Raise PO"/>-->
-                        <!--<button name="action_check_available" type="object" string="Check Avaliability" invisible="state != 'manager_approve' or check_product == True" class="oe_highlight"/>-->
-                        <!--                        <button name="action_done" groups="stock.group_stock_manager" type="object" string="Close" invisible="state != 'material_accept'" class="oe_highlight"/>-->
-                        <!--                        <button name="action_cancel" type="object" string="Cancel" invisible="state not in ['request', 'confirm']"/>-->
+                                invisible="state != 'request' or type == 'out_ward' or not show_approve_button"/>
+
                         <button name="action_set_to_draft" type="object" string="Set to Draft"
                                 invisible="state != 'cancel'"/>
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,request,manager_approve,material_accept"/>
+                               statusbar_visible="draft,request,manager_approve,material_accept"
+                               invisible="type == 'out_ward'"/>
+
+
+                        <button name="action_return_request" type="object" string="Request"
+                                invisible="state != 'draft' or type != 'out_ward'"
+                                class="oe_highlight"/>
+                        <button name="action_return_approve" type="object"
+                                groups="mrp_material_request.group_material_request_manager" string="Manager Approve"
+                                invisible="not show_approve_button or type != 'out_ward'"
+                                class="oe_highlight"/>
+                        <button name="action_check_and_transfer"
+                                groups="mrp_material_request.group_material_request_store_user" type="object"
+                                string="Check Transfer" class="oe_highlight"
+                                invisible="state not in ['manager_approve'] or is_delivery_created or type != 'out_ward'"/>
+                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager"
+                                type="object" string="Reject"
+                                invisible="state != 'request' or not show_approve_button or type != 'out_ward'"/>
+                        <field name="state"
+                               widget="statusbar"
+                               statusbar_visible="draft,request,manager_approve,material_return_progress,material_returned"
+                               invisible="type != 'out_ward'"/>
+
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
-                            <!--<button class="oe_stat_button" string="Stock Move" name="action_view_stock_move"
-                                        type="object"
-                                        icon="fa-exchange" />-->
+                            <button class="oe_stat_button" name="action_view_mrp_return" type="object"
+                                    invisible="not is_return_created or  type != 'out_ward'" icon="fa-truck"
+                                    string="Internal Return"
+                                    groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator">
+                            </button>
                             <button class="oe_stat_button" name="action_view_picking" type="object"
-                                    invisible="picking_count == 0" icon="fa-truck" groups="mrp_material_request.group_material_request_store_user">
+                                    invisible="picking_count == 0 or type == 'out_ward'" icon="fa-truck"
+                                    groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator">
                                 <field name="picking_count" widget="statinfo" string="Internal Transfer"/>
                             </button>
-                            <button class="oe_stat_button" name="action_view_po" type="object" invisible="po_count == 0"
-                                    icon="fa-truck"  groups="mrp_material_request.group_material_request_po_manager">
+
+                            <button class="oe_stat_button" name="action_view_po" type="object"
+                                    invisible="po_count == 0 or type == 'out_ward'"
+                                    icon="fa-truck"
+                                    groups="mrp_material_request.group_material_request_po_manager,mrp_material_request.group_material_request_administrator">
                                 <field name="po_count" widget="statinfo" string="Purchase Order/RFQ"/>
                             </button>
                         </div>
@@ -78,31 +93,43 @@
                         <group>
                             <group>
                                 <field name="company_id" invisible="1"/>
+                                <field name="production_process_id" invisible="1"/>
                                 <field name="check_product" invisible="1"/>
                                 <field name="purchase_boolean" invisible="1"/>
                                 <field name="is_none_qty" invisible="1"/>
                                 <field name="show_remaining_transfer" invisible="1"/>
                                 <field name="show_approve_button" invisible="1"/>
                                 <field name="is_product_available" invisible="1"/>
-                                <field name="user_id" required="1" readonly="state not in ('draft',)"
+                                <field name="user_id" readonly="1"
                                        options="{'no_create': True}"/>
-                                <field name="department_id" required="1" readonly="state not in ('draft',)"
+                                <field name="department_id" readonly="1"
                                        options="{'no_create': True}"/>
                                 <field name="sub_department_id" string="Sub Department"
-                                       readonly="state not in ('draft',)" options="{'no_create': True}"/>
-                                <field name="type" readonly="state not in ('draft',)"/>
-                                <field name="is_mixed_availability" invisible="1"/>
-                                <field name="product_available_location"
-                                       invisible="state not in ['received', 'confirm']"
-                                       domain="[('stock_location', '=', True)]" options="{'no_create': True}"/>
+                                       readonly="state not in ('draft',)" options="{'no_create': True}"
+                                       invisible="is_maintenance_material_request"/>
+                                <field name="type" readonly="1" invisible="is_maintenance_material_request"/>
+                                <field name="category_id" invisible="not is_maintenance_material_request"
+                                       readonly="state not in ('draft',)"/>
 
+                                <field name="is_mixed_availability" invisible="1"/>
+                                <!--                                <field name="product_available_location"-->
+                                <!--                                       invisible="state not in ['received', 'confirm'] or type == 'out_ward'"-->
+                                <!--                                       domain="[('stock_location', '=', True)]" options="{'no_create': True}"/>-->
+                                <field name="order_id" invisible="not is_maintenance_material_request"
+                                       readonly="state not in ('draft',)"/>
+                                <field name="equipment_id" invisible="not is_maintenance_material_request"
+                                       readonly="state not in ('draft',)"/>
                             </group>
                             <group>
-                                <field name="date" readonly="state not in ('draft',)"/>
-                                <field name="date_issued" readonly="1" force_save="1"/>
+                                <field name="is_maintenance_material_request" invisible="1"/>
+                                <field name="date" readonly="1"/>
+                                <field name="date_issued" readonly="1" force_save="1" invisible="type == 'out_ward'"/>
                                 <field name="responsible_user_id" readonly="state not in ('draft',)"
                                        options="{'no_create': True}"/>
-                                <field name="is_consumed" readonly="state not in ('draft',)"/>
+
+
+                                <field name="is_consumed" invisible="type == 'out_ward'"
+                                       readonly="state not in ('draft',)"/>
                             </group>
                         </group>
                         <notebook>
@@ -116,40 +143,43 @@
                                     >
                                         <control>
                                             <create name="add_product_control" string="Add a product"
-                                                    invisible="parent.state != 'draft'"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
                                             <create name="add_section_control" string="Add a section"
                                                     context="{'default_display_type': 'line_section'}"
-                                                    invisible="parent.state != 'draft'"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
                                             <create name="add_note_control" string="Add a note"
                                                     context="{'default_display_type': 'line_note'}"
-                                                    invisible="parent.state != 'draft'"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
                                         </control>
                                         <field name="company_id" column_invisible="1"/>
                                         <field name="display_type" column_invisible="1"/>
                                         <field name="product_id" required="display_type == False"
-                                               readonly="parent.state not in ('draft', 'cancel')"
+                                               readonly="parent.state not in ('draft', 'cancel') or parent.production_process_id"
                                                context="{'quantity': quantity, 'uom': product_uom, 'company_id': parent.company_id}"
                                                force_save="1"
                                                domain="['|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]"/>
                                         <field name="name" widget="section_and_note_text"
-                                               readonly="parent.state not in ('draft', 'cancel')"/>
-                                        <field name="model_make" readonly="parent.state not in ('draft', 'cancel')"/>
-                                        <field name="quantity" readonly="parent.state not in ('draft', 'cancel')"/>
+                                               readonly="parent.state not in ('draft', 'cancel') or parent.production_process_id"/>
+                                        <field name="model_make"
+                                               readonly="parent.state not in ('draft', 'cancel') or parent.production_process_id"/>
+                                        <field name="quantity"
+                                               readonly="parent.state not in ('draft', 'cancel') or parent.production_process_id"/>
                                         <field name="product_uom" string="UoM"
-                                               readonly="parent.state not in ('draft', 'cancel') or line_state == 'done'"
+                                               readonly="parent.state not in ('draft', 'cancel') or line_state == 'done' or parent.production_process_id"
                                                required="display_type == False" force_save="1" optional="show"/>
-                                        <field name="purpose" readonly="parent.state not in ('draft', 'cancel')"/>
-                                        <field name="remark"/>
+                                        <field name="purpose" column_invisible="parent.type == 'out_ward'"
+                                               readonly="parent.state not in ('draft', 'cancel') or  parent.type == 'out_ward'"/>
+                                        <field name="remark" column_invisible="parent.type == 'out_ward'"/>
                                         <field name="transfer_qty" column_invisible="1"/>
                                         <field name="is_transfer_complete" column_invisible="1"/>
                                         <field name="purchase_qty" readonly="1"
-                                                column_invisible="not parent.is_transfer_complete"
-                                               groups="purchase.group_purchase_manager"/>
+                                               column_invisible="1"
+                                               groups="mrp_material_request.group_material_request_po_manager"/>
                                         <field name="state" column_invisible="1"/>
                                         <field name="line_state" column_invisible="1"/>
-                                        <field name="vendor_id"
-                                               groups="purchase.group_purchase_manager"
-                                               readonly="parent.state not in ('draft', 'purchase_request') or line_state == 'done' or is_transfer_complete"/>
+                                        <field name="vendor_id" column_invisible="parent.type == 'out_ward'"
+                                               groups="mrp_material_request.group_material_request_po_manager"
+                                               readonly="parent.state not in ('draft', 'purchase_request') or line_state == 'done' or is_transfer_complete or parent.type == 'out_ward'"/>
                                         <field name="check_available" column_invisible="1"/>
                                     </list>
                                 </field>
@@ -163,7 +193,7 @@
                                         <field name="location_id" required="state == 'manager_approve'"
                                                readonly="state != 'draft'"/>
                                         <field name="location_dest_id" required="state == 'manager_approve'"
-                                               readonly="state != 'draft'"/>
+                                               readonly="state != 'draft' or production_process_id"/>
                                     </group>
                                 </group>
                                 <group>
@@ -172,19 +202,20 @@
                                         <field name="reject_reason"
                                                readonly="state in ('confirm','done','material_accept','material_reject','cancel','reject')"/>
                                     </group>
-                                    <group string="Purchase Rejection">
+                                    <group string="Purchase Rejection" invisible="type == 'out_ward'">
                                         <field name="po_reject_user_id" readonly="1"/>
                                         <field name="purchase_reject_reason"
                                                readonly="state in ('confirm','done','material_accept','material_reject','cancel','reject')"/>
                                     </group>
                                 </group>
                             </page>
-                            <page string="Approval Line" invisible="1">
+                            <page string="Approval" invisible="">
                                 <group>
-                                    <field name="approval_line_ids" readonly="">
+                                    <field name="approval_line_ids" readonly="1" nolabel="1" force_save="1">
                                         <list>
                                             <field name="user_id"/>
-                                            <field name="is_email_sent"/>
+                                            <field name="approved_date"/>
+                                            <field name="is_email_sent" widget="boolean_toggle"/>
                                         </list>
                                     </field>
 
@@ -196,6 +227,7 @@
                 </form>
             </field>
         </record>
+
         <record id="view_mrp_material_request_list" model="ir.ui.view">
             <field name="name">view.mrp.material.request.list</field>
             <field name="model">mrp.material.request</field>
@@ -205,7 +237,6 @@
                     <field name="name"/>
                     <field name="date"/>
                     <field name="user_id"/>
-                    <field name="section"/>
                     <field name="department_id"/>
                     <field name="state"/>
                 </list>
@@ -244,20 +275,10 @@
             <field name="res_model">mrp.material.request</field>
             <field name="view_mode">list,form</field>
             <field name="context">{'group_by': 'department_id','default_type':'in_ward'}</field>
-            <field name="domain">[("type","ilike","in_ward")]</field>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_smiling_face">
-                    No operation found. Let's create one!
-                </p>
-            </field>
-        </record>
-        <record id="action_mrp_material_return_main" model="ir.actions.act_window">
-            <field name="name">Material Return</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">mrp.material.request</field>
-            <field name="view_mode">list,form</field>
-            <field name="context">{'default_type':'out_ward'}</field>
-            <field name="domain">[("type","ilike",'out_ward')]</field>
+            <field name="domain">[("type","=","in_ward")]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_mrp_material_request_list')}),
+        (0, 0, {'view_mode': 'form', 'sequence': 2, 'view_id': ref('view_mrp_material_request_form')})]"/>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                     No operation found. Let's create one!
@@ -265,11 +286,45 @@
             </field>
         </record>
 
+        <record id="action_mrp_material_return_main" model="ir.actions.act_window">
+            <field name="name">Material Return</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.material.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'default_type':'out_ward'}</field>
+            <field name="domain">[("type","=","out_ward")]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_mrp_material_request_list')}),
+        (0, 0, {'view_mode': 'form', 'sequence': 2, 'view_id': ref('view_mrp_material_request_form')})]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No operation found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <record id="action_maintenance_material_request" model="ir.actions.act_window">
+            <field name="name">Maintenance Material Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.material.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'default_is_maintenance_material_request':True}</field>
+            <field name="domain">[('is_maintenance_material_request','=',True)]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_mrp_material_request_list')}),
+        (0, 0, {'view_mode': 'form', 'sequence': 2, 'view_id': ref('view_mrp_material_request_form')})]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No operation found. Let's create one!
+                </p>
+            </field>
+        </record>
         <record id="view_material_request_sub_department_tree" model="ir.ui.view">
             <field name="name">material.request.configuration.tree</field>
             <field name="model">material.request.configuration</field>
             <field name="arch" type="xml">
                 <list editable="top">
+                    <field name="is_maintenance" widget="boolean_toggle"/>
                     <field name="name"/>
                     <field name="department_id"/>
                     <field name="approval_line_id" string="Approval Line"/>
@@ -309,11 +364,22 @@
 
 
         <menuitem id="menuitem_mrp_material_request_main" name="Material Requests"
-                  web_icon="mrp_material_request,static/description/icon.png" groups="mrp_material_request.group_material_request_purchase_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_manager"/>
+                  web_icon="mrp_material_request,static/description/icon.png"
+                  groups="mrp_material_request.group_material_request_purchase_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_manager"/>
         <menuitem id="menuitem_mrp_material_request_request" name="Material Requests"
                   parent="menuitem_mrp_material_request_main" action="action_mrp_material_request_main" sequence="1"/>
+
         <menuitem id="menu_material_return" name="Material Returns" parent="menuitem_mrp_material_request_main"
                   action="action_mrp_material_return_main" sequence="2"/>
+
+        <menuitem id="menu_maintenance_material_request" name="Maintenance Material Requests"
+                  parent="menuitem_mrp_material_request_main"
+                  action="action_maintenance_material_request" sequence="3"/>
+
+
+        <menuitem id="menu_maintenance_material_request_new" name="Material Request" parent="maintenance.menu_m_request"
+                  action="action_maintenance_material_request"/>
+
         <menuitem id="menu_mrp_material_request_configuration"
                   groups="mrp_material_request.group_material_request_administrator" name="Configuration"
                   parent="menuitem_mrp_material_request_main" sequence="100"/>
@@ -323,5 +389,11 @@
         <menuitem id="menu_material_request_approval_line" name="Approval Line"
                   parent="menu_mrp_material_request_configuration"
                   action="action_material_request_is_approval_line_configuration" sequence="2"/>
+
+        <menuitem id="menu_manufacturing_request_maintenance" name="Maintenance Requests"
+                  parent="menu_manufacturing_request_root" sequence="3"
+                  action="maintenance_extended.fnet_mrp_equipment_request_action"/>
+
+
     </data>
 </odoo>

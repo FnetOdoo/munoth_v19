@@ -34,7 +34,7 @@
         <menuitem name="MTTR MTBF Reporting" id="menu_mttr_mtbf_report" sequence="2" action="action_mttr_mtbf_report" parent="fnet_mrp.menu_manufacturing_report"/>
         <menuitem name="Availability Reporting" id="menu_availability_report" sequence="3" action="action_availability_report" parent="fnet_mrp.menu_manufacturing_report"/>
 
-        <menuitem id="menu_mrp_powerbank" name="Power Bank" parent="fnet_mrp.menu_manufacturing_root" sequence="6" action="mrp_powerbank_form_action"/>
+        <menuitem id="menu_mrp_powerbank" name="Power Bank" parent="fnet_mrp.menu_manufacturing_root" sequence="6" action="manufacturing_process_power_bank_action"/>
         <menuitem id="monthly_plan_menu" name="Monthly Plan" action="monthly_plan_action" parent="fnet_mrp.menu_manufacturing_plan_main" sequence="12"/>
 
         <!-- Configuration -->

@@ -303,6 +303,44 @@ class MaterialLine(models.Model):
                             'product_uom_id': self.product_uom_id.id,
                             'lot_id': lot_id.id,
                         }))
+            elif record.before_manufacturing_process_id.is_split_process:
+                print("Loading  Split Process")
+                lot_ids = record.lot_ids
+
+                print("Lots Found Count:", len(lot_ids))
+                print("Lots Found:", lot_ids.ids)
+
+                if not lot_ids:
+                    print("ERROR: No Lots Found")
+                    raise UserError(
+                        _("No lots available for the plan %s at location %s" %
+                          (self.production_plan_id.name,
+                           self.location_src_id.name))
+                    )
+
+                for lot in lot_ids:
+                    print("Processing Lot:", lot.id, lot.name)
+
+                    child_records.append((0, 0, {
+                        'product_id': self.product_id.id,
+                        'name': self.product_id.name,
+                        'product_uom_id': self.product_uom_id.id,
+                        'lot_id': lot.lot_id.id,  # <-- FIXED: use the actual stock.lot id
+                        'product_qty': 1,
+                        'check_available': True,
+                        'material_id': self.id,
+                        'location_src_id': self.location_src_id.id,
+                        'location_dest_id': self.location_dest_id.id,
+                    }))
+
+                    if self.product_id.id == record.product_id.id:
+                        print("Adding Serial:", lot.name)
+
+                        serials.append((0, 0, {
+                            'product_id': self.product_id.id,
+                            'name': lot.name,
+                            'product_uom_id': self.product_uom_id.id,
+                        }))
 
             else:
                 print("Loading Lots From Production Plan")
@@ -360,7 +398,10 @@ class MaterialLine(models.Model):
 
         if record:
             print("Writing Component Records To Manufacturing Process:", record.id)
-            record.component_ids = child_records
+
+            existing_component_ids = record.component_ids.ids
+            keep_commands = [(4, cid) for cid in existing_component_ids]
+            record.component_ids = keep_commands + child_records
 
             print("Current Component Count After Write:", len(record.component_ids))
 
@@ -499,8 +540,8 @@ class ManufacturingFinishedLines(models.Model):
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.relative_uom_id')
     product_qty = fields.Float(default=1.0)
     tray_id = fields.Many2one('product.tray')
-    qr_code_printing_id = fields.Many2one('qr.code.printing', string='QR Code Printing')
-    cell_drying_id = fields.Many2one('cell.drying', string="Manufacturing")
+    # qr_code_printing_id = fields.Many2one('qr.code.printing', string='QR Code Printing')
+    # cell_drying_id = fields.Many2one('cell.drying', string="Manufacturing")
 
     manufacturing_process_id = fields.Many2one('manufacturing.process', string="Manufacturing Process")
 

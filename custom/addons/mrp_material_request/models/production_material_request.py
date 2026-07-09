@@ -2,29 +2,29 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 
-class MaterialRequest(models.Model):
-    _inherit = 'mrp.material.request'
+# class MaterialRequest(models.Model):
+#     _inherit = 'mrp.material.request'
 
-    anode_slitting_id = fields.Many2one('anode.slitting')
-    cathode_slitting_id = fields.Many2one('cathode.slitting')
-    anode_drying_id = fields.Many2one('anode.drying')
-    cathode_drying_id = fields.Many2one('cathode.drying')
-    anode_electrode_making_id = fields.Many2one('anode.electrode.making')
-    cathode_electrode_making_id = fields.Many2one('cathode.electrode.making')
-    diaphragm_drying_id = fields.Many2one('diaphragm.drying')
-    winding_id = fields.Many2one('winding')
-    hot_press_id = fields.Many2one('hot.press.jelly')
-    assembly_id = fields.Many2one('assembly.cell')
-    cell_drying_id = fields.Many2one('cell.drying')
-    injection_id = fields.Many2one('cell.injection')
-    ht_cell_id = fields.Many2one('high.temperature.cell')
-    clamp_baking_id = fields.Many2one('cell.clamp.baking')
-    aged_formation_id = fields.Many2one('aged.formation.cell')
-    degas_id = fields.Many2one('degas.cell')
-    pad_printing_id = fields.Many2one('pad.printing')
-    capacity_id = fields.Many2one('capacity.test')
-    voltage_test_id = fields.Many2one('voltage.test')
-    packing_id = fields.Many2one('package.move')
+    # anode_slitting_id = fields.Many2one('anode.slitting')
+    # cathode_slitting_id = fields.Many2one('cathode.slitting')
+    # anode_drying_id = fields.Many2one('anode.drying')
+    # cathode_drying_id = fields.Many2one('cathode.drying')
+    # anode_electrode_making_id = fields.Many2one('anode.electrode.making')
+    # cathode_electrode_making_id = fields.Many2one('cathode.electrode.making')
+    # diaphragm_drying_id = fields.Many2one('diaphragm.drying')
+    # winding_id = fields.Many2one('winding')
+    # hot_press_id = fields.Many2one('hot.press.jelly')
+    # assembly_id = fields.Many2one('assembly.cell')
+    # cell_drying_id = fields.Many2one('cell.drying')
+    # injection_id = fields.Many2one('cell.injection')
+    # ht_cell_id = fields.Many2one('high.temperature.cell')
+    # clamp_baking_id = fields.Many2one('cell.clamp.baking')
+    # # aged_formation_id = fields.Many2one('aged.formation.cell')
+    # degas_id = fields.Many2one('degas.cell')
+    # pad_printing_id = fields.Many2one('pad.printing')
+    # capacity_id = fields.Many2one('capacity.test')
+    # voltage_test_id = fields.Many2one('voltage.test')
+    # packing_id = fields.Many2one('package.move')
 
 
 class AnodeSlitting(models.Model):
@@ -472,58 +472,58 @@ class Injection(models.Model):
             }
 
 
-class ClampBaking(models.Model):
-    _inherit = 'cell.clamp.baking'
-
-    request_count = fields.Integer(compute='_compute_request_count')
-
-    def _compute_request_count(self):
-        for rec in self:
-            rec.request_count = self.env['mrp.material.request'].search_count(
-                [('clamp_baking_id', '=', rec.id)])
-
-    def action_material_request(self):
-        child_records = []
-        for line in self.component_ids:
-            child_records.append((0, 0, {
-                'product_id': line.product_id.id,
-                'name': line.product_id.name,
-                'quantity': line.product_qty,
-                'product_uom': line.product_id.uom_id.id,
-            }))
-        return {
-            'name': _('Material Request'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'form',
-            'res_model': 'mrp.material.request',
-            'target': 'new',
-            'context': {
-                'default_clamp_baking_id': self.id,
-                'default_operation_id': self.operation_id.id,
-                'default_request_line_ids': child_records,
-                'default_location_id': self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)],
-                                                                          limit=1).lot_stock_id.id,
-            },
-        }
-
-    def action_view_material_request(self):
-        records = self.env['mrp.material.request'].search([('clamp_baking_id', '=', self.id)])
-        if len(records) == 1:
-            return {
-                'name': _('Material Request'),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'res_model': 'mrp.material.request',
-                'res_id': records.id,  # Assuming records is a single record
-            }
-        else:
-            return {
-                'name': _('Material Request'),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'list,form',
-                'res_model': 'mrp.material.request',
-                'domain': [('clamp_baking_id', '=', self.id)]
-            }
+# class ClampBaking(models.Model):
+#     _inherit = 'cell.clamp.baking'
+#
+#     request_count = fields.Integer(compute='_compute_request_count')
+#
+#     def _compute_request_count(self):
+#         for rec in self:
+#             rec.request_count = self.env['mrp.material.request'].search_count(
+#                 [('clamp_baking_id', '=', rec.id)])
+#
+#     def action_material_request(self):
+#         child_records = []
+#         for line in self.component_ids:
+#             child_records.append((0, 0, {
+#                 'product_id': line.product_id.id,
+#                 'name': line.product_id.name,
+#                 'quantity': line.product_qty,
+#                 'product_uom': line.product_id.uom_id.id,
+#             }))
+#         return {
+#             'name': _('Material Request'),
+#             'type': 'ir.actions.act_window',
+#             'view_mode': 'form',
+#             'res_model': 'mrp.material.request',
+#             'target': 'new',
+#             'context': {
+#                 'default_clamp_baking_id': self.id,
+#                 'default_operation_id': self.operation_id.id,
+#                 'default_request_line_ids': child_records,
+#                 'default_location_id': self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)],
+#                                                                           limit=1).lot_stock_id.id,
+#             },
+#         }
+#
+#     def action_view_material_request(self):
+#         records = self.env['mrp.material.request'].search([('clamp_baking_id', '=', self.id)])
+#         if len(records) == 1:
+#             return {
+#                 'name': _('Material Request'),
+#                 'type': 'ir.actions.act_window',
+#                 'view_mode': 'form',
+#                 'res_model': 'mrp.material.request',
+#                 'res_id': records.id,  # Assuming records is a single record
+#             }
+#         else:
+#             return {
+#                 'name': _('Material Request'),
+#                 'type': 'ir.actions.act_window',
+#                 'view_mode': 'list,form',
+#                 'res_model': 'mrp.material.request',
+#                 'domain': [('clamp_baking_id', '=', self.id)]
+#             }
 
 #
 # class DegasCell(models.Model):

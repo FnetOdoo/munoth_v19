@@ -193,190 +193,190 @@ class FaiTemplateItem(models.Model):
     parameter = fields.Char("Specification", required=True)
 
 
-class CellDrying(models.Model):
-    _inherit = 'cell.drying'
-
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-        return super(CellDrying, self).action_start()
-
-
-
-class CellInjection(models.Model):
-    _inherit = 'cell.injection'
+# class CellDrying(models.Model):
+#     _inherit = 'cell.drying'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#         return super(CellDrying, self).action_start()
 
 
 
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'), ('state', '=', 'done')])
-            if not fai_id:
-                pass
-                # raise UserError("Kindly do First Article Inspection before starting production")
-        return super(CellInjection, self).action_start()
+# class CellInjection(models.Model):
+#     _inherit = 'cell.injection'
+#
+#
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'), ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+#                 # raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(CellInjection, self).action_start()
 
     # def action_done_production(self):
     #     for rec in self:
@@ -390,124 +390,124 @@ class CellInjection(models.Model):
     #     return super(CellInjection, self).action_done_production()
 
 
-class CellClampBaking(models.Model):
-    _inherit = 'cell.clamp.baking'
-
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'), ('state', '=', 'done')])
-            if not fai_id:
-                pass
-                # raise UserError("Kindly do First Article Inspection before starting production")
-        return super(CellClampBaking, self).action_start()
+# class CellClampBaking(models.Model):
+#     _inherit = 'cell.clamp.baking'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search([('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search([('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'), ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+#                 # raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(CellClampBaking, self).action_start()
 
 
     # def action_done_production(self):
@@ -522,135 +522,135 @@ class CellClampBaking(models.Model):
     #     return super(CellClampBaking, self).action_done_production()
 
 
-class DegasCell(models.Model):
-    _inherit = 'degas.cell'
-
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'process')])
-
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
-             ('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
-                 ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
-                 ('state', '=', 'done')])
-            if not fai_id:
-                pass
-#                 raise UserError("Kindly do First Article Inspection before starting production")
-        return super(DegasCell, self).action_start()
+# class DegasCell(models.Model):
+#     _inherit = 'degas.cell'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
+#                  ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
+#                  ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+# #                 raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(DegasCell, self).action_start()
 
     # def action_done_production(self):
     #     for rec in self:
@@ -664,266 +664,266 @@ class DegasCell(models.Model):
     #     return super(DegasCell, self).action_done_production()
 
 
-class PadPrinting(models.Model):
-    _inherit = 'pad.printing'
+# class PadPrinting(models.Model):
+#     _inherit = 'pad.printing'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
+#                  ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
+#                  ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+# #                 raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(PadPrinting, self).action_start()
 
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'process')])
 
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
-             ('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
-                 ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
-                 ('state', '=', 'done')])
-            if not fai_id:
-                pass
-#                 raise UserError("Kindly do First Article Inspection before starting production")
-        return super(PadPrinting, self).action_start()
-
-
-class CapacityTest(models.Model):
-    _inherit = 'capacity.test'
-
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'process')])
-
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
-             ('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
-                 ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
-                 ('state', '=', 'done')])
-            if not fai_id:
-                pass
-#                 raise UserError("Kindly do First Article Inspection before starting production")
-        return super(CapacityTest, self).action_start()
+# class CapacityTest(models.Model):
+#     _inherit = 'capacity.test'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
+#                  ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
+#                  ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+# #                 raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(CapacityTest, self).action_start()
 
 
     # def action_done_production(self):
@@ -942,135 +942,135 @@ class CapacityTest(models.Model):
     #     return super(CapacityTest, self).action_done_production()
 
 
-class VoltageTest(models.Model):
-    _inherit = 'voltage.test'
-
-    def _get_pa_count(self):
-        for rec in self:
-            rec.pa_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'process')])
-
-    def _get_fai_count(self):
-        for rec in self:
-            rec.fai_count = self.env['first.article.inspection'].search_count(
-                [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
-                 ('inspection_type', '=', 'fai')])
-
-    pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
-    fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
-
-    def action_open_process_approval(self):
-        pa_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("Process Approval"),
-            'domain': [('id', 'in', pa_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'process',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_process_approval(self):
-        pa_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
-             ('state', 'in', ['draft', 'request'])])
-        if pa_id_requested:
-            raise UserError(_("Process Approval is already requested."))
-        pa_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
-        if pa_id:
-            raise UserError(_("Process Approval is already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'process',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("Process has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_open_inspection(self):
-        fai_ids = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
-        return {
-            'res_model': 'first.article.inspection',
-            'type': 'ir.actions.act_window',
-            'name': _("First Article Inspection"),
-            'domain': [('id', 'in', fai_ids.ids)],
-            'view_mode': 'list,form',
-            'context': {'default_inspection_type': 'fai',
-                        'default_operation_id': self.operation_id.id,
-                        'default_origin': self.name,
-                        'default_model_id': self.product_model_id.id
-                        }
-        }
-
-    def action_request_inspection(self):
-        ins_id_requested = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
-             ('state', 'in', ['draft', 'request'])])
-        if ins_id_requested:
-            raise UserError(_("First article inspection is already requested."))
-        ins_id = self.env['first.article.inspection'].search(
-            [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
-        if ins_id:
-            raise UserError(_("First article inspection already done."))
-        inspection_id = self.env['first.article.inspection'].create({
-            'inspection_type': 'fai',
-            'date': fields.Date.today(),
-            'operation_id': self.operation_id.id,
-            'origin': self.name,
-            'user_id': self.env.user.id,
-            'model_id': self.product_model_id.id,
-        })
-        inspection_id.action_request()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _("First article inspection has been created."),
-                'type': 'success',
-                'sticky': False,
-                'next': {
-                    'type': 'ir.actions.act_window_close'
-                },
-            }
-        }
-
-    def action_start(self):
-        for rec in self:
-            pa_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
-                 ('inspection_type', '=', 'process'), ('state', '=', 'done')])
-            if not pa_id:
-                pass
-                # raise UserError("Kindly do process Approval before starting production")
-            fai_id = self.env['first.article.inspection'].search(
-                [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
-                 ('state', '=', 'done')])
-            if not fai_id:
-                pass
-#                 raise UserError("Kindly do First Article Inspection before starting production")
-        return super(VoltageTest, self).action_start()
+# class VoltageTest(models.Model):
+#     _inherit = 'voltage.test'
+#
+#     def _get_pa_count(self):
+#         for rec in self:
+#             rec.pa_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'process')])
+#
+#     def _get_fai_count(self):
+#         for rec in self:
+#             rec.fai_count = self.env['first.article.inspection'].search_count(
+#                 [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),
+#                  ('inspection_type', '=', 'fai')])
+#
+#     pa_count = fields.Integer('Inspection Count', compute='_get_pa_count')
+#     fai_count = fields.Integer('Inspection Count', compute='_get_fai_count')
+#
+#     def action_open_process_approval(self):
+#         pa_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("Process Approval"),
+#             'domain': [('id', 'in', pa_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'process',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_process_approval(self):
+#         pa_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'process'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if pa_id_requested:
+#             raise UserError(_("Process Approval is already requested."))
+#         pa_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'process')])
+#         if pa_id:
+#             raise UserError(_("Process Approval is already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'process',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("Process has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_open_inspection(self):
+#         fai_ids = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id),('inspection_type', '=', 'fai')])
+#         return {
+#             'res_model': 'first.article.inspection',
+#             'type': 'ir.actions.act_window',
+#             'name': _("First Article Inspection"),
+#             'domain': [('id', 'in', fai_ids.ids)],
+#             'view_mode': 'list,form',
+#             'context': {'default_inspection_type': 'fai',
+#                         'default_operation_id': self.operation_id.id,
+#                         'default_origin': self.name,
+#                         'default_model_id': self.product_model_id.id
+#                         }
+#         }
+#
+#     def action_request_inspection(self):
+#         ins_id_requested = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('inspection_type', '=', 'fai'),
+#              ('state', 'in', ['draft', 'request'])])
+#         if ins_id_requested:
+#             raise UserError(_("First article inspection is already requested."))
+#         ins_id = self.env['first.article.inspection'].search(
+#             [('origin', '=', self.name), ('operation_id', '=', self.operation_id.id), ('state', '=', 'done'), ('inspection_type', '=', 'fai')])
+#         if ins_id:
+#             raise UserError(_("First article inspection already done."))
+#         inspection_id = self.env['first.article.inspection'].create({
+#             'inspection_type': 'fai',
+#             'date': fields.Date.today(),
+#             'operation_id': self.operation_id.id,
+#             'origin': self.name,
+#             'user_id': self.env.user.id,
+#             'model_id': self.product_model_id.id,
+#         })
+#         inspection_id.action_request()
+#         return {
+#             'type': 'ir.actions.client',
+#             'tag': 'display_notification',
+#             'params': {
+#                 'message': _("First article inspection has been created."),
+#                 'type': 'success',
+#                 'sticky': False,
+#                 'next': {
+#                     'type': 'ir.actions.act_window_close'
+#                 },
+#             }
+#         }
+#
+#     def action_start(self):
+#         for rec in self:
+#             pa_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id),
+#                  ('inspection_type', '=', 'process'), ('state', '=', 'done')])
+#             if not pa_id:
+#                 pass
+#                 # raise UserError("Kindly do process Approval before starting production")
+#             fai_id = self.env['first.article.inspection'].search(
+#                 [('origin', '=', rec.name), ('operation_id', '=', rec.operation_id.id), ('inspection_type', '=', 'fai'),
+#                  ('state', '=', 'done')])
+#             if not fai_id:
+#                 pass
+# #                 raise UserError("Kindly do First Article Inspection before starting production")
+#         return super(VoltageTest, self).action_start()
 
     # def action_done_production(self):
     #     for rec in self:

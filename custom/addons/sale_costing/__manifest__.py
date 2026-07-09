@@ -13,7 +13,7 @@
         'data/datas.xml',
         'views/configuration_views.xml',
         'views/sale_costing_views.xml',
-        'views/purchase_views.xml',
+        # 'views/purchase_views.xml',
         'views/sale_views.xml',
     ],
     'license': 'LGPL-3',

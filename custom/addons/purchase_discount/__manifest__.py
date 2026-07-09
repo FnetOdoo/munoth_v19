@@ -5,7 +5,7 @@
     "depends": [
         "purchase",
         "purchase_stock",
-        "mrp",
+        # "mrp",
     ],
     "data": [
         "views/purchase_discount_view.xml",

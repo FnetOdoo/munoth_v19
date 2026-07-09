@@ -56,16 +56,22 @@ class MrpQuality(models.Model):
     max_value=fields.Integer()
     mode = fields.Selection([('auto', 'Automatic'), ('manual', 'Manual')], default='auto', required=True, string="Mode",tracking=True,states={'done': [('readonly', True)], 'request': [('readonly', True)]})
 
-    qr_code_printing_id = fields.Many2one('qr.code.printing', string="QR Code Printing")
-    cell_drying_id = fields.Many2one('cell.drying', string="Cell Drying")
-    injection_id = fields.Many2one('cell.injection', string="Injection")
-    ht_cell_id = fields.Many2one('high.temperature.cell', string="High Temperature")
-    clamp_baking_id = fields.Many2one('cell.clamp.baking')
-    degas_id = fields.Many2one('degas.cell')
-    pad_printing_id = fields.Many2one('pad.printing')
-    capacity_id = fields.Many2one('capacity.test')
-    voltage_test_id = fields.Many2one('voltage.test')
-    powerbank_id = fields.Many2one('mrp.powerbank')
+
+
+    # qr_code_printing_id = fields.Many2one('qr.code.printing', string="QR Code Printing")
+    # cell_drying_id = fields.Many2one('cell.drying', string="Cell Drying")
+    # injection_id = fields.Many2one('cell.injection', string="Injection")
+    # ht_cell_id = fields.Many2one('high.temperature.cell', string="High Temperature")
+    # clamp_baking_id = fields.Many2one('cell.clamp.baking')
+    # degas_id = fields.Many2one('degas.cell')
+    # pad_printing_id = fields.Many2one('pad.printing')
+    # capacity_id = fields.Many2one('capacity.test')
+    # voltage_test_id = fields.Many2one('voltage.test')
+    # powerbank_id = fields.Many2one('mrp.powerbank')
+
+
+
+
     manufacturing_process_id = fields.Many2one('manufacturing.process', string="Manufacturing Process")
     manufacturing_process_type_id = fields.Many2one(related='manufacturing_process_id.manufacturing_process_type_id', string="Manufacturing Process")
 
@@ -155,7 +161,6 @@ class MrpQuality(models.Model):
             if len(rec.history_ids) >= rec.operation_id.max_rework_count:
                 raise UserError(_("Maximum allowed rework count exceeded. Please scrap the item."))
 
-            # ✅ Product is currently AT reject location, move it back
             reject_location = rec.operation_id.location_reject_id
             if not reject_location:
                 raise UserError(_("Reject location not configured on operation."))
@@ -164,6 +169,22 @@ class MrpQuality(models.Model):
                 self.create_move(rec, reject_location, rec.operation_id.location_dest_id)
             else:
                 self.create_move(rec, reject_location, rec.operation_id.location_src_id)
+                if rec.manufacturing_process_id:
+                    serial_to_remove = rec.manufacturing_process_id.lot_ids.filtered(
+                        lambda s: s.lot_id.id == rec.lot_id.id
+                    )
+                    if serial_to_remove:
+                        for serial in serial_to_remove:
+                            self.env['product.serial.number'].create({
+                                'product_id': serial.product_id.id,
+                                'name': serial.name,
+                                'product_uom_id': serial.product_uom_id.id,
+                                'cell_weight': serial.cell_weight,
+                                'lot_id': serial.lot_id.id,
+                                'batch_id': serial.batch_id.id if serial.batch_id else False,
+                                'sub_manufacturing_process_id': rec.manufacturing_process_id.id,  # <-- must be defined, see below
+                            })
+                        # serial_to_remove.unlink()
 
             rec.write({'state': 'done'})
 

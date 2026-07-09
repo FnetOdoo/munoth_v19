@@ -56,13 +56,13 @@ class ManufacturingScrap(models.Model):
     manufacturing_process_id = fields.Many2one('manufacturing.process')
 
     operation_id = fields.Many2one('manufacturing.operation', string="Mrp Operation")
-    cell_drying_id = fields.Many2one('cell.drying', string="Cell Drying")
-    injection_id = fields.Many2one('cell.injection', string="Injection")
-    ht_cell_id = fields.Many2one('high.temperature.cell', string="High Temperature")
-    clamp_baking_id = fields.Many2one('cell.clamp.baking')
-    degas_id = fields.Many2one('degas.cell')
-    capacity_id = fields.Many2one('capacity.test')
-    voltage_test_id = fields.Many2one('voltage.test')
+    # cell_drying_id = fields.Many2one('cell.drying', string="Cell Drying")
+    # injection_id = fields.Many2one('cell.injection', string="Injection")
+    # ht_cell_id = fields.Many2one('high.temperature.cell', string="High Temperature")
+    # clamp_baking_id = fields.Many2one('cell.clamp.baking')
+    # degas_id = fields.Many2one('degas.cell')
+    # capacity_id = fields.Many2one('capacity.test')
+    # voltage_test_id = fields.Many2one('voltage.test')
     lot_file_name = fields.Char(string='File Name')
     lot_file = fields.Binary(string='Lot File')
 
@@ -116,8 +116,12 @@ class ManufacturingScrap(models.Model):
                     available_qty = rec.product_id.get_available_quantity(rec.location_src_id, lot)
                     qty = rec.product_uom_id._compute_quantity(rec.scrap_qty, rec.product_id.uom_id)
                     if qty > available_qty or qty == 0:
-                        raise UserError(_("Required quantity is not available in the stock for %s. Please check on %s" % (rec.product_id.name, rec.location_src_id.name)))
-                    existing_quality_id = self.env['mrp.quality'].search([('production_plan_id', '=', self.production_plan_id.id), ('operation_id', '=', self.operation_id.id), ('lot_id', '=', lot.id)])
+                        raise UserError(
+                            _("Required quantity is not available in the stock for %s. Please check on %s" % (
+                                rec.product_id.name, rec.location_src_id.name)))
+                    existing_quality_id = self.env['mrp.quality'].search(
+                        [('production_plan_id', '=', self.production_plan_id.id),
+                         ('operation_id', '=', self.operation_id.id), ('lot_id', '=', lot.id)])
                     if existing_quality_id:
                         raise UserError(_("Quality check is already created for the lot %s") % lot.name)
                     if not self.production_plan_id:
@@ -136,7 +140,7 @@ class ManufacturingScrap(models.Model):
                         'manufacturing_process_id': self.manufacturing_process_id.id,
                     })
                     # """Creating moves"""
-                    stock_move = self.env['stock.move'].create({
+                    stock_move = self.env['stock.move'].with_context(default_operation_id=False).create({
                         'inventory_name': rec.name,
                         'product_id': rec.product_id.id,
                         'product_uom': rec.product_uom_id.id,
@@ -146,7 +150,7 @@ class ManufacturingScrap(models.Model):
                         'manufacturing_process_id': self.manufacturing_process_id.id,
 
                     })
-                    stock_move._action_confirm()
+                    stock_move._action_confirm(merge=False)
                     stock_move._action_assign()
                     existing_move_lines = self.env['stock.move.line'].search([('move_id', '=', stock_move.id)])
                     if not existing_move_lines:
@@ -175,9 +179,11 @@ class ManufacturingScrap(models.Model):
                     available_qty = rec.product_id.get_available_quantity(rec.location_src_id, lot)
                     qty = rec.product_uom_id._compute_quantity(rec.scrap_qty, rec.product_id.uom_id)
                     if qty > available_qty or qty == 0:
-                        raise UserError(_("Required quantity is not available in the stock for %s. Please check on %s" % (
-                            rec.product_id.name, rec.location_src_id.name)))
-                    existing_quality_id = self.env['mrp.quality'].search([('operation_id', '=', self.operation_id.id), ('lot_id', '=', lot.id)])
+                        raise UserError(
+                            _("Required quantity is not available in the stock for %s. Please check on %s" % (
+                                rec.product_id.name, rec.location_src_id.name)))
+                    existing_quality_id = self.env['mrp.quality'].search(
+                        [('operation_id', '=', self.operation_id.id), ('lot_id', '=', lot.id)])
                     if existing_quality_id:
                         raise UserError(_("Quality check is already created for the lot %s") % lot.name)
                     quality_id = self.env['mrp.quality'].create({
@@ -193,7 +199,7 @@ class ManufacturingScrap(models.Model):
                         'manufacturing_process_id': self.manufacturing_process_id.id,
                     })
                     # # """Creating moves"""
-                    stock_move = self.env['stock.move'].create({
+                    stock_move = self.env['stock.move'].with_context(default_operation_id=False).create({
                         'inventory_name': rec.name,
                         'product_id': rec.product_id.id,
                         'product_uom': rec.product_uom_id.id,
@@ -203,7 +209,7 @@ class ManufacturingScrap(models.Model):
                         'manufacturing_process_id': self.manufacturing_process_id.id,
 
                     })
-                    stock_move._action_confirm()
+                    stock_move._action_confirm(merge=False)
                     stock_move._action_assign()
                     existing_move_lines = self.env['stock.move.line'].search([('move_id', '=', stock_move.id)])
                     if not existing_move_lines:

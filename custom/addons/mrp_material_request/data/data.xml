@@ -20,5 +20,23 @@
             <field name="number_increment">1</field>
             <field name="company_id" eval="False"/>
         </record>
+           <record id="sequence_mrp_material_return" model="ir.sequence">
+            <field name="name">Mrp Material Request</field>
+            <field name="code">mrp.material.return</field>
+            <field name="prefix">RMPR/</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+         <record id="sequence_material_request" model="ir.sequence">
+            <field name="name">Material Request</field>
+            <field name="code">maintenance.material.request</field>
+            <field name="prefix">MMR/%(year)s/</field>
+            <field name="padding">3</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
     </data>
 </odoo>

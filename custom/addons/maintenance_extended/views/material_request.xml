@@ -106,9 +106,9 @@
             <field name="view_mode">list,form</field>
         </record>
 
-        <menuitem id="menu_maintenance_material_request" name="Material Request" parent="maintenance.menu_m_request" action="action_maintenance_material_request"/>
+<!--        <menuitem id="menu_maintenance_material_request" name="Material Request" parent="maintenance.menu_m_request" action="action_maintenance_material_request"/>-->
 
-        <menuitem id="menu_maintenance_material_request_new" name="Maintenance Request" parent="mrp_material_request.menuitem_mrp_material_request_main" action="action_maintenance_material_request"/>
+<!--        <menuitem id="menu_maintenance_material_request_new" name="Maintenance Request" parent="mrp_material_request.menuitem_mrp_material_request_main" action="action_maintenance_material_request"/>-->
 
     </data>
 </odoo>

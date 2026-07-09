@@ -11,9 +11,9 @@
                 <xpath expr="//field[@name='picking_type_id']" position="after">
                     <field name="narration" readonly="state in ['purchase','done','cancel']"/>
                 </xpath>
-                <xpath expr="//field[@name='order_line']" position="attributes">
-                    <attribute name="readonly">state == 'cancel' or locked or material_request_id</attribute>
-                </xpath>
+<!--                <xpath expr="//field[@name='order_line']" position="attributes">-->
+<!--                    <attribute name="readonly">state == 'cancel' or locked or material_request_id</attribute>-->
+<!--                </xpath>-->
 
 <!--                <xpath expr="//field[@name='order_line']//list//field[@name='product_qty']" position="attributes">-->
 <!--                    <attribute name="readonly">is_downpayment or parent.material_request_id</attribute>-->

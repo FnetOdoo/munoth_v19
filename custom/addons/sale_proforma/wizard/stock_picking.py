@@ -24,7 +24,6 @@ class StockReturnPicking(models.TransientModel):
                 line.move_id.write({'reason': line.reason})
         if self.return_value:
             original_record = self.env['mrp.material.request'].search([('id','=',self.return_value)], limit=1)
-            print("-----------", original_record,"-----original_record------\n")
             # if original_record.exists():
             original_record.write({
                 'state': 'request',

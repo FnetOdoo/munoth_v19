@@ -28,12 +28,12 @@
             <!-- Add Received Bids page inside notebook -->
             <xpath expr="//notebook" position="inside">
                 <page string="Received Bids">
-                    <field name="bid_received_line">
+                    <field name="bid_received_line" readonly="state == 'done'">
                         <list editable="bottom" create="false" delete="false">
                             <field name="valid_qoute"/>
                             <field name="qty_selected" required="valid_qoute"/>
-                            <field name="tender_id" invisible="1" required="1"/>
-                            <field name="requisition_line_id" invisible="1"/>
+                            <field name="tender_id" column_invisible="1" required="1"/>
+                            <field name="requisition_line_id" column_invisible="1"/>
                             <field name="purchase_order_id"/>
                             <field name="vender_id"/>
                             <field name="product_id"/>

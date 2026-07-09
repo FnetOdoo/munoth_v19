@@ -5,7 +5,7 @@
     "website": "https://www.futurenet.in",
     "author": "Futurenet",
     "category": "Stock",
-    "depends": ['stock', 'purchase', 'purchase_requisition','sale','crm','account'],
+    "depends": ['stock', 'purchase', 'purchase_requisition','sale','crm','account','munoth_reports'],
     "data": [
         "security/ir.model.access.csv",
         "data/cron.xml",

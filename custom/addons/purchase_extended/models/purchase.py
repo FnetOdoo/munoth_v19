@@ -40,6 +40,57 @@ class Purchase(models.Model):
     po_rev_date = fields.Date(string='PO Terms & Condition Date')
     store_email = fields.Char()
 
+    def action_rfq_send(self):
+        for order in self:
+            if not order.order_line:
+                raise ValidationError(
+                    "Please add product lines before sending the RFQ."
+                )
+            if not order.partner_id.email:
+                raise ValidationError(
+                    ("Vendor '%s' does not have an email address. "
+                     "Please add an email address before sending the RFQ.")
+                    % order.partner_id.name
+                )
+
+        res = super(Purchase, self).action_rfq_send()
+
+        if self.state in ['draft', 'sent']:
+            report = self.env.ref('munoth_reports.rfq_report')
+        else:
+            report = self.env.ref('munoth_reports.purchase_order_to_vendor_report')
+
+        pdf_content, _ = report._render_qweb_pdf(
+            report.report_name,
+            res_ids=[self.id]
+        )
+        if self.state in ['draft', 'sent']:
+            attachment_name = f"Request for Quotation - {self.name}.pdf"
+        else:
+            attachment_name = f"Purchase Order - {self.name}.pdf"
+        attachment = self.env['ir.attachment'].create({
+            'name': attachment_name,
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content),
+            'res_model': self._name,
+            'res_id': self.id,
+            'mimetype': 'application/pdf',
+        })
+
+        if not res.get('context'):
+            res['context'] = {}
+        existing_attachments = res['context'].get('default_attachment_ids', [])
+        if existing_attachments and isinstance(existing_attachments, list) and existing_attachments[0][0] == 6:
+            res['context']['default_attachment_ids'][0][2].append(attachment.id)
+        else:
+            res['context']['default_attachment_ids'] = [(6, 0, [attachment.id])]
+
+        res['context'].update({
+            'default_partner_ids': [(6, 0, [self.partner_id.id])]
+        })
+
+        return res
+
     def _remind_mail_for_receipt_date(self):
         for rec in self:
             today_date = fields.Datetime.now()

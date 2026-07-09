@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <menuitem id="menu_manufacturing_request_root" name="Requests" parent="fnet_mrp.menu_manufacturing_root" sequence="-100"/>
+    <menuitem id="menu_manufacturing_request_root" name="Requests" parent="fnet_mrp.menu_manufacturing_root"
+              sequence="-100"/>
 
     <record id="manufacturing_request_form_view" model="ir.ui.view">
         <field name="name">mrp.request.form</field>
@@ -9,25 +10,35 @@
         <field name="arch" type="xml">
             <form string="Plan">
                 <header>
-                    <button name="action_confirm" string="Confirm" groups="fnet_mrp.group_manufacturing_manager" type="object" invisible="state != 'submit'" class="oe_highlight"/>
-                    <button name="action_submit" string="Submit" type="object" invisible="state != 'draft'" class="oe_highlight"/>
-                    <button name="action_cancel" groups="fnet_mrp.group_manufacturing_manager" string="Cancel" type="object" invisible="state != 'submit'" class="oe_highlight"/>
-                    <button name="action_draft" string="Draft" type="object" invisible="state != 'close'" class="oe_highlight"/>
-                    <button name="action_close" string="Close" type="object" invisible="state != 'done'" class="oe_highlight"/>
-                    <button name="action_create_mrp_order" groups="fnet_mrp.group_manufacturing_manager" string="Create Mrp" type="object" invisible="state != 'confirmed'" class="oe_highlight"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,close" readonly="1" clickable="1"/>
+                    <button name="action_confirm" string="Confirm" groups="fnet_mrp.group_manufacturing_manager"
+                            type="object" invisible="state != 'submit'" class="oe_highlight"/>
+                    <button name="action_submit" string="Submit" type="object" invisible="state != 'draft'"
+                            class="oe_highlight"/>
+                    <button name="action_cancel" groups="fnet_mrp.group_manufacturing_manager" string="Cancel"
+                            type="object" invisible="state != 'submit'" class="oe_highlight"/>
+                    <button name="action_draft" string="Draft" type="object" invisible="state != 'close'"
+                            class="oe_highlight"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'done'"
+                            class="oe_highlight"/>
+                    <button name="action_create_mrp_order" groups="fnet_mrp.group_manufacturing_manager"
+                            string="Create Mrp" type="object" invisible="state != 'confirmed'" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,close" readonly="1"
+                           clickable="1"/>
                 </header>
 
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_stock_picking" icon="fa-paste" string="Delivery" type="object" invisible="picking_id == False" class="oe_highlight"/>
-                        <button name="action_view_mrp_production" icon="fa-building" type="object" class="oe_stat_button" invisible="production_plan_count == 0">
+                        <button name="action_view_stock_picking" icon="fa-paste" string="Delivery" type="object"
+                                invisible="picking_id == False" class="oe_highlight"/>
+                        <button name="action_view_mrp_production" icon="fa-building" type="object"
+                                class="oe_stat_button" invisible="production_plan_count == 0">
                             <field name="production_plan_count" widget="statinfo" string="Production"/>
                         </button>
                     </div>
 
                     <widget name="web_ribbon" title="From Store" bg_color="bg-success" invisible="from_stock == False"/>
-                    <widget name="web_ribbon" title="From Delivery" bg_color="bg-success" invisible="from_stock != False"/>
+                    <widget name="web_ribbon" title="From Delivery" bg_color="bg-success"
+                            invisible="from_stock != False"/>
 
                     <div class="oe_title">
                         <label for="name" string="Reference"/>
@@ -57,8 +68,8 @@
                                 <list editable="bottom">
                                     <field name="product_id" domain="[('mrp_ok', '=', True)]"/>
                                     <field name="product_uom_id"/>
-<!--                                    <field name="product_uom_category_id" invisible="1"/>-->
-                                    <field name="company_id" invisible="1"/>
+                                    <!--                                    <field name="product_uom_category_id" invisible="1"/>-->
+                                    <field name="company_id" column_invisible="1"/>
                                     <field name="product_qty"/>
                                 </list>
                             </field>
@@ -106,7 +117,8 @@
         </field>
     </record>
 
-    <menuitem id="menu_manufacturing_request" name="MRP Request" parent="menu_manufacturing_request_root" action="action_mrp_request_form_action" sequence="-100"/>
+    <menuitem id="menu_manufacturing_request" name="MRP Request" parent="menu_manufacturing_request_root"
+              action="action_mrp_request_form_action" sequence="-100"/>
 
 
     <record id="action_mrp_stock_request_form_action" model="ir.actions.act_window">
@@ -124,6 +136,7 @@
 
         </field>
     </record>
-    <menuitem id="menuitem_manufacturing_reqeust" name="Manufacturing Request" parent="stock.menu_stock_warehouse_mgmt" action="action_mrp_stock_request_form_action" sequence="30"/>
+    <menuitem id="menuitem_manufacturing_reqeust" name="Manufacturing Request" parent="stock.menu_stock_warehouse_mgmt"
+              action="action_mrp_stock_request_form_action" sequence="30"/>
 
 </odoo>

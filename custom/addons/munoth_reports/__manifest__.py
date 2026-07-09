@@ -13,7 +13,7 @@
     # - account_accountant merged into account (v17+)
     # - hr_payroll_community merged into hr_payroll (v17+)
     # - sale_expected_delivery removed / merged into sale (v17+)
-    'depends': ['base','sale','sale_proforma','account','web','purchase','sales_subscription','apex_einvoice', 'hr', 'hr_payroll_community','fnet_mrp', 'purchase_extended','stock','hr_expense'],
+    'depends': ['base','sale','account','web','purchase','sales_subscription','apex_einvoice', 'hr', 'hr_payroll_community','fnet_mrp', 'stock','hr_expense', 'mrp_material_request'],
     'data': [
         'data/data.xml',
         'security/ir.model.access.csv',
@@ -36,11 +36,11 @@
         'reports/purchase_order_report.xml',
         'reports/payslip_report.xml',
         'reports/tax_invoice.xml',
-        'reports/degas_report.xml',
-        'reports/voltage_report.xml',
-        'reports/clamp_baking_report.xml',
-        'reports/pad_printing_report.xml',
-        'reports/capacity_test_report.xml',
+        # 'reports/degas_report.xml',
+        # 'reports/voltage_report.xml',
+        # 'reports/clamp_baking_report.xml',
+        # 'reports/pad_printing_report.xml',
+        # 'reports/capacity_test_report.xml',
         'reports/oqc_report.xml',
         'reports/process_quality_check.xml',
         'reports/engineering_change_request.xml',

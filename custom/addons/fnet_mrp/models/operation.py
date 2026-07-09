@@ -12,36 +12,6 @@ class ManufacturingOperation(models.Model):
     manufacturing_stages_id       = fields.Many2one('manufacturing.stages')
     manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
     is_power_bank                 = fields.Boolean(related='manufacturing_process_type_id.is_power_bank')
-
-    type = fields.Selection([
-        ('anode_slitting',          'Anode Slitting'),
-        ('cathode_slitting',        'Cathode Slitting'),
-        ('anode_drying',            'Anode Drying'),
-        ('cathode_drying',          'Cathode Drying'),
-        ('diaphragm_drying',        'Diaphragm Drying'),
-        ('anode_electrode_making',  'Anode Electrode Making'),
-        ('cathode_electrode_making','Cathode Electrode Making'),
-        ('winding',                 'Winding'),
-        ('hot_press_jelly',         'Hot Press Jelly'),
-        ('assembly',                'Assembly'),
-        ('qr_code_print',           'QR Code Printing'),
-        ('cell_drying',             'Cell Drying'),
-        ('injection',               'Injection'),
-        ('high_temperature',        'High Temperature'),
-        ('cell_clamp_baking',       'Cell Clamp Baking'),
-        ('ht_clamp_baking',         'HT + Cell Clamp Baking'),
-        ('aged_formation_cell',     'Aged Formation Cell'),
-        ('degas',                   'Degas'),
-        ('dsf',                     'Double Side Folding'),
-        ('pad_printing',            'Pad Printing'),
-        ('capacity_test',           'Capacity Test'),
-        ('voltage_test',            'Voltage Test'),
-        ('aged_formation_cell_2',   'Aged Formation Cell 2'),
-        ('voltage_test_2',          'Voltage Test 2'),
-        ('packing',                 'Packing'),
-        ('powerbank',               'Power Bank'),
-    ])
-
     show_injection        = fields.Boolean(related='manufacturing_process_type_id.show_injection',        store=True)
     show_degas            = fields.Boolean(related='manufacturing_process_type_id.show_degas',            store=True)
     show_packing          = fields.Boolean(related='manufacturing_process_type_id.show_packing',          store=True)
@@ -73,14 +43,7 @@ class ManufacturingOperation(models.Model):
     process_duration = fields.Float()
     product_model_id = fields.Many2one('product.model')
     reference = fields.Char()
-    stage = fields.Selection([
-        ('stage_0', 'Process Type 0'),
-        ('stage_1', 'Process Type 1'),
-        ('stage_2', 'Process Type 2'),
-        ('stage_3', 'Process Type 3'),
-        ('stage_4', 'Process Type 4'),
-        ('stage_5', 'Process Type 5'),
-        ('stage_6', 'Process Type 6')], default='stage_1', help='Choose stage of going to production', string="From Stage")
+
     machine_id = fields.Many2one('manufacturing.machine', string="Default Machine")
     allow_lot_create = fields.Boolean('Allow lot creation')
     max_rework_count = fields.Integer('Maximum Allowed Rework', default=3)
@@ -525,11 +488,11 @@ class ManufacturingOperation(models.Model):
         )
 
         return res
-    @api.depends('product_model_id.name', 'vendor_id.name', 'reference', 'type')
+    @api.depends('product_model_id.name', 'vendor_id.name', 'reference')
     def _compute_display_name(self):
         for rec in self:
-            field = rec._fields['type']
-            label = dict(field.selection).get(rec.type)
+            # field = rec._fields['manufacturing_process_type_id']
+            label = rec.manufacturing_process_type_id.name
             name_parts = []
 
             if rec.product_model_id.name:

@@ -5,7 +5,7 @@
     'category': 'Maintenance',
     'license': 'LGPL-3',
     'version': '19.0.0',
-    'depends': ['maintenance', 'hr', 'stock', 'maintenance_plan', 'sales_subscription', 'mrp_material_request'],
+    'depends': ['maintenance', 'hr', 'stock', 'maintenance_plan', 'sales_subscription','base_maintenance'],
     'data': [
         'security/ir.model.access.csv',
         'datas/sequence.xml',

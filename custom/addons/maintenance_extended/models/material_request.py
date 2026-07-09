@@ -110,8 +110,6 @@ class MaintenanceMaterialRequest(models.Model):
             })
 
 
-
-
     def action_validate(self):
         stock = self.env['stock.picking'].search([('request_id','=',self.id)])
         if any(record.picking_type_id.sequence_code == 'INT' and record.state != 'done' for record in stock):

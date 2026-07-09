@@ -153,7 +153,7 @@ class ManufacturingBomLine(models.Model):
         res = {}
         if not self.product_uom_id or not self.product_id:
             return res
-        if self.product_uom_id.uom_category_id != self.product_id.uom_id.relative_uom_id:
+        if self.product_uom_id.relative_uom_id != self.product_id.uom_id.relative_uom_id:
             self.product_uom_id = self.product_id.uom_id.id
             res['warning'] = {'title': _('Warning'), 'message': _(
                 'The Product Unit of Measure you chose has a different category than in the product form.')}

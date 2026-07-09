@@ -11,12 +11,18 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="product_model_id" string="Model" invisible="is_power_bank" required="not is_power_bank"/>
+                            <field name="product_model_id" string="Model" invisible="is_power_bank"
+                                   required="not is_power_bank"/>
                             <field name="manufacturing_process_type_id" string="Operation Type"/>
-                            <field name="production_location_id" required="0" invisible="1" domain="[('usage', '=', 'production')]"/>
-                            <field name="bom_id" domain="[('product_model_id', '=', product_model_id), ('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                            <field name="production_location_id" required="0" invisible="1"
+                                   domain="[('usage', '=', 'production')]"/>
+                            <field name="bom_id"
+                                   domain="[('product_model_id', '=', product_model_id), ('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
                             <field name="vendor_id"/>
-                            <field name="manufacturing_stages_id" invisible="is_power_bank" required="not is_power_bank"/>
+                            <field name="manufacturing_stages_id" invisible="is_power_bank"
+                                   required="not is_power_bank"/>
+                            <field name="max_rework_count"/>
+                            <field name="max_rework_count"/>
                         </group>
                         <group>
                             <field name="location_src_id" required="1" string="Source Location"/>
@@ -27,9 +33,10 @@
                             <field name="reference"/>
                             <field name="machine_id"/>
                             <field name="allow_lot_create"/>
-                            <field name="max_rework_count"/>
                         </group>
                     </group>
+
+
 
                     <!-- Hidden computed fields needed for invisible conditions -->
                     <field name="show_injection" invisible="1"/>
@@ -68,9 +75,11 @@
                         <page string="Quality Parameters">
                             <group>
                                 <field name="weight" invisible="not show_injection and not show_high_temperature"/>
-                                <field name="moisture_in_electrolyte" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="moisture_in_electrolyte"
+                                       invisible="not show_injection and not show_high_temperature"/>
                                 <field name="dimension" invisible="not show_injection and not show_high_temperature"/>
-                                <field name="visual_examination" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="visual_examination"
+                                       invisible="not show_injection and not show_high_temperature"/>
                             </group>
                             <group>
                                 <field name="voltage" invisible="not show_degas"/>
@@ -399,6 +408,7 @@
             <list string="Manufacturing Operation" sample="1">
                 <field name="sequence" widget="handle"/>
                 <field name="manufacturing_process_type_id" column_invisible="0"/>
+                <field name="allow_lot_create"/>
                 <field name="product_model_id" string="Model"/>
                 <field name="bom_id"/>
                 <field name="location_src_id"/>
@@ -422,9 +432,11 @@
                 <field name="vendor_id"/>
                 <field name="process_duration" widget="float_time"/>
                 <group>
-                    <filter string="Model" name="product_model_id" domain="[]" context="{'group_by': 'product_model_id'}"/>
+                    <filter string="Model" name="product_model_id" domain="[]"
+                            context="{'group_by': 'product_model_id'}"/>
                     <filter string="Vendor" name="vendor_id" domain="[]" context="{'group_by': 'vendor_id'}"/>
-                    <filter string="Operation Type" name="manufacturing_process_type_id" domain="[]" context="{'group_by': 'type'}"/>
+                    <filter string="Operation Type" name="manufacturing_process_type_id" domain="[]"
+                            context="{'group_by': 'manufacturing_process_type_id'}"/>
                 </group>
             </search>
         </field>

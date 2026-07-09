@@ -8,7 +8,7 @@
     "category": "Purchase",
     "author": "Futurenet Technologies India Pvt Ltd.",
     "website": "https://www.futurenet.in",
-    "depends": ["hr", "purchase", 'purchase_extended', 'sales_team','purchase_discount'],
+    "depends": ["hr", "purchase", 'purchase_extended',  'sales_team'],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",

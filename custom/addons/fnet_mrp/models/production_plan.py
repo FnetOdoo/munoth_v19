@@ -47,11 +47,11 @@ class ProductionPlan(models.Model):
     ], default='draft')
     line_number = fields.Char(default='1')
     date = fields.Datetime(default=fields.Datetime.now, readonly=True)
-    manufacturing_stages_id       = fields.Many2one('manufacturing.stages')
-    anode_slitting = fields.Many2one('anode.slitting')
-    cathode_slitting = fields.Many2one('cathode.slitting')
-    injection_id = fields.Many2one('cell.injection')
-    diaphragm_id = fields.Many2one('diaphragm.drying')
+    manufacturing_stages_id = fields.Many2one('manufacturing.stages')
+    # anode_slitting = fields.Many2one('anode.slitting')
+    # cathode_slitting = fields.Many2one('cathode.slitting')
+    # injection_id = fields.Many2one('cell.injection')
+    # diaphragm_id = fields.Many2one('diaphragm.drying')
     product_id = fields.Many2one('product.product')
     expected_production_qty = fields.Float()
     anode_slitting_operation_id = fields.Many2one('manufacturing.operation')
@@ -79,20 +79,22 @@ class ProductionPlan(models.Model):
     qty_produced = fields.Float("Produced Qty", compute='_compute_produced_qty')
     qty_remaining = fields.Float("Remaining Qty to Produce", compute='_compute_produced_qty')
 
-    first_process_type = fields.Char( string="First Process Type",compute='_compute_first_operation', store=True)
-    first_operation_id = fields.Many2one( 'manufacturing.operation', string="First Operation", compute='_compute_first_operation',store=True)
-    first_process_type_id = fields.Many2one('manufacturing.process.type',  string="First Process Type", compute='_compute_first_operation', store=True)
+    first_process_type = fields.Char(string="First Process Type", compute='_compute_first_operation', store=True)
+    first_operation_id = fields.Many2one('manufacturing.operation', string="First Operation",
+                                         compute='_compute_first_operation', store=True)
+    first_process_type_id = fields.Many2one('manufacturing.process.type', string="First Process Type",
+                                            compute='_compute_first_operation', store=True)
     first_production_process_count = fields.Integer(compute='_compute_first_production_process_count')
     batch_id = fields.Many2one('manufacturing.batch', string='Batch')
 
     def _compute_first_production_process_count(self):
         for rec in self:
             rec.first_production_process_count = self.env['manufacturing.process'].search_count([
-                ('is_first_process' ,'=',True),
+                ('is_first_process', '=', True),
                 ('production_plan_id', '=', rec.id)
             ])
 
-    @api.depends('operation_ids.sequence','manufacturing_stages_id','model_id',
+    @api.depends('operation_ids.sequence', 'manufacturing_stages_id', 'model_id',
                  'operation_ids.operation_id',
                  'operation_ids.manufacturing_process_type_id')
     def _compute_first_operation(self):
@@ -115,7 +117,7 @@ class ProductionPlan(models.Model):
                 'default_product_id.tracking': 'none',
                 'default_is_first_process': True,
             },
-            'domain': [('production_plan_id', '=', self.id),('is_first_process', '=', True)]
+            'domain': [('production_plan_id', '=', self.id), ('is_first_process', '=', True)]
         }
 
     @api.onchange('manufacturing_stages_id', 'model_id')
@@ -123,16 +125,16 @@ class ProductionPlan(models.Model):
         if self.manufacturing_stages_id and self.model_id:
             line_defaults = []
             self.operation_ids = False
-
+            seq = 10
             for line in self.model_id.operation_ids.filtered(
                     lambda x: x.manufacturing_stages_id == self.manufacturing_stages_id
-            ):
+            ).sorted(key=lambda x: (x.sequence, x.id)):
                 line_defaults.append((0, 0, {
-                    'sequence': line.sequence,
+                    'sequence': seq,
                     'manufacturing_process_type_id': line.manufacturing_process_type_id,
                     'operation_id': line.id,
                 }))
-
+                seq += 10
             self.operation_ids = line_defaults
 
     def print_excel_report(self):
@@ -268,17 +270,27 @@ class ProductionPlan(models.Model):
 
     def _compute_produced_qty(self):
         for rec in self:
-            lot_ids = []
-            if rec.choose_stage == 'stage_2':
-                drying_ids = self.env['cell.drying'].search([('production_plan_id', '=', rec.id)])
-                lot_ids = drying_ids.mapped('finished_move_ids').mapped('lot_id').ids
-            rec.qty_produced = len(lot_ids)
-            rec.qty_remaining = rec.expected_production_qty - len(lot_ids)
-            if rec.choose_stage == 'stage_3':
-                drying_ids = self.env['cell.drying'].search([('production_plan_id', '=', rec.id)])
-                lot_ids = drying_ids.mapped('finished_move_ids').mapped('lot_id').ids
-            rec.qty_produced = len(lot_ids)
-            rec.qty_remaining = rec.expected_production_qty - len(lot_ids)
+            rec.qty_remaining = 0.0
+
+            if rec.operation_ids:
+                all_lines = rec.operation_ids.sorted('sequence')
+                next_line = all_lines.filtered(lambda x: not x.is_process_completed)[:1]
+                if next_line:
+                    process = self.env['manufacturing.process'].search([
+                        ('production_plan_id', '=', rec.id),
+                        ('operation_id', '=', next_line.operation_id.id),
+                        ('state', 'in', ['close', 'completed']),
+                    ])
+                    remaining_qty = sum(process.mapped('remaining_qty'))
+                    rec.qty_remaining = rec.expected_production_qty - remaining_qty
+        #     lot_ids = process.mapped('finished_move_ids').mapped('lot_id').ids
+        # rec.qty_produced = len(lot_ids)
+        # rec.qty_remaining = rec.expected_production_qty - len(lot_ids)
+        # if rec.choose_stage == 'stage_3':
+        #     drying_ids = self.env['cell.drying'].search([('production_plan_id', '=', rec.id)])
+        #     lot_ids = drying_ids.mapped('finished_move_ids').mapped('lot_id').ids
+        # rec.qty_produced = len(lot_ids)
+        # rec.qty_remaining = rec.expected_production_qty - len(lot_ids)
 
     def action_view_lots(self):
         self.ensure_one()
@@ -301,7 +313,6 @@ class ProductionPlan(models.Model):
             }
         }
 
-
     @api.onchange('model_id')
     def onchange_of_product_model_id(self):
         if self.model_id:
@@ -312,35 +323,64 @@ class ProductionPlan(models.Model):
             if not rec.expected_production_qty > 0:
                 raise UserError('Expected Production Qty cannot be 0')
             if not rec.operation_ids:
-                raise UserError(_("There is no operation found for the current production plan. Please configure in product model %s." % (rec.model_id.name)))
+                raise UserError(
+                    _("There is no operation found for the current production plan. Please configure in product model %s." % (
+                        rec.model_id.name)))
             for line in rec.operation_ids:
                 if not line.operation_id:
-                    raise UserError(_("Please set operation for type %s" % dict(line._fields['operation_type'].selection).get(line.operation_type)))
+                    raise UserError(
+                        _("Please set operation for type %s" % dict(line._fields['operation_type'].selection).get(
+                            line.operation_type)))
             rec.state = 'confirm'
 
     def action_close(self):
         for rec in self:
-            first_production_process = self.env['manufacturing.process'].search([
-                ('manufacturing_process_id', '=', rec.first_process_type_id.id),
-                ('production_plan_id', '=', self.id)
-            ])
-            if not first_production_process:
-                raise UserError("Please Create a First Production Process")
-            for get_process in first_production_process:
-                if get_process.state != 'close':
+            if not rec.operation_ids:
+                raise UserError(_("There is no operation found for the current production plan."))
+
+            for line in rec.operation_ids:
+                process = self.env['manufacturing.process'].search([
+                    ('operation_id', '=', line.operation_id.id),
+                    ('production_plan_id', '=', rec.id),
+                    # ('is_sub_process', '=', False),
+                    ('state', '=', 'close'),
+
+                ])
+
+                if not process:
                     raise UserError(_(
-                        "Please complete the entire process before closing the Production Plan"
-                    ))
+                        "Please create a Production Process for operation '%s' before closing the Production Plan."
+                    ) % line.manufacturing_process_type_id.name)
+
+                get_quality = self.env['mrp.quality'].search([
+                    ('manufacturing_process_id', 'in', process.ids),
+                    ('decision', '=', 'scrap'),
+                    ('state', '=', 'done'),
+                ])
+
+                total_qty = sum(process.mapped('product_qty'))
+                scrap_qty = len(get_quality)
+                produced_qty = total_qty - scrap_qty
+
+                # if produced_qty < rec.expected_production_qty:
+                #     raise UserError(_(
+                #         "Operation '%s' has not reached the expected production quantity. "
+                #         "Produced: %s, Expected: %s."
+                #     ) % (line.manufacturing_process_type_id.name, produced_qty, rec.expected_production_qty))
+
+            rec.write({
+                'state': 'close',
+                'end_date': fields.Date.today(),
+            })
         # packing = self.env['package.move'].search([('type', '=', 'packing'), ('production_plan_id', '=', self.id), ('state', '=', 'close')])
-        lot_ids = self.env['stock.lot'].search([('production_plan_id', '=', self.id)])
-        close_locations = self.env['stock.location'].search(['|', ('usage', '!=', 'inventory'), ('stock_location', '!=', False)])
-        stock_quants = self.env['stock.quant'].search([('lot_id', 'in', lot_ids.ids), ('quantity', '>', 0)])
-        if any(stock_quant.location_id.id not in close_locations.ids for stock_quant in stock_quants):
-            raise UserError(_('Please Complete the entire process'))
+        # lot_ids = self.env['stock.lot'].search([('production_plan_id', '=', self.id)])
+        # close_locations = self.env['stock.location'].search(['|', ('usage', '!=', 'inventory'), ('stock_location', '!=', False)])
+        # stock_quants = self.env['stock.quant'].search([('lot_id', 'in', lot_ids.ids), ('quantity', '>', 0)])
+        # if any(stock_quant.location_id.id not in close_locations.ids for stock_quant in stock_quants):
+        #     raise UserError(_('Please Complete the entire process'))
         # if not packing:
         #     raise UserError(_('Please Complete the entire process'))
         # self.state = 'close'
-        self.end_date = fields.Date.today()
 
     def action_cancel(self):
         self.state = 'cancel'
@@ -353,7 +393,8 @@ class ProductionPlan(models.Model):
             raise UserError(_("Please fill in the materials"))
         for rec in self.component_ids:
             if rec.product_id and rec.product_qty:
-                lot_id = self.env['stock.lot'].search([('name', '=', rec.lot_number), ('product_id', '=', rec.product_id.id)])
+                lot_id = self.env['stock.lot'].search(
+                    [('name', '=', rec.lot_number), ('product_id', '=', rec.product_id.id)])
                 stock_quant = self.env['stock.quant'].search([
                     ('product_id', '=', rec.product_id.id),
                     ('location_id', '=', rec.location_src_id.id),
@@ -362,91 +403,10 @@ class ProductionPlan(models.Model):
                 available_quantity = sum(stock_quant.mapped('quantity'))
                 rec.available_qty = available_quantity  # Update the available_qty field
 
-    @api.onchange('anode_slitting_operation_id')
-    def _onchange_of_anode_slitting(self):
-        if self.anode_slitting_operation_id and self.anode_slitting_operation_id.bom_id:
-            child_records = []
-            lines = self.env['manufacturing.bom.line'].search([('bom_id', '=', self.anode_slitting_operation_id.bom_id.id)])
-            for line in lines:
-                child_records.append((0, 0, {
-                    'product_id': line.product_id.id,
-                    'name': line.product_id.name,
-                    'location_src_id': self.anode_slitting_operation_id.location_src_id.id,
-                    'location_dest_id': self.anode_slitting_operation_id.location_dest_id.id,
-                    'product_qty': line.product_qty,
-                    'anode_operation_id': self.anode_slitting_operation_id.id,
-                }))
-            self.component_ids = child_records
-
-    @api.onchange('cathode_slitting_operation_id')
-    def _onchange_of_cathode_slitting(self):
-        if self.cathode_slitting_operation_id and self.cathode_slitting_operation_id.bom_id:
-            child_records = []
-            lines = self.env['manufacturing.bom.line'].search(
-                [('bom_id', '=', self.cathode_slitting_operation_id.bom_id.id)])
-            for line in lines:
-                child_records.append((0, 0, {
-                    'product_id': line.product_id.id,
-                    'name': line.product_id.name,
-                    'location_src_id': self.cathode_slitting_operation_id.location_src_id.id,
-                    'location_dest_id': self.cathode_slitting_operation_id.location_dest_id.id,
-                    'product_qty': line.product_qty,
-                    'anode_operation_id': self.cathode_slitting_operation_id.id,
-                }))
-            self.component_ids = child_records
-
     def action_production_start(self):
         for rec in self:
             rec.state = 'in_production'
             rec.date_start = fields.Date.today()
-
-    def open_anode_slitting_processing(self):
-        return {
-            'name': _('Anode Slitting'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'anode.slitting',
-            'domain' : [('production_plan_id','=', self.id)]
-        }
-
-    def open_diaphragm_drying_processing(self):
-        return {
-            'name': _('Diaphragm Drying'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'diaphragm.drying',
-            'domain' : [('production_plan_id','=', self.id)]
-        }
-
-    def open_cathode_slitting_processing(self):
-        return {
-            'name': _('Cathode Slitting'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'cathode.slitting',
-            'domain': [('production_plan_id', '=', self.id)]
-        }
-
-    def open_injection_processing(self):
-        return {
-            'name': _('Cell Drying'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'cell.drying',
-            'domain': [('production_plan_id', '=', self.id)]
-        }
-
-    def open_qr_code_printing(self):
-        return {
-            'name': _('QR Code Printing'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'qr.code.printing',
-            'context': {
-                    'default_product_id.tracking': 'none',
-                },
-            'domain': [('production_plan_id', '=', self.id)]
-        }
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -454,7 +414,6 @@ class ProductionPlan(models.Model):
             if not vals.get('name') or vals['name'] == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('manufacturing.plan') or _('New')
         return super(ProductionPlan, self).create(vals_list)
-
 
     @api.onchange('operation_ids')
     def _onchange_operation_ids_sequence(self):
@@ -501,11 +460,40 @@ class Operation(models.Model):
     operation_id = fields.Many2one('manufacturing.operation')
     sequence = fields.Integer(index=True, default=1)
     is_process_completed = fields.Boolean(default=False)
+    scrap_qty = fields.Integer(compute='_compute_scrap_qty')
+    sub_process_qty = fields.Integer(compute='_compute_scrap_qty')
+    produced_qty = fields.Integer(compute='_compute_scrap_qty')
+
+    @api.depends('manufacturing_process_type_id', 'production_plan_id')
+    def _compute_scrap_qty(self):
+        for rec in self:
+            process = self.env['manufacturing.process'].search([
+                ('operation_id', '=', rec.operation_id.id),
+                ('production_plan_id', '=', rec.production_plan_id.id),
+                ('is_sub_process', '=', False),
+                ('state', '=', 'close'),
+            ])
+            sub_process = self.env['manufacturing.process'].search([
+                ('manufacturing_process_type_id', '=', rec.manufacturing_process_type_id.id),
+                ('is_sub_process', '=', True),
+                ('production_plan_id', '=', rec.production_plan_id.id),
+                ('state', '=', 'close'),
+            ])
+            get_quality = self.env['mrp.quality'].search([
+                ('manufacturing_process_id', 'in', process.ids),
+                ('decision', '=', 'scrap'),
+                ('state', '=', 'done'),
+            ])
+            total_qty = sum(process.mapped('product_qty'))
+            rec.scrap_qty = len(get_quality)
+            rec.sub_process_qty = sum(sub_process.mapped('product_qty'))
+            rec.produced_qty = total_qty - rec.scrap_qty
 
     @api.onchange('sequence')
     def _onchange_sequence(self):
         if self.production_plan_id:
             self.production_plan_id._onchange_operation_ids_sequence()
+
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.lot'

@@ -17,7 +17,6 @@
         'account',
         'mrp_material_request',
         'purchase_approval',
-        'sale_expected_delivery',
     ],
     'data': [
         'security/ir.model.access.csv',

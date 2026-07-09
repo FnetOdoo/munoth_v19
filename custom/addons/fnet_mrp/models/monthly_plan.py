@@ -1,31 +1,31 @@
 from odoo import models, fields, api, _
 from datetime import date, time, datetime
 
-model_ref = {'anode_slitting': 'anode.slitting',
-             'cathode_slitting': 'cathode.slitting ',
-             'anode_drying': 'anode.drying',
-             'cathode_drying': 'cathode.drying',
-             'diaphragm_drying': 'dia.drying',
-             'anode_electrode_making': 'anode.electrode.making',
-             'cathode_electrode_making': 'cathode.electrode.making',
-             'winding': 'winding',
-             'hot_press_jelly': 'hot.press.jelly',
-             'assembly': 'assembly.cell',
-             'cell_drying': 'cell.drying',
-             'injection': 'cell.injection',
-             'high_temperature': 'high.temperature.cell',
-             'cell_clamp_baking': 'cell.clamp.baking',
-             'aged_formation_cell': 'aged.formation.cell',
-             'degas': 'degas.cell', 'dsf': 'double.side.folding',
-             'pad_printing': 'pad.printing',
-             'capacity_test': 'capacity.test',
-             'voltage_test': 'voltage.test',
-             'aged_formation_cell_2': 'aged.formation.cell',
-             'voltage_test_2': 'voltage.test',
-             'packing': 'package.move',
-             'powerbank': 'mrp.powerbank',
-             'qr_code_print': 'qr.code.printing',
-             }
+# model_ref = {'anode_slitting': 'anode.slitting',
+#              'cathode_slitting': 'cathode.slitting ',
+#              'anode_drying': 'anode.drying',
+#              'cathode_drying': 'cathode.drying',
+#              'diaphragm_drying': 'dia.drying',
+#              'anode_electrode_making': 'anode.electrode.making',
+#              'cathode_electrode_making': 'cathode.electrode.making',
+#              'winding': 'winding',
+#              'hot_press_jelly': 'hot.press.jelly',
+#              'assembly': 'assembly.cell',
+#              'cell_drying': 'cell.drying',
+#              'injection': 'cell.injection',
+#              'high_temperature': 'high.temperature.cell',
+#              'cell_clamp_baking': 'cell.clamp.baking',
+#              'aged_formation_cell': 'aged.formation.cell',
+#              'degas': 'degas.cell', 'dsf': 'double.side.folding',
+#              'pad_printing': 'pad.printing',
+#              'capacity_test': 'capacity.test',
+#              'voltage_test': 'voltage.test',
+#              'aged_formation_cell_2': 'aged.formation.cell',
+#              'voltage_test_2': 'voltage.test',
+#              'packing': 'package.move',
+#              'powerbank': 'mrp.powerbank',
+#              'qr_code_print': 'qr.code.printing',
+#              }
 
 
 class MonthlyPlan(models.Model):
@@ -37,15 +37,17 @@ class MonthlyPlan(models.Model):
                              string="Status", tracking=True)
     date = fields.Date('Date', default=fields.Date.today, required=True)
     model_id = fields.Many2one('product.model', string="Model", required=1)
-    stage = fields.Selection([
-        ('stage_0', 'Process Type 0'),
-        ('stage_1', 'Process Type 1'),
-        ('stage_2', 'Process Type 2'),
-        ('stage_3', 'Process Type 3'),
-        ('stage_4', 'Process Type 4'),
-        ('stage_5', 'Process Type 5'),
-        ('stage_6', 'Process Type 6')], default='stage_1', help='Choose stage of going to production', string="Stage",
-        required=1)
+    # stage = fields.Selection([
+    #     ('stage_0', 'Process Type 0'),
+    #     ('stage_1', 'Process Type 1'),
+    #     ('stage_2', 'Process Type 2'),
+    #     ('stage_3', 'Process Type 3'),
+    #     ('stage_4', 'Process Type 4'),
+    #     ('stage_5', 'Process Type 5'),
+    #     ('stage_6', 'Process Type 6')], default='stage_1', help='Choose stage of going to production', string="Stage",
+    #     required=1)
+    manufacturing_stages_id = fields.Many2one('manufacturing.stages')
+
     user_id = fields.Many2one('res.users', 'Responsible', default=lambda self: self.env.user,
                               states={'confirm': [('readonly', True)], 'cancel': [('readonly', True)]})
     resource_calendar_id = fields.Many2one('resource.calendar', 'Working Hours',
@@ -57,11 +59,11 @@ class MonthlyPlan(models.Model):
         'res.company', 'Company', index=True,
         default=lambda self: self.env.company)
 
-    @api.onchange('stage')
+    @api.onchange('manufacturing_stages_id')
     def onchange_stage(self):
         self.line_ids = False
         lines = []
-        for operation in self.model_id.operation_ids.filtered(lambda x: x.stage == self.stage).sorted(
+        for operation in self.model_id.operation_ids.filtered(lambda x: x.manufacturing_stages_id == self.manufacturing_stages_id).sorted(
                 key=lambda x: x.sequence):
             lines.append(
                 (0, 0, {'operation_id': operation.id, 'month': self.date.month or '', 'year': self.date.year or ''}))
@@ -85,18 +87,28 @@ class MonthlyPlan(models.Model):
             for day in range(1, 31):
                 current_date = datetime.combine(fields.Date.from_string(self.date.replace(day=day)), time.min)
                 current_date_end = datetime.combine(fields.Date.from_string(self.date.replace(day=day)), time.max)
-                record = self.env[model_ref[line.operation_id.type]].search(
-                    [('start_time', '>=', current_date), ('start_time', '<=', current_date_end)])
-                rejected = self.env['mrp.quality'].search(
-                    [('operation_id', '=', line.operation_id.id), ('state', '=', 'done'), ('date', '>=', current_date),
-                     ('date', '<=', current_date_end)])
-                self.env['monthly.plan.result'].create({'plan_id': self.id,
-                                                        'date': current_date.date(),
-                                                        'operation_id': line.operation_id.id,
-                                                        'planned_qty': line['day_' + str(day)],
-                                                        'produced_qty': sum(
-                                                            record.mapped('finished_move_ids').mapped('quantity')),
-                                                        'rejected_qty': sum(rejected.mapped('quantity'))})
+
+                record = self.env['manufacturing.process'].search([
+                    ('manufacturing_process_type_id', '=', line.operation_id.manufacturing_process_type_id.id),
+                    ('start_time', '>=', current_date),
+                    ('start_time', '<=', current_date_end),
+                ])
+
+                rejected = self.env['mrp.quality'].search([
+                    ('operation_id', '=', line.operation_id.id),
+                    ('state', '=', 'done'),
+                    ('date', '>=', current_date),
+                    ('date', '<=', current_date_end),
+                ])
+
+                self.env['monthly.plan.result'].create({
+                    'plan_id': self.id,
+                    'date': current_date.date(),
+                    'operation_id': line.operation_id.id,
+                    'planned_qty': line['day_' + str(day)],
+                    'produced_qty': sum(record.mapped('finished_move_ids').mapped('quantity')),
+                    'rejected_qty': sum(rejected.mapped('quantity')),
+                })
 
         return {
             'name': _('Result for the Month of %s/%s' % (self.date.month, self.date.year)),

@@ -7,16 +7,16 @@
             <xpath expr="//header" position="inside">
                 <button name="action_create_mrp_stock_request" string="Mrp Request" type="object"
                         invisible="picking_type_code != 'outgoing'" class="btn-primary"/>
-               <button
-                            name="action_check_availability"
+               <button name="action_check_availability"
                             string="Check Availability"
                             type="object"
                             class="btn-primary"
-                            groups="mrp_material_request.group_material_request_store_user,material_purchase_requisitions.group_purchase_requisition_store"
-                            invisible="state not in ('draft', 'confirmed', 'assigned') or not material_request_id or purchase_id or is_product_qty_checked"/>
+                            groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator,material_purchase_requisitions.group_purchase_requisition_store"
+                            invisible="state not in ('draft', 'confirmed', 'assigned') or not material_request_id or material_return_id or purchase_id or is_product_qty_checked"/>
             </xpath>
             <xpath expr="//field[@name='location_dest_id']" position="before">
                 <field name="material_request_id" invisible="1"/>
+                <field name="material_return_id" invisible="1"/>
                 <field name="is_product_qty_checked" invisible="1"/>
             </xpath>
             <div class="oe_button_box" name="button_box">
@@ -35,16 +35,25 @@
                 <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting') or (material_request_id and not purchase_id) or (custom_requisition_id and not purchase_id)</attribute>
             </xpath>
             <xpath expr="//button[@name='action_assign']" position="attributes">
-                <attribute name="invisible">not show_check_availability or material_request_id or custom_requisition_id</attribute>
+                <attribute name="invisible">not show_check_availability or material_request_id or custom_requisition_id or material_return_id</attribute>
             </xpath>
             <xpath expr="//button[@name='do_print_picking']" position="attributes">
-                <attribute name="invisible">state != 'assigned' or material_request_id or custom_requisition_id</attribute>
+                <attribute name="invisible">state != 'assigned' or material_request_id or custom_requisition_id or material_return_id</attribute>
             </xpath>
             <xpath expr="//button[@name='action_confirm']" position="attributes">
-                <attribute name="invisible">state not in ('draft') or material_request_id or custom_requisition_id</attribute>
+                <attribute name="invisible">state not in ('draft') or material_request_id or custom_requisition_id or material_return_id</attribute>
             </xpath>
             <xpath expr="//field[@name='move_ids']" position="attributes">
-                <attribute name="readonly">state == 'done' or material_request_id or custom_requisition_id or (purchase_id and purchase_id.material_request_id)</attribute>
+                <attribute name="readonly">state == 'done' or material_request_id or custom_requisition_id or material_return_id or (purchase_id and purchase_id.material_request_id)</attribute>
+            </xpath>
+             <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">state == 'done' or material_request_id or material_return_id</attribute>
+            </xpath>
+             <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
+                <attribute name="invisible" separator="or" add="material_request_id"/>
+            </xpath>
+              <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
+                <attribute name="invisible" separator="or" add="material_return_id"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_mrp_request"
@@ -52,6 +61,12 @@
                         string="Material Request"
                         type="object"
                         invisible="not material_request_id"
+                        class="oe_stat_button"/>
+                 <button name="action_view_mrp_return"
+                        icon="fa-cubes"
+                        string="Material Return"
+                        type="object"
+                        invisible="not material_return_id"
                         class="oe_stat_button"/>
             </xpath>
         </field>

@@ -8,25 +8,18 @@
             <form string="Scrap">
                 <group>
                     <group>
-                        <field name="cell_drying_id" invisible="1"/>
-                        <field name="injection_id" invisible="1"/>
-                        <field name="ht_cell_id" invisible="1"/>
-                        <field name="clamp_baking_id" invisible="1"/>
-                        <field name="degas_id" invisible="1"/>
-                        <field name="capacity_id" invisible="1"/>
-                        <field name="voltage_test_id" invisible="1"/>
-                        <field name="production_plan_id" options="{'no_create': True}"/>
-                        <field name="operation_id" options="{'no_create': True}"/>
-                        <field name="product_id" options="{'no_create': True}"/>
-                        <field name="product_uom_id" />
-                        <field name="scrap_qty" />
+                        <field name="production_plan_id" options="{'no_create': True}" readonly="1"/>
+                        <field name="operation_id" options="{'no_create': True}"  readonly="1"/>
+                        <field name="product_id" options="{'no_create': True}"  readonly="1"/>
+                        <field name="product_uom_id"  readonly="1"/>
+                        <field name="scrap_qty"  readonly="1"/>
                         <field name="product_uom_category_id"  invisible="1"/>
-                        <field name="location_src_id"/>
+                        <field name="location_src_id"  readonly="1"/>
                     </group>
                     <group>
                         <field name="mrp_lot_ids" widget="many2many_tags" groups="base.group_no_one" invisible="1"/>
                         <field name="lot_file_name" invisible="1"/>
-                        <field name="lot_file" filename="lot_file_name"/>
+                        <field name="lot_file" filename="lot_file_name" invisible="1"/>
 <!--                        <button name="action_upload_serial" class="oe_highlight" type="object" string="Upload Serial"/>-->
                         <field name="lot_ids" widget="many2many_tags" domain="[('id', 'in', mrp_lot_ids), ('final_location_id', '=', location_src_id)]" options="{'no_create': True}"/>
 <!--                        <field name="lot_id" domain="[('id', 'in', mrp_lot_ids)]"/>-->

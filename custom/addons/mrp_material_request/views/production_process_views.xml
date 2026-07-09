@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="manufacturing_process_process_form_view_inherit" model="ir.ui.view">
+        <field name="model">manufacturing.process</field>
+        <field name="inherit_id" ref="fnet_mrp.manufacturing_process_process_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="material_request_id" invisible="1"/>
+                <field name="need_material_request" invisible="1"/>
+                <button name="action_create_material_request" type="object" string="Material Request"
+                        invisible="state != 'draft' or not need_material_request or material_request_id"/>
+
+            </xpath>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_view_material_request"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-cubes"
+                            string="Material Request"
+                            invisible="not material_request_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

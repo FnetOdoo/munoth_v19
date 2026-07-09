@@ -159,3 +159,74 @@
     padding: 60px 20px;
     color: #95a5a6;
 }
+
+
+
+
+
+
+/* Force nowrap + widths regardless of which attribute Odoo actually renders */
+.o_operation_lines_list .o_list_renderer table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.o_operation_lines_list .o_list_renderer th,
+.o_operation_lines_list .o_list_renderer td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Target by field name attribute, covering both possible attribute names */
+.o_operation_lines_list th[data-name="scrap_qty"],
+.o_operation_lines_list td[name="scrap_qty"],
+.o_operation_lines_list .o_data_cell[name="scrap_qty"] {
+    width: 13% !important;
+    text-align: right !important;
+}
+
+.o_operation_lines_list th[data-name="sub_process_qty"],
+.o_operation_lines_list td[name="sub_process_qty"],
+.o_operation_lines_list .o_data_cell[name="sub_process_qty"] {
+    width: 13% !important;
+    text-align: right !important;
+}
+
+.o_operation_lines_list th[data-name="produced_qty"],
+.o_operation_lines_list td[name="produced_qty"],
+.o_operation_lines_list .o_data_cell[name="produced_qty"] {
+    width: 14% !important;
+    text-align: right !important;
+}
+
+.o_operation_lines_list th[data-name="operation_id"],
+.o_operation_lines_list td[name="operation_id"],
+.o_operation_lines_list .o_data_cell[name="operation_id"] {
+    width: 40% !important;
+}
+
+.o_operation_lines_list th[data-name="manufacturing_process_type_id"],
+.o_operation_lines_list td[name="manufacturing_process_type_id"],
+.o_operation_lines_list .o_data_cell[name="manufacturing_process_type_id"] {
+    width: 14% !important;
+}
+
+.o_operation_lines_list .o_list_renderer table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.o_operation_lines_list th,
+.o_operation_lines_list td {
+    width: 16.66%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+
+.o_operation_lines_list th:nth-child(1),
+.o_operation_lines_list td:nth-child(1) {
+    width: 3%;
+}

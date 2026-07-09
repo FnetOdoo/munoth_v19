@@ -28,8 +28,8 @@
                     <button name="action_validate1" string="Review" type="object" groups="sale_proforma.group_reviewer_evaluation_reviewer" class="oe_highlight" invisible="state != 'sent'"/>
                     <button name="action_validate2" string="First Approval" type="object" groups="sale_proforma.group_customer_evaluation_officer" class="oe_highlight" invisible="state != 'validate1'"/>
                     <button name="action_validate3" string="Final Approval" type="object" groups="sale_proforma.group_customer_evaluation_manager" class="oe_highlight" invisible="state != 'validate2'"/>
-                    <!--<button name="action_done" string="done" type="object" class="oe_highlight" invisible="state != 'cancel'"/>-->
-                    <button name="action_cancel" string="Cancel" type="object" class="oe_highlight" invisible="state not in ('draft', 'validate1', 'validate2', 'validate3')"/>
+<!--                    <button name="action_done" string="done" type="object" class="oe_highlight" invisible="state != 'cancel'"/>-->
+                    <button name="action_cancel" string="Cancel" type="object" class="oe_highlight" invisible="state not in ('draft', 'validate1', 'validate2')"/>
                     <!--
                         invisible="state == 'draft' or groups == 'sale_proforma.group_reviewer_evaluation_reviewer'
                                    or state != 'draft' or groups == 'sale_proforma.group_customer_evaluation_officer'"

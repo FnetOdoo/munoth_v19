@@ -71,7 +71,7 @@ class WorkOrder(models.Model):
         all_work_orders = self.search([('maintenance_id', '=', self.maintenance_id.id)])
         active_work_orders = all_work_orders.filtered(lambda wo: wo.state != 'cancel')
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
-            done_stage = self.env['maintenance.stage'].search([('done', '=', True)], limit=1)
+            done_stage = self.env['maintenance.stage'].search([('is_done_state', '=', True)], limit=1)
             if done_stage:
                 self.maintenance_id.write({'stage_id': done_stage.id})
 

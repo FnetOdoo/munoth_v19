@@ -9,7 +9,7 @@ class WorkOrder(models.Model):
 
     def _get_material_request_count(self):
         for rec in self:
-            rec.material_request_count = self.env['maintenance.material.request'].search_count([('order_id', '=', rec.id)])
+            rec.material_request_count = self.env['mrp.material.request'].search_count([('order_id', '=', rec.id)])
     
     number = fields.Char('Reference', copy=False, readonly=True, default=lambda x: _('New'))
     name = fields.Char('Name', required=1)
@@ -98,6 +98,7 @@ class WorkOrder(models.Model):
             # 'user_id': self.equipment_id.employee_id.id,
             # 'reason': self.checklist_id.name,
             'is_maintenance_material_request': True,
+            'work_order_id': self.id,
             'order_id': self.id,
             'equipment_id': self.equipment_id.id,
             'location_dest_id': self.equipment_id.location_id.id or picking_type.default_location_src_id.id,

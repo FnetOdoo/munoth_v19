@@ -4,7 +4,10 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+import logging
+from odoo.exceptions import UserError
 
+_logger = logging.getLogger(__name__)
 
 class MaintenanceEquipment(models.Model):
 
@@ -142,10 +145,10 @@ class MaintenanceEquipment(models.Model):
         )
         if furthest_maintenance_request:
             next_maintenance_date = (
-                furthest_maintenance_request.request_date
-                + mtn_plan.get_relativedelta(
-                    mtn_plan.interval, mtn_plan.interval_step or "year"
-                )
+                    furthest_maintenance_request.request_date
+                    + mtn_plan.get_relativedelta(
+                mtn_plan.interval, mtn_plan.interval_step or "year"
+            )
             )
         else:
             next_maintenance_date = mtn_plan.next_maintenance_date
@@ -160,7 +163,16 @@ class MaintenanceEquipment(models.Model):
         while next_maintenance_date <= horizon_date:
             if next_maintenance_date >= fields.Date.today():
                 vals = self._prepare_requests_from_plan(mtn_plan, next_maintenance_date)
-                requests |= request_model.create(vals)
+                new_request = request_model.create(vals)
+                try:
+                    new_request.onchange_equipment()
+                    new_request.action_create_work_order()
+                except UserError as e:
+                    _logger.warning(
+                        "Could not auto-create work order for maintenance request %s: %s",
+                        new_request.name, e
+                    )
+                requests |= new_request
             next_maintenance_date = next_maintenance_date + mtn_plan.get_relativedelta(
                 mtn_plan.interval, mtn_plan.interval_step or "year"
             )

@@ -113,6 +113,7 @@ class MrpMaterialRequest(models.Model):
     equipment_id = fields.Many2one('maintenance.equipment', string="Equipment")
     category = fields.Selection(([('plant','Plant Maintenance'),('utility','Utility Maintenance')]))
     category_id = fields.Many2one('material.request.configuration', string='Category', ondelete='set null',  domain="[('is_sub_department','=',True), ('is_maintenance', '=', True)]",)
+    work_order_id = fields.Many2one('work.order', string="Work Order")
 
 
     @api.onchange('order_id')

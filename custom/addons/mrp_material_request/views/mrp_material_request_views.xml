@@ -112,13 +112,14 @@
                                        readonly="state not in ('draft',)"/>
 
                                 <field name="is_mixed_availability" invisible="1"/>
+                                <field name="work_order_id" invisible="1"/>
                                 <!--                                <field name="product_available_location"-->
                                 <!--                                       invisible="state not in ['received', 'confirm'] or type == 'out_ward'"-->
                                 <!--                                       domain="[('stock_location', '=', True)]" options="{'no_create': True}"/>-->
                                 <field name="order_id" invisible="not is_maintenance_material_request"
-                                       readonly="state not in ('draft',)"/>
+                                       readonly="state not in ('draft',) or work_order_id"/>
                                 <field name="equipment_id" invisible="not is_maintenance_material_request"
-                                       readonly="state not in ('draft',)"/>
+                                       readonly="state not in ('draft',) or work_order_id"/>
                             </group>
                             <group>
                                 <field name="is_maintenance_material_request" invisible="1"/>
@@ -135,7 +136,7 @@
                         <notebook>
                             <page name="material" string="Material Lines">
                                 <field name="request_line_ids" widget="section_and_note_one2many" mode="list,kanban"
-                                       context="{'default_state': 'draft'}" readonly="state in ('material_accept')">
+                                       context="{'default_state': 'draft'}" readonly="state in ('material_accept') or work_order_id">
                                     <list string="Purchase Order Lines" editable="bottom"
                                           decoration-warning="parent.is_mixed_availability == True"
                                           decoration-success="parent.is_product_available == True"
@@ -143,13 +144,13 @@
                                     >
                                         <control>
                                             <create name="add_product_control" string="Add a product"
-                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id or parent.work_order_id"/>
                                             <create name="add_section_control" string="Add a section"
                                                     context="{'default_display_type': 'line_section'}"
-                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id or parent.work_order_id"/>
                                             <create name="add_note_control" string="Add a note"
                                                     context="{'default_display_type': 'line_note'}"
-                                                    invisible="parent.state != 'draft' or parent.production_process_id"/>
+                                                    invisible="parent.state != 'draft' or parent.production_process_id or parent.work_order_id"/>
                                         </control>
                                         <field name="company_id" column_invisible="1"/>
                                         <field name="display_type" column_invisible="1"/>

@@ -9,7 +9,7 @@
 <!--                        <button string="Start" name="action_start" type="object" invisible="state != 'draft'" class="btn-success"/>-->
                         <button string="Create Material Request" name="action_material_request" type="object" class="btn-warning" invisible="state != 'draft' or  not material_ids or material_request_count > 0 or is_material_request_created"/>
                         <button string="Done" name="action_finish" type="object" invisible="state != 'draft'" class="btn-success"/>
-                        <button string="Cancel" name="action_cancel" type="object" invisible="state != 'draft'"/>
+                        <button string="Cancel" name="action_cancel" type="object" invisible="state != 'draft' or is_material_request_created"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
@@ -43,7 +43,7 @@
 
                         <notebook>
                             <page string="Materials">
-                                <field name="material_ids"  readonly="state != 'draft'">
+                                <field name="material_ids"  readonly="state != 'draft' or is_material_request_created">
                                     <list editable="top">
                                         <field name="product_id"/>
                                         <field name="product_uom_category_id" column_invisible="1"/>

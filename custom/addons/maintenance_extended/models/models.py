@@ -118,7 +118,7 @@ class MaintenanceEquipment(models.Model):
                 'maintenance_id': self.id
             })
         else:
-            if not self.checklist_ids:
+            if not self.checklist_ids :
                 raise UserError(_("Checklist not found."))
 
             existing_checklist_ids = WorkOrder.search([('maintenance_id', '=', self.id)]).mapped('checklist_id')

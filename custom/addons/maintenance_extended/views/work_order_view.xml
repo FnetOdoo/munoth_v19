@@ -28,13 +28,13 @@
                         <field name="is_material_request_created" invisible="1"/>
                         <group>
                             <group>
-                                <field name="name" readonly="state != 'draft' or maintenance_id"/>
-                                <field name="user_id" readonly="state != 'draft' or maintenance_id"/>
+                                <field name="name" readonly="state != 'draft' or maintenance_id" string="Activity"/>
+                                <field name="user_id" readonly="state != 'draft'" string="Done By "/>
                                 <field name="date_start" readonly="state != 'draft'"/>
                                 <field name="date_end" readonly="state != 'draft'"/>
                             </group>
                             <group>
-                                <field name="checklist_id" readonly="state != 'draft' or maintenance_id"/>
+<!--                                <field name="checklist_id" readonly="state != 'draft' or maintenance_id"/>-->
                                 <field name="maintenance_id" readonly="state != 'draft' or maintenance_id"/>
                                 <field name="equipment_id" readonly="state != 'draft' or maintenance_id"/>
                                 <field name="duration" widget="float_time" readonly="state != 'draft' or maintenance_id"/>

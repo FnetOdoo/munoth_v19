@@ -354,7 +354,7 @@ class Renewal(models.Model):
                     notify_date = rec.to_date - timedelta(days=rec.renewal_id.auto_close_limit)
                     if notify_date == today:
                         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                        base_url += f"/web#id={rec.id}&view_type=form&model={rec._name}"
+                        base_url += f"/web#id={rec.id}&view_type=form&model={rec._name}&cids=1"
                         days_left = (rec.to_date - today).days
 
                         header_color = '#5b6e91'  # Mild Steel Blue

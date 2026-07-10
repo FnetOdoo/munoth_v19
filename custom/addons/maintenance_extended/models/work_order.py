@@ -130,7 +130,7 @@ class WorkOrder(models.Model):
             'view_mode': 'list,form',
             'res_model': 'mrp.material.request',
             'context': {'create': False},
-            'domain': [('order_id', '=', self.id)]
+            'domain': [('work_order_id', '=', self.id)]
         }
 
     @api.model_create_multi

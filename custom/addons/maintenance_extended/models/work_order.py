@@ -15,7 +15,13 @@ class WorkOrder(models.Model):
     name = fields.Char('Name', required=1)
     maintenance_id = fields.Many2one('maintenance.request', string="Maintenance")
     state = fields.Selection([('draft', 'Draft'), ('progress', 'InProgress'), ('done', 'Done'), ('cancel', 'Cancelled')], default='draft', string="Status", tracking=True)
-    user_id = fields.Many2one('res.users', string="Responsible")
+    user_id = fields.Many2one(
+        'res.users',
+        string="Responsible",
+        domain=lambda self: [
+            ('groups_id', 'in', self.env.ref('maintenance.group_equipment_manager').id)
+        ],
+    )
     date_start = fields.Datetime("Work Start Date")
     date_end = fields.Datetime("Work End Date")
     checklist_id = fields.Many2one('equipment.checklist', string="Checklist")

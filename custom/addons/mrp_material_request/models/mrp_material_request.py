@@ -1470,6 +1470,7 @@ class MrpMaterialRequest(models.Model):
             if current_line:
                 current_line.write({
                     'is_approved': True,
+                    'approved_date': fields.Datetime.now(),
                 })
 
             # Find next approver

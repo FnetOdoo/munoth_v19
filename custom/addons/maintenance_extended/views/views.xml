@@ -246,12 +246,18 @@
                 </div>
             </xpath>
             <field name="priority" position="after">
+                <label for="actual_start_date" string="Actual Work Start"/>
+                <div class="o_row">
+                    <field name="actual_start_date" widget="daterange" readonly="1"
+                           options="{'related_end_date': 'actual_end_date'}"/>
+                    <i class="fa fa-long-arrow-right mx-2" aria-label="Arrow icon" title="Arrow"/>
+                    <field name="actual_end_date" widget="daterange" readonly="1"
+                           options="{'related_start_date': 'actual_start_date'}"/>
+                </div>
                 <field name="duration" widget="float_time"/>
                 <field name="is_progress_state" invisible="1"/>
                 <field name="is_draft_state" invisible="1"/>
-
             </field>
-
             <xpath expr="//notebook" position="inside">
                 <page string="Work Orders" name="orders" invisible="work_order_count == 0">
                     <field name="order_ids" readonly="1"/>

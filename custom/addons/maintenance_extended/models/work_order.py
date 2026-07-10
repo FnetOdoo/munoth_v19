@@ -59,22 +59,35 @@ class WorkOrder(models.Model):
         if not self.date_end:
             raise UserError(_("Please Select the End Date"))
         self.write({'state': 'done'})
+        self._capture_maintenance_start()
         self._check_and_mark_maintenance_done()
 
     def action_cancel(self):
         self.write({'state': 'cancel'})
         self._check_and_mark_maintenance_done()
 
+    def _capture_maintenance_start(self):
+        """Capture actual_start_date on the maintenance request only once —
+        the first time any work order under it gets a start date."""
+        if self.maintenance_id and not self.maintenance_id.actual_start_date and self.date_start:
+            self.maintenance_id.write({
+                'actual_start_date': self.date_start,
+            })
+
     def _check_and_mark_maintenance_done(self):
         """Check if all non-cancelled work orders under this maintenance request are done,
-        and if so, move the maintenance request to its 'done' stage."""
+        and if so, move the maintenance request to its 'done' stage and capture the end date."""
         all_work_orders = self.search([('maintenance_id', '=', self.maintenance_id.id)])
         active_work_orders = all_work_orders.filtered(lambda wo: wo.state != 'cancel')
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
             done_stage = self.env['maintenance.stage'].search([('is_done_state', '=', True)], limit=1)
             if done_stage:
-                self.maintenance_id.write({'stage_id': done_stage.id})
-
+                end_dates = active_work_orders.filtered(lambda wo: wo.date_end).mapped('date_end')
+                last_end_date = max(end_dates) if end_dates else fields.Datetime.now()
+                self.maintenance_id.write({
+                    'stage_id': done_stage.id,
+                    'actual_end_date': last_end_date,
+                })
 
     def action_material_request(self):
         if not self.material_ids:

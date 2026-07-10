@@ -67,8 +67,12 @@ class MaintenanceEquipment(models.Model):
     is_progress_state = fields.Boolean("Progress State", compute='_compute_state', store=True)
     is_draft_state = fields.Boolean("Draft State", compute='_compute_state', store=True)
     is_done_state = fields.Boolean("Done State", compute='_compute_state', store=True)
+    actual_start_date = fields.Datetime(string="Actual Work Start Date")
+    actual_end_date = fields.Datetime(string="Actual Work End Date")
 
-    @api.depends('stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_done_state')
+
+
+    @api.depends('stage_id','stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_done_state')
     def _compute_state(self):
         for rec in self:
             rec.is_progress_state = rec.stage_id.is_progress_state

@@ -32,7 +32,7 @@
                 <attribute name="invisible">state not in ('confirmed', 'waiting') or (material_request_id and not is_product_qty_checked and not purchase_id) or (custom_requisition_id and not is_product_qty_checked and not purchase_id)</attribute>
             </xpath>
             <xpath expr="//button[@name='action_cancel']" position="attributes">
-                <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting') or (material_request_id and not purchase_id) or (custom_requisition_id and not purchase_id)</attribute>
+                <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting') or (material_request_id and not purchase_id) or (custom_requisition_id and not purchase_id) or material_return_id</attribute>
             </xpath>
             <xpath expr="//button[@name='action_assign']" position="attributes">
                 <attribute name="invisible">not show_check_availability or material_request_id or custom_requisition_id or material_return_id</attribute>

@@ -2026,7 +2026,7 @@ class MrpMaterialRequest(models.Model):
     def action_reject(self):
         for rec in self:
             if not rec.reject_reason:
-                raise UserError(_("Please enter the rejection reason."))
+                raise UserError(_("Please enter the Rejected reason in the Other Information tab."))
 
             rec.update({
                 'state': 'reject',

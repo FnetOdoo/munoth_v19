@@ -33,7 +33,7 @@
                                 groups="mrp_material_request.group_material_request_po_manager" type="object"
                                 string="Purchase Reject" invisible="state != 'purchase_request' or type == 'out_ward'"/>
 
-                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager"
+                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
                                 type="object" string="Reject"
                                 invisible="state != 'request' or type == 'out_ward' or not show_approve_button"/>
 
@@ -48,14 +48,14 @@
                                 invisible="state != 'draft' or type != 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_return_approve" type="object"
-                                groups="mrp_material_request.group_material_request_manager" string="Manager Approve"
+                                groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator" string="Manager Approve"
                                 invisible="not show_approve_button or type != 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_check_and_transfer"
-                                groups="mrp_material_request.group_material_request_store_user" type="object"
+                                groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator" type="object"
                                 string="Check Transfer" class="oe_highlight"
                                 invisible="state not in ['manager_approve'] or is_delivery_created or type != 'out_ward'"/>
-                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager"
+                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
                                 type="object" string="Reject"
                                 invisible="state != 'request' or not show_approve_button or type != 'out_ward'"/>
                         <field name="state"

@@ -19,7 +19,7 @@ class WorkOrder(models.Model):
         'res.users',
         string="Responsible",
         domain=lambda self: [
-            ('groups_id', 'in', self.env.ref('maintenance.group_equipment_manager').id)
+            ('group_ids', 'in', self.env.ref('maintenance.group_equipment_manager').id)
         ],
     )
     date_start = fields.Datetime("Work Start Date")

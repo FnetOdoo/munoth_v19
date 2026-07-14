@@ -235,7 +235,7 @@
         <field name="arch" type="xml">
             <button name="archive_equipment_request" position="after">
                 <button string="Create Work Order" name="action_create_work_order" type="object" class="oe_highlight"
-                        invisible="not is_draft_state"/>
+                        invisible="is_done_state"/>
             </button>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div class="oe_button_box" name="button_box">
@@ -260,11 +260,28 @@
             </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Work Orders" name="orders" invisible="work_order_count == 0">
-                    <field name="order_ids" readonly="1"/>
+                    <field name="order_ids" readonly="1" editable="bottom">
+                        <list no_open="1">
+                            <field name="number"/>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+
                     <field name="is_changed" invisible="1"/>
                 </page>
                 <page string="Checklist" name="checklist">
-                    <field name="checklist_ids" readonly="not is_draft_state"/>
+                    <field name="checklist_ids" readonly="is_done_state"  editable="bottom">
+                        <list no_open="1">
+                            <field name="name"/>
+                            <field name="category_id"/>
+                            <field name="duration" widget="float_time"/>
+                        </list>
+                    </field>
                 </page>
             </xpath>
             <field name="email_cc" position="after">
@@ -337,7 +354,7 @@
             </field>
         </field>
     </record>
-      <record id="maintenance_request_new" model="ir.ui.view">
+    <record id="maintenance_request_new" model="ir.ui.view">
         <field name="name">maintenance.request.view.search.inherit.instrument</field>
         <field name="model">maintenance.request</field>
         <field name="inherit_id" ref="hr_maintenance.maintenance_request_view_form_inherit_hr"/>
@@ -346,7 +363,7 @@
                 <attribute name="invisible">1</attribute>
             </field>
         </field>
-      </record>
+    </record>
     <record id="maintenance_request_view_search_inherit_instrument" model="ir.ui.view">
         <field name="name">maintenance.request.view.search.inherit.instrument</field>
         <field name="model">maintenance.request</field>

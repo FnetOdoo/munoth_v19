@@ -76,8 +76,10 @@ class WorkOrder(models.Model):
         """Capture actual_start_date on the maintenance request only once —
         the first time any work order under it gets a start date."""
         if self.maintenance_id and not self.maintenance_id.actual_start_date and self.date_start:
+            done_stage = self.env['maintenance.stage'].search([('is_progress_state', '=', True)], limit=1)
             self.maintenance_id.write({
                 'actual_start_date': self.date_start,
+                'stage_id': done_stage.id,
             })
 
     def _check_and_mark_maintenance_done(self):

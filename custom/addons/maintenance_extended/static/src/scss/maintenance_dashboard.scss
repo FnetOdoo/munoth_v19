@@ -1,0 +1,449 @@
+/* =====================================================================
+   Custom Maintenance Reporting Dashboard - plain CSS (no SCSS)
+   Graph-paper style inspired by classic school bar charts.
+   ===================================================================== */
+
+.o_cmd_dashboard {
+    /* Open = draft-style blue family, Completed = green family.
+       Work-order bars use a lighter shade of their parent color. */
+    --cmd-open: #3b7ddd;      /* Open Maintenance Requests  (draft blue)   */
+    --cmd-wo-open: #9ec5f5;   /* Pending Work Orders        (light blue)   */
+    --cmd-done: #28a745;      /* Completed Requests         (green)        */
+    --cmd-wo-done: #8fdca8;   /* Done Work Orders           (light green)  */
+    --cmd-ink: #37474f;
+    --cmd-muted: #78909c;
+    --cmd-grid: #cfd8dc;      /* graph-paper lines */
+    --cmd-axis: #37474f;      /* bold axis lines   */
+    --cmd-guide: #e53935;     /* dotted red bar top, like the reference */
+
+    padding: 14px 18px;
+    background: #f4f6f9;
+    min-height: 100%;
+    overflow: auto;
+}
+
+/* ------------------------------------------------ Header */
+.o_cmd_dashboard .o_cmd_header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.o_cmd_dashboard .o_cmd_title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--cmd-ink);
+}
+
+.o_cmd_dashboard .o_cmd_subtitle {
+    margin: 2px 0 0;
+    color: var(--cmd-muted);
+    font-size: 0.875rem;
+}
+
+.o_cmd_dashboard .o_cmd_header_right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.o_cmd_dashboard .o_cmd_updated {
+    color: var(--cmd-muted);
+    font-size: 0.8125rem;
+}
+
+.o_cmd_dashboard .o_cmd_refresh {
+    border-radius: 8px;
+}
+
+/* ------------------------------------------------ PM Request filters */
+.o_cmd_dashboard .o_cmd_filters {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: #fff;
+    border: 2px solid var(--cmd-grid);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(38, 50, 56, 0.06);
+    padding: 10px 16px;
+    margin-bottom: 12px;
+}
+
+.o_cmd_dashboard .o_cmd_filters_title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cmd-ink);
+    letter-spacing: 0.03em;
+    padding-bottom: 6px;
+    border-bottom: 3px solid var(--cmd-guide);
+    align-self: center;
+}
+
+.o_cmd_dashboard .o_cmd_filter_group {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding-left: 20px;
+    border-left: 1px solid var(--cmd-grid);
+}
+
+.o_cmd_dashboard .o_cmd_filter_label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--cmd-ink);
+    padding-bottom: 8px;
+    white-space: nowrap;
+}
+
+.o_cmd_dashboard .o_cmd_filter_label small {
+    display: block;
+    font-weight: 500;
+    color: var(--cmd-muted);
+}
+
+.o_cmd_dashboard .o_cmd_filter_label_open {
+    border-bottom: 3px solid var(--cmd-open);
+}
+
+.o_cmd_dashboard .o_cmd_filter_label_done {
+    border-bottom: 3px solid var(--cmd-done);
+}
+
+.o_cmd_dashboard .o_cmd_filter_field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cmd-muted);
+    margin-bottom: 0;
+}
+
+.o_cmd_dashboard .o_cmd_filter_field input[type="date"] {
+    border: 1.5px solid var(--cmd-grid);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.8125rem;
+    color: var(--cmd-ink);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.o_cmd_dashboard .o_cmd_filter_field input[type="date"]:focus {
+    border-color: var(--cmd-wo-open);
+    box-shadow: 0 0 0 3px rgba(47, 125, 225, 0.15);
+}
+
+.o_cmd_dashboard .o_cmd_filter_reset {
+    border-radius: 8px;
+    margin-left: auto;
+}
+
+/* ------------------------------------------------ Loading */
+.o_cmd_dashboard .o_cmd_loading {
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+    color: var(--cmd-muted);
+}
+
+/* ------------------------------------------------ Card: FULL WIDTH */
+.o_cmd_dashboard .o_cmd_card {
+    background: #fff;
+    width: 100%;
+    border: 2px solid var(--cmd-grid);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(38, 50, 56, 0.10);
+    padding: 26px 26px 14px;
+}
+
+/* ------------------------------------------------ Chart */
+.o_cmd_dashboard .o_cmd_chart {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    /* Adapt to the viewport so the whole dashboard (filters, chart,
+       labels, legend) is visible at 100% zoom without scrolling. */
+    height: calc(100vh - 400px);
+    min-height: 240px;
+    max-height: 460px;
+}
+
+.o_cmd_dashboard .o_cmd_yaxis {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.o_cmd_dashboard .o_cmd_yaxis_title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    align-self: center;
+    color: var(--cmd-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.o_cmd_dashboard .o_cmd_axis_arrow {
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+.o_cmd_dashboard .o_cmd_yaxis_ticks {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: right;
+    color: var(--cmd-ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding-bottom: 26px; /* room for x labels */
+    min-width: 34px;
+}
+
+.o_cmd_dashboard .o_cmd_yaxis_ticks span {
+    transform: translateY(50%);
+}
+
+.o_cmd_dashboard .o_cmd_yaxis_ticks span:last-child {
+    transform: translateY(30%);
+}
+
+/* Plot area: graph paper (horizontal + vertical lines), bold axes */
+.o_cmd_dashboard .o_cmd_plot {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    border-left: 3px solid var(--cmd-axis);
+    border-bottom: 3px solid var(--cmd-axis);
+    background-color: #fff;
+    background-image:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent calc(20% - 1px),
+            #cfd8dc calc(20% - 1px),
+            #cfd8dc 20%
+        ),
+        repeating-linear-gradient(
+            to right,
+            transparent 0,
+            transparent 79px,
+            #e1e7ea 79px,
+            #e1e7ea 80px
+        );
+    padding: 0 4%;
+}
+
+.o_cmd_dashboard .o_cmd_group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    width: 40%;
+    min-width: 160px;
+}
+
+.o_cmd_dashboard .o_cmd_bars {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* ------------------------------------------------ Bars */
+.o_cmd_dashboard .o_cmd_bar {
+    position: relative;
+    cursor: pointer;
+    min-height: 4px;
+    border: 1.5px solid rgba(0, 0, 0, 0.18);
+    border-bottom: none;
+    border-top: 3px dotted var(--cmd-guide);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    transition: transform 0.18s ease, filter 0.18s ease,
+                height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.o_cmd_dashboard .o_cmd_bar:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.08);
+}
+
+.o_cmd_dashboard .o_cmd_bar:focus-visible {
+    outline: 2px solid var(--cmd-ink);
+    outline-offset: 2px;
+}
+
+.o_cmd_dashboard .o_cmd_bar_main {
+    width: 84px;
+}
+
+.o_cmd_dashboard .o_cmd_bar_thin {
+    width: 30px;
+}
+
+.o_cmd_dashboard .o_cmd_bar_open      { background: var(--cmd-open); }
+.o_cmd_dashboard .o_cmd_bar_done      { background: var(--cmd-done); }
+.o_cmd_dashboard .o_cmd_bar_thin_open { background: var(--cmd-wo-open); }
+.o_cmd_dashboard .o_cmd_bar_thin_done { background: var(--cmd-wo-done); }
+
+/* Count label above each bar */
+.o_cmd_dashboard .o_cmd_count {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--cmd-ink);
+    white-space: nowrap;
+}
+
+.o_cmd_dashboard .o_cmd_count_thin {
+    font-size: 0.875rem;
+    color: var(--cmd-muted);
+}
+
+.o_cmd_dashboard .o_cmd_xlabel {
+    margin-top: 10px;
+    height: 20px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--cmd-ink);
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* X axis title with arrow, like the reference chart */
+.o_cmd_dashboard .o_cmd_xaxis_title {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--cmd-ink);
+    letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------ Tooltip */
+.o_cmd_dashboard .o_cmd_tooltip {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    background: #263238;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.o_cmd_dashboard .o_cmd_tooltip strong { font-weight: 600; }
+.o_cmd_dashboard .o_cmd_tooltip span   { font-weight: 700; }
+
+/* ------------------------------------------------ Legend */
+.o_cmd_dashboard .o_cmd_legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--cmd-grid);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cmd-ink);
+}
+
+.o_cmd_dashboard .o_cmd_legend_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.o_cmd_dashboard .o_cmd_swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: inline-block;
+}
+
+.o_cmd_dashboard .o_cmd_swatch_open    { background: var(--cmd-open); }
+.o_cmd_dashboard .o_cmd_swatch_done    { background: var(--cmd-done); }
+.o_cmd_dashboard .o_cmd_swatch_wo_open { background: var(--cmd-wo-open); }
+.o_cmd_dashboard .o_cmd_swatch_wo_done { background: var(--cmd-wo-done); }
+
+/* ------------------------------------------------ Responsive */
+@media (max-width: 768px) {
+    .o_cmd_dashboard {
+        padding: 12px;
+    }
+
+    .o_cmd_dashboard .o_cmd_filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .o_cmd_dashboard .o_cmd_filter_group {
+        border-left: none;
+        padding-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .o_cmd_dashboard .o_cmd_filter_reset {
+        margin-left: 0;
+    }
+
+    .o_cmd_dashboard .o_cmd_card {
+        padding: 18px 14px 14px;
+        border-radius: 12px;
+    }
+
+    .o_cmd_dashboard .o_cmd_chart {
+        height: 320px;
+    }
+
+    .o_cmd_dashboard .o_cmd_group {
+        min-width: 0;
+        width: 46%;
+    }
+
+    .o_cmd_dashboard .o_cmd_bar_main {
+        width: 52px;
+    }
+
+    .o_cmd_dashboard .o_cmd_bar_thin {
+        width: 20px;
+    }
+
+    .o_cmd_dashboard .o_cmd_xlabel {
+        white-space: normal;
+        height: auto;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .o_cmd_dashboard .o_cmd_yaxis_title {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_cmd_dashboard .o_cmd_bar {
+        transition: none;
+    }
+}

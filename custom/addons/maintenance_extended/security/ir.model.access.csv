@@ -7,3 +7,4 @@ access_material_request_line_base_user,material_request_line_base_user,model_mat
 access_maintenance_instrument,maintenance_instrument,model_maintenance_instrument,base.group_user,1,1,1,1
 access_engineering_change_request,engineering_change_request,model_engineering_change_request,base.group_user,1,1,1,1
 
+access_maintenance_report_wizard_user,maintenance.report.wizard.user,model_maintenance_report_wizard,base.group_user,1,1,1,1

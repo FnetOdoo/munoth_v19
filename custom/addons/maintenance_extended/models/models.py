@@ -12,7 +12,7 @@ class Picking(models.Model):
 class MaintenanceRequest(models.Model):
     _inherit = 'maintenance.equipment'
 
-    checklist_ids = fields.Many2many('equipment.checklist', string="Checklist")
+    checklist_ids = fields.Many2many('equipment.checklist', string="Checkpoints")
     location_id = fields.Many2one('stock.location', string='Destination Location', copy=True)
     instrument_ids = fields.One2many('maintenance.instrument', 'equipment_id', string='Maintenance Instrument')
 
@@ -61,7 +61,7 @@ class MaintenanceEquipment(models.Model):
     can_approve = fields.Boolean(name="Can Approve?", compute='check_approve')
     instrument_id = fields.Many2one('maintenance.instrument', string="Instrument ID")
     enable_stage = fields.Boolean()
-    maintenance_type = fields.Selection([('breakdown', 'Break Down'), ('preventive', 'Preventive')], string='Maintenance Type', default="preventive")
+    maintenance_type = fields.Selection([('preventive', 'Preventive')], string='Maintenance Type', default="preventive")
     schedule_date = fields.Datetime( default=fields.Datetime.now,)
     duration = fields.Float(string='Duration (Hours)',compute='_compute_duration',store=True,)
     is_progress_state = fields.Boolean("Progress State", compute='_compute_state', store=True)

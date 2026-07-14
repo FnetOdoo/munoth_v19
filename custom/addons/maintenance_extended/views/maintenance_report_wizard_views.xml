@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Wizard Form View                                             -->
+    <!-- ============================================================ -->
+    <record id="view_maintenance_report_wizard_form" model="ir.ui.view">
+        <field name="name">maintenance.report.wizard.form</field>
+        <field name="model">maintenance.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="PM Maintenance Report">
+                <group>
+                    <group>
+                        <field name="start_date"/>
+                    </group>
+                    <group>
+                        <field name="end_date"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_generate_report"
+                            string="Generate XLSX"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                            data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Window Action: opens the wizard as a dialog                   -->
+    <!-- ============================================================ -->
+    <record id="action_maintenance_report_wizard" model="ir.actions.act_window">
+        <field name="name">PM Maintenance Report (XLSX)</field>
+        <field name="res_model">maintenance.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_maintenance_report_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu: child of Maintenance -> Reporting                       -->
+    <!-- (the Reporting menu itself still opens the custom dashboard)  -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_maintenance_report_wizard"
+              name="PM Completed Report (XLSX)"
+              parent="maintenance.maintenance_reporting"
+              action="action_maintenance_report_wizard"
+              sequence="10"/>
+
+</odoo>

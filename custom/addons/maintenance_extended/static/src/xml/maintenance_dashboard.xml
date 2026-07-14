@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="custom_maintenance_dashboard.Dashboard">
+        <div class="o_cmd_dashboard">
+
+            <!-- Header -->
+            <div class="o_cmd_header">
+                <div>
+                    <h1 class="o_cmd_title">Maintenance Reporting</h1>
+                    <p class="o_cmd_subtitle">
+                        Maintenance Requests vs. related Work Orders
+                    </p>
+                </div>
+                <div class="o_cmd_header_right">
+                    <span class="o_cmd_updated" t-esc="lastUpdateLabel"/>
+                    <button class="btn btn-primary o_cmd_refresh"
+                            t-on-click="loadData"
+                            title="Refresh now">
+                        <i class="fa fa-refresh me-1"/> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- PM Request date filters (default: present month) -->
+            <div class="o_cmd_filters">
+                <div class="o_cmd_filters_title">PM Request</div>
+
+                <div class="o_cmd_filter_group">
+                    <span class="o_cmd_filter_label o_cmd_filter_label_open">
+                        Open Requests <small>(Create Date)</small>
+                    </span>
+                    <label class="o_cmd_filter_field">
+                        Start Date
+                        <input type="date"
+                               t-model="state.filters.open_start"
+                               t-on-change="onFilterChange"/>
+                    </label>
+                    <label class="o_cmd_filter_field">
+                        End Date
+                        <input type="date"
+                               t-model="state.filters.open_end"
+                               t-on-change="onFilterChange"/>
+                    </label>
+                </div>
+
+                <div class="o_cmd_filter_group">
+                    <span class="o_cmd_filter_label o_cmd_filter_label_done">
+                        Completed Requests <small>(Actual Start / End Date)</small>
+                    </span>
+                    <label class="o_cmd_filter_field">
+                        Start Date <small>(Actual Start)</small>
+                        <input type="date"
+                               t-model="state.filters.done_start"
+                               t-on-change="onFilterChange"/>
+                    </label>
+                    <label class="o_cmd_filter_field">
+                        End Date <small>(Actual End)</small>
+                        <input type="date"
+                               t-model="state.filters.done_end"
+                               t-on-change="onFilterChange"/>
+                    </label>
+                </div>
+
+                <button class="btn btn-secondary o_cmd_filter_reset"
+                        t-on-click="resetFilters"
+                        title="Reset to present month">
+                    <i class="fa fa-undo me-1"/> This Month
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div t-if="state.loading" class="o_cmd_loading">
+                <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
+            </div>
+
+            <!-- Chart card (full width) -->
+            <div t-else="" class="o_cmd_card">
+                <div class="o_cmd_chart">
+
+                    <!-- Custom tooltip -->
+                    <div t-if="state.tooltip"
+                         class="o_cmd_tooltip"
+                         t-attf-style="left: {{ state.tooltip.x }}px; top: {{ state.tooltip.y }}px;">
+                        <strong t-esc="state.tooltip.label"/>
+                        <span t-esc="state.tooltip.count"/>
+                    </div>
+
+                    <!-- Y axis -->
+                    <div class="o_cmd_yaxis">
+                        <span class="o_cmd_yaxis_title">
+                            Number of Records
+                            <span class="o_cmd_axis_arrow">&#10230;</span>
+                        </span>
+                        <div class="o_cmd_yaxis_ticks">
+                            <span t-foreach="yTicks" t-as="tick"
+                                  t-key="tick_index" t-esc="tick"/>
+                        </div>
+                    </div>
+
+                    <!-- Plot area with graph-paper grid -->
+                    <div class="o_cmd_plot">
+                        <t t-foreach="state.bars" t-as="bar" t-key="bar.key">
+                            <div class="o_cmd_group">
+                                <div class="o_cmd_bars">
+
+                                    <!-- Main bar: Maintenance Requests -->
+                                    <div t-attf-class="o_cmd_bar o_cmd_bar_main o_cmd_bar_{{ bar.key }}"
+                                         t-attf-style="height: {{ heightFor(bar.request_count) }}%;"
+                                         role="button"
+                                         t-on-click="() => this.openRequests(bar)"
+                                         t-on-mousemove="(ev) => this.showTooltip(ev, bar.label, bar.request_count)"
+                                         t-on-mouseleave="hideTooltip">
+                                        <span class="o_cmd_count" t-esc="bar.request_count"/>
+                                    </div>
+
+                                    <!-- Attached thin bar: related Work Orders
+                                         (always shown, 0 when there are none) -->
+                                    <div t-attf-class="o_cmd_bar o_cmd_bar_thin o_cmd_bar_thin_{{ bar.key }}"
+                                         t-attf-style="height: {{ heightFor(bar.workorder_count) }}%;"
+                                         role="button"
+                                         t-on-click="() => this.openWorkorders(bar)"
+                                         t-on-mousemove="(ev) => this.showTooltip(ev, bar.workorder_label, bar.workorder_count)"
+                                         t-on-mouseleave="hideTooltip">
+                                        <span class="o_cmd_count o_cmd_count_thin"
+                                              t-esc="bar.workorder_count"/>
+                                    </div>
+                                </div>
+                                <div class="o_cmd_xlabel" t-esc="bar.label"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- X axis title -->
+                <div class="o_cmd_xaxis_title">
+                    Maintenance Overview
+                    <span class="o_cmd_axis_arrow">&#10230;</span>
+                </div>
+
+                <!-- Legend -->
+                <div class="o_cmd_legend">
+                    <span class="o_cmd_legend_item">
+                        <span class="o_cmd_swatch o_cmd_swatch_open"/> Open Requests
+                    </span>
+                    <span class="o_cmd_legend_item">
+                        <span class="o_cmd_swatch o_cmd_swatch_wo_open"/> Pending Work Orders
+                    </span>
+                    <span class="o_cmd_legend_item">
+                        <span class="o_cmd_swatch o_cmd_swatch_done"/> Completed Requests
+                    </span>
+                    <span class="o_cmd_legend_item">
+                        <span class="o_cmd_swatch o_cmd_swatch_wo_done"/> Done Work Orders
+                    </span>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

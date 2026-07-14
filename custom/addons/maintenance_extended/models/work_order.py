@@ -12,7 +12,7 @@ class WorkOrder(models.Model):
             rec.material_request_count = self.env['mrp.material.request'].search_count([('order_id', '=', rec.id)])
     
     number = fields.Char('Reference', copy=False, readonly=True, default=lambda x: _('New'))
-    name = fields.Char('Name', required=1)
+    name = fields.Char('Activity', required=1)
     maintenance_id = fields.Many2one('maintenance.request', string="Maintenance")
     state = fields.Selection([('draft', 'Draft'), ('progress', 'InProgress'), ('done', 'Done'), ('cancel', 'Cancelled')], default='draft', string="Status", tracking=True)
     user_id = fields.Many2one(
@@ -139,10 +139,5 @@ class WorkOrder(models.Model):
             'domain': [('work_order_id', '=', self.id)]
         }
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get('number', _('New')) == _('New'):
-                vals['number'] = self.env['ir.sequence'].next_by_code('work.order')
-        return super().create(vals_list)
+
 

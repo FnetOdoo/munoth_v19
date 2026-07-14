@@ -5,7 +5,7 @@
     'category': 'Maintenance',
     'license': 'LGPL-3',
     'version': '19.0.0',
-    'depends': ['maintenance', 'hr', 'stock', 'maintenance_plan', 'sales_subscription','base_maintenance'],
+    'depends': ['maintenance', 'hr', 'stock', 'maintenance_plan', 'sales_subscription','base_maintenance','hr_maintenance'],
 'assets': {
     'web.assets_backend': [
         'maintenance_extended/static/src/js/maintenance_dashboard.js',

@@ -337,6 +337,16 @@
             </field>
         </field>
     </record>
+      <record id="maintenance_request_new" model="ir.ui.view">
+        <field name="name">maintenance.request.view.search.inherit.instrument</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="hr_maintenance.maintenance_request_view_form_inherit_hr"/>
+        <field name="arch" type="xml">
+            <field name="employee_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+      </record>
     <record id="maintenance_request_view_search_inherit_instrument" model="ir.ui.view">
         <field name="name">maintenance.request.view.search.inherit.instrument</field>
         <field name="model">maintenance.request</field>
@@ -351,7 +361,9 @@
             <field name="request_date" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
-
+            <field name="user_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
             <field name="employee_id" position="before">
                 <field name="is_progress_state" invisible="1"/>
                 <field name="is_draft_state" invisible="1"/>

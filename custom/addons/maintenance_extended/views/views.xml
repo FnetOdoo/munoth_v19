@@ -476,7 +476,7 @@
     </record>
 
     <record id="maintenance.maintenance_request_reporting" model="ir.ui.menu">
-        <field name="name">Reporting</field>
+        <field name="name">Maintenance Requests Analysis</field>
         <field name="action" ref="maintenance_extended.action_maintenance_dashboard"/>
     </record>
 </odoo>

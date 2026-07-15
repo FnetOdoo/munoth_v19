@@ -46,7 +46,7 @@
 
                 <div class="o_cmd_filter_group">
                     <span class="o_cmd_filter_label o_cmd_filter_label_done">
-                        Completed Requests <small>(Actual Start / End Date)</small>
+                        PM Completed <small>(Actual Start / End Date)</small>
                     </span>
                     <label class="o_cmd_filter_field">
                         Start Date <small>(Actual Start)</small>
@@ -147,7 +147,7 @@
                         <span class="o_cmd_swatch o_cmd_swatch_wo_open"/> Pending Work Orders
                     </span>
                     <span class="o_cmd_legend_item">
-                        <span class="o_cmd_swatch o_cmd_swatch_done"/> Completed Requests
+                        <span class="o_cmd_swatch o_cmd_swatch_done"/> PM Completed
                     </span>
                     <span class="o_cmd_legend_item">
                         <span class="o_cmd_swatch o_cmd_swatch_wo_done"/> Done Work Orders

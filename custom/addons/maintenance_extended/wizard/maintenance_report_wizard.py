@@ -42,11 +42,13 @@ class MaintenanceReportWizard(models.TransientModel):
     # ------------------------------------------------------------------
     def _get_requests(self):
         """Maintenance Requests whose actual work started on/after
-        Start Date and actually ended on/before End Date."""
+        Start Date and actually ended on/before End Date, and whose
+        stage is a Done stage."""
         self.ensure_one()
         domain = [
             ('actual_start_date', '>=', f'{self.start_date} 00:00:00'),
             ('actual_end_date', '<=', f'{self.end_date} 23:59:59'),
+            ('stage_id.is_done_state', '=', True),
         ]
         return self.env['maintenance.request'].search(
             domain, order='actual_start_date')

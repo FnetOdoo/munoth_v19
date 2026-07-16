@@ -35,7 +35,7 @@ class MaterialPurchaseRequisition(models.Model):
     state = fields.Selection([
         ('draft', 'New'),
         ('requested', 'Waiting Department Approval'),
-        ('dept_manager_approved', 'Waiting Factory Manager Approval'),
+        ('dept_manager_approved', 'Department Manager Approved'),
         ('factory_manager_approved', 'Factory Manager Approved'),
         ('po_created', 'Purchase Order Created'),
         ('partial_receive', 'Partial Material Received'),

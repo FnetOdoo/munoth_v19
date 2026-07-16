@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
-from odoo import models, fields, api
+from odoo.exceptions import UserError, ValidationError
+from odoo import models, fields, api, _
 
 class MaterialPurchaseRequisitionLine(models.Model):
     _name = "material.purchase.requisition.line"
@@ -49,4 +49,9 @@ class MaterialPurchaseRequisitionLine(models.Model):
             rec.description = rec.product_id.display_name
             rec.uom = rec.product_id.uom_id.id
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+    def unlink(self):
+        for rec in self:
+            if rec.requisition_id.state not in ('draft'):
+                raise UserError(
+                    _('You can not delete Purchase Requisition which is not in draft state.'))
+        return super(MaterialPurchaseRequisitionLine, self).unlink()

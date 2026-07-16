@@ -17,7 +17,7 @@ class WorkOrder(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('progress', 'InProgress'), ('done', 'Done'), ('cancel', 'Cancelled')], default='draft', string="Status", tracking=True)
     user_id = fields.Many2one(
         'res.users',
-        string="Responsible",
+        string="Done By",
         domain=lambda self: [
             ('group_ids', 'in', self.env.ref('maintenance.group_equipment_manager').id)
         ],

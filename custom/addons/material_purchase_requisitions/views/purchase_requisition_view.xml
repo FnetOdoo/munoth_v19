@@ -78,7 +78,7 @@
                         <notebook>
                             <page string="Requisitions Lines">
                                 <field name="requisition_line_ids"
-                                       readonly="state in ('cancel','receive')">
+                                       readonly="state in ('cancel','receive','done','cancel')">
                                     <list editable="bottom">
                                         <control>
                                             <create name="add_product_control" string="Add a product"

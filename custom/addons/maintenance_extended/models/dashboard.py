@@ -4,22 +4,16 @@ from odoo import api, fields, models
 # ----------------------------------------------------------------------
 # Work Order configuration
 # ----------------------------------------------------------------------
-# Custom Work Order model, linked back to maintenance.request through
-# its `maintenance_id` Many2one (same link used by action_open_work_order).
 WORKORDER_MODEL = 'work.order'
 WORKORDER_M2O = 'maintenance_id'
 WO_STATE_FIELD = 'state'
 
-# State values that mean the Work Order is finished / not active.
 WO_DONE_STATES = ('done', 'completed', 'pm_completed')
 WO_CANCEL_STATES = ('cancel', 'cancelled')
 
 # ----------------------------------------------------------------------
 # Date filter configuration
 # ----------------------------------------------------------------------
-# Open requests are filtered on their creation date (both bounds);
-# Completed requests: Start Date filters on actual_start_date and
-# End Date filters on actual_end_date.
 OPEN_DATE_FIELD = 'create_date'
 DONE_DATE_START_FIELD = 'actual_start_date'
 DONE_DATE_END_FIELD = 'actual_end_date'
@@ -32,30 +26,17 @@ class MaintenanceRequest(models.Model):
     # Helpers
     # ------------------------------------------------------------------
     def _get_dashboard_domains(self):
-        """Base stage domains for the dashboard.
-
-        NOTE: the spec uses ``stage_id.is_draft_state`` / ``stage_id.is_done_state``.
-        On a vanilla ``maintenance.stage`` (only a ``done`` boolean), use:
-            open:      [('stage_id.done', '=', False)]
-            completed: [('stage_id.done', '=', True)]
-        """
+        """Base stage domains for the dashboard."""
         return {
             'open': [('stage_id.is_draft_state', '=', True)],
+            'progress': [('stage_id.is_progress_state', '=', True)],   # NEW
             'done': [('stage_id.is_done_state', '=', True)],
         }
 
     @api.model
     def _dashboard_date_domain(self, start_field, end_field,
                                date_start, date_end):
-        """Build a date-range domain: *start_field* >= start bound and
-        *end_field* <= end bound. The two bounds may target different
-        fields (e.g. actual_start_date / actual_end_date).
-
-        Handles both Date and Datetime fields: for Datetime fields the end
-        bound is pushed to the last second of the day so the whole end date
-        is included. Falls back to ``create_date`` for any configured field
-        missing on the model (e.g. custom fields not installed).
-        """
+        """Build a date-range domain (unchanged)."""
         if start_field not in self._fields:
             start_field = 'create_date'
         if end_field not in self._fields:
@@ -74,7 +55,6 @@ class MaintenanceRequest(models.Model):
 
     @api.model
     def _dashboard_workorder_model(self):
-        """Return the Work Order model if usable on this database."""
         WorkOrder = self.env.get(WORKORDER_MODEL)
         if WorkOrder is not None and WORKORDER_M2O in WorkOrder._fields:
             return WorkOrder
@@ -82,7 +62,6 @@ class MaintenanceRequest(models.Model):
 
     @api.model
     def _dashboard_wo_state_domains(self):
-        """State domains for the two Work Order buckets."""
         WorkOrder = self._dashboard_workorder_model()
         if WorkOrder is None or WO_STATE_FIELD not in WorkOrder._fields:
             return [], []
@@ -96,8 +75,6 @@ class MaintenanceRequest(models.Model):
 
     @api.model
     def _count_workorders(self, request_ids, state_domain):
-        """Count Work Orders linked to *request_ids* via maintenance_id.
-        Returns (count, ids) from a single grouped query."""
         WorkOrder = self._dashboard_workorder_model()
         if WorkOrder is None or not request_ids:
             return 0, []
@@ -112,20 +89,10 @@ class MaintenanceRequest(models.Model):
         return len(ids), ids
 
     # ------------------------------------------------------------------
-    # Public API (called by the OWL dashboard through the ORM service)
+    # Public API
     # ------------------------------------------------------------------
     @api.model
     def get_dashboard_data(self, filters=None):
-        """Compute all figures for the custom reporting dashboard.
-
-        :param filters: dict from the frontend, all values 'YYYY-MM-DD':
-            {
-                'open_start': ..., 'open_end': ...,   # on create_date
-                'done_start': ...,  # on actual_start_date
-                'done_end': ...,    # on actual_end_date
-            }
-            Defaults to the current month when not provided.
-        """
         filters = filters or {}
         today = fields.Date.context_today(self)
         month_start = today.replace(day=1)
@@ -142,23 +109,35 @@ class MaintenanceRequest(models.Model):
             DONE_DATE_START_FIELD, DONE_DATE_END_FIELD,
             done_start, done_end)
 
+        # ---- NEW: In Progress (stage_id.is_progress_state) -------------
+        # Uses the same date range as the open filter (on create_date).
+        progress_domain = base['progress'] + self._dashboard_date_domain(
+            OPEN_DATE_FIELD, OPEN_DATE_FIELD, open_start, open_end)
+
         open_request_ids = self.search(open_domain).ids
+        progress_request_ids = self.search(progress_domain).ids     # NEW
         done_request_ids = self.search(done_domain).ids
+
         open_count = len(open_request_ids)
+        progress_count = len(progress_request_ids)                  # NEW
         done_count = len(done_request_ids)
 
         # ---- Related Work Orders (via maintenance_id) ------------------
         wo_open_domain, wo_done_domain = self._dashboard_wo_state_domains()
         wo_open_count, open_wo_ids = self._count_workorders(
             open_request_ids, wo_open_domain)
+        # NEW: work orders of in-progress requests (active = not done/cancel)
+        wo_progress_count, progress_wo_ids = self._count_workorders(
+            progress_request_ids, wo_open_domain)
         wo_done_count, done_wo_ids = self._count_workorders(
             done_request_ids, wo_done_domain)
 
         return {
             'workorder_model': WORKORDER_MODEL,
             'has_workorders': self._dashboard_workorder_model() is not None,
-            'max_value': max(open_count, done_count,
-                             wo_open_count, wo_done_count, 1),
+            'max_value': max(open_count, progress_count, done_count,
+                             wo_open_count, wo_progress_count,
+                             wo_done_count, 1),
             'filters': {
                 'open_start': open_start,
                 'open_end': open_end,
@@ -174,6 +153,15 @@ class MaintenanceRequest(models.Model):
                     'workorder_label': 'Pending Work Orders',
                     'workorder_count': wo_open_count,
                     'workorder_ids': open_wo_ids,
+                },
+                {
+                    'key': 'progress',                               # NEW
+                    'label': 'In Progress',
+                    'request_count': progress_count,
+                    'request_domain': progress_domain,
+                    'workorder_label': 'In Progress Work Orders',
+                    'workorder_count': wo_progress_count,
+                    'workorder_ids': progress_wo_ids,
                 },
                 {
                     'key': 'done',

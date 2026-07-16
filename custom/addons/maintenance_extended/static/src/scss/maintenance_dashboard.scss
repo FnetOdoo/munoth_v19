@@ -4,17 +4,20 @@
    ===================================================================== */
 
 .o_cmd_dashboard {
-    /* Open = draft-style blue family, Completed = green family.
+    /* Open = draft-style blue family, In Progress = orange family,
+       Completed = green family.
        Work-order bars use a lighter shade of their parent color. */
-    --cmd-open: #3b7ddd;      /* Open Maintenance Requests  (draft blue)   */
-    --cmd-wo-open: #9ec5f5;   /* Pending Work Orders        (light blue)   */
-    --cmd-done: #28a745;      /* Completed Requests         (green)        */
-    --cmd-wo-done: #8fdca8;   /* Done Work Orders           (light green)  */
+    --cmd-open: #3b7ddd;         /* Open Maintenance Requests  (draft blue)   */
+    --cmd-wo-open: #9ec5f5;      /* Pending Work Orders        (light blue)   */
+    --cmd-progress: #f57c00;     /* In Progress Requests       (orange)       */
+    --cmd-wo-progress: #ffcc80;  /* In Progress Work Orders    (light orange) */
+    --cmd-done: #28a745;         /* Completed Requests         (green)        */
+    --cmd-wo-done: #8fdca8;      /* Done Work Orders           (light green)  */
     --cmd-ink: #37474f;
     --cmd-muted: #78909c;
-    --cmd-grid: #cfd8dc;      /* graph-paper lines */
-    --cmd-axis: #37474f;      /* bold axis lines   */
-    --cmd-guide: #e53935;     /* dotted red bar top, like the reference */
+    --cmd-grid: #cfd8dc;         /* graph-paper lines */
+    --cmd-axis: #37474f;         /* bold axis lines   */
+    --cmd-guide: #e53935;        /* dotted red bar top, like the reference */
 
     padding: 14px 18px;
     background: #f4f6f9;
@@ -108,6 +111,11 @@
 
 .o_cmd_dashboard .o_cmd_filter_label_open {
     border-bottom: 3px solid var(--cmd-open);
+}
+
+/* NEW: orange underline option for an In Progress filter label */
+.o_cmd_dashboard .o_cmd_filter_label_progress {
+    border-bottom: 3px solid var(--cmd-progress);
 }
 
 .o_cmd_dashboard .o_cmd_filter_label_done {
@@ -240,16 +248,17 @@
             #e1e7ea 79px,
             #e1e7ea 80px
         );
-    padding: 0 4%;
+    padding: 0 3%;
 }
 
+/* CHANGED: 30% (was 40%) so three groups fit side by side */
 .o_cmd_dashboard .o_cmd_group {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    width: 40%;
-    min-width: 160px;
+    width: 30%;
+    min-width: 140px;
 }
 
 .o_cmd_dashboard .o_cmd_bars {
@@ -292,10 +301,12 @@
     width: 30px;
 }
 
-.o_cmd_dashboard .o_cmd_bar_open      { background: var(--cmd-open); }
-.o_cmd_dashboard .o_cmd_bar_done      { background: var(--cmd-done); }
-.o_cmd_dashboard .o_cmd_bar_thin_open { background: var(--cmd-wo-open); }
-.o_cmd_dashboard .o_cmd_bar_thin_done { background: var(--cmd-wo-done); }
+.o_cmd_dashboard .o_cmd_bar_open          { background: var(--cmd-open); }
+.o_cmd_dashboard .o_cmd_bar_progress      { background: var(--cmd-progress); }      /* NEW */
+.o_cmd_dashboard .o_cmd_bar_done          { background: var(--cmd-done); }
+.o_cmd_dashboard .o_cmd_bar_thin_open     { background: var(--cmd-wo-open); }
+.o_cmd_dashboard .o_cmd_bar_thin_progress { background: var(--cmd-wo-progress); }   /* NEW */
+.o_cmd_dashboard .o_cmd_bar_thin_done     { background: var(--cmd-wo-done); }
 
 /* Count label above each bar */
 .o_cmd_dashboard .o_cmd_count {
@@ -381,10 +392,12 @@
     display: inline-block;
 }
 
-.o_cmd_dashboard .o_cmd_swatch_open    { background: var(--cmd-open); }
-.o_cmd_dashboard .o_cmd_swatch_done    { background: var(--cmd-done); }
-.o_cmd_dashboard .o_cmd_swatch_wo_open { background: var(--cmd-wo-open); }
-.o_cmd_dashboard .o_cmd_swatch_wo_done { background: var(--cmd-wo-done); }
+.o_cmd_dashboard .o_cmd_swatch_open        { background: var(--cmd-open); }
+.o_cmd_dashboard .o_cmd_swatch_progress    { background: var(--cmd-progress); }     /* NEW */
+.o_cmd_dashboard .o_cmd_swatch_done        { background: var(--cmd-done); }
+.o_cmd_dashboard .o_cmd_swatch_wo_open     { background: var(--cmd-wo-open); }
+.o_cmd_dashboard .o_cmd_swatch_wo_progress { background: var(--cmd-wo-progress); }  /* NEW */
+.o_cmd_dashboard .o_cmd_swatch_wo_done     { background: var(--cmd-wo-done); }
 
 /* ------------------------------------------------ Responsive */
 @media (max-width: 768px) {
@@ -417,17 +430,19 @@
         height: 320px;
     }
 
+    /* CHANGED: 32% (was 46%) so three groups fit on mobile */
     .o_cmd_dashboard .o_cmd_group {
         min-width: 0;
-        width: 46%;
+        width: 32%;
     }
 
+    /* CHANGED: slightly narrower bars for three groups on mobile */
     .o_cmd_dashboard .o_cmd_bar_main {
-        width: 52px;
+        width: 44px;
     }
 
     .o_cmd_dashboard .o_cmd_bar_thin {
-        width: 20px;
+        width: 18px;
     }
 
     .o_cmd_dashboard .o_cmd_xlabel {

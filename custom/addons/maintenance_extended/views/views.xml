@@ -275,7 +275,7 @@
                     <field name="is_changed" invisible="1"/>
                 </page>
                 <page string="Checklist" name="checklist">
-                    <field name="checklist_ids" readonly="is_done_state"  editable="bottom">
+                    <field name="checklist_ids" readonly="is_done_state" editable="bottom">
                         <list no_open="1">
                             <field name="name"/>
                             <field name="category_id"/>
@@ -312,6 +312,9 @@
         <field name="priority" eval="999"/>
         <field name="inherit_id" ref="maintenance_plan.hr_equipment_request_view_form"/>
         <field name="arch" type="xml">
+            <field name="maintenance_kind_id" position="after">
+                <field name="schedule_date" readonly="1"/>
+            </field>
             <field name="maintenance_kind_id" position="attributes">
                 <attribute name="readonly">not is_draft_state</attribute>
             </field>
@@ -436,9 +439,8 @@
                 <attribute name="readonly">not is_draft_state</attribute>
             </field>
             <field name="schedule_date" position="attributes">
-                <attribute name="readonly">not is_draft_state</attribute>
+                <attribute name="invisible">1</attribute>
             </field>
-
 
             <field name="instruction_type" position="attributes">
                 <attribute name="readonly">is_done_state</attribute>
@@ -489,10 +491,50 @@
         <field name="domain">[('is_calibration', '=', True)]</field>
         <field name="context">{"default_is_calibration": True}</field>
     </record>
+    <!-- 1. Your filter (keep as is) -->
+    <record id="maintenance_request_search_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.search.inherit</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_schedule_date']" position="attributes">
+                <attribute name="default_period">month</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Request</field>
+        <field name="context">{
+            'search_default_active': True,
+            'default_user_id': uid,
+            'search_default_filter_schedule_date': 1,
+            }
+        </field>
+    </record>
 
-    <menuitem id="menu_c_plan_form" name="Calibration Plans" parent="maintenance.menu_m_request"
+
+    <menuitem id="menu_pm_requests" name="Preventive Maintenance Requests" parent="maintenance.menu_m_request_form"
+              action="maintenance.hr_equipment_request_action" sequence="1"
+              groups="maintenance.group_equipment_manager,base.group_user"/>
+    <menuitem id="menu_bd_requests" name="Breakdown Requests" parent="maintenance.menu_m_request_form"
+              action="maintenance.hr_equipment_request_action" sequence="2"
+              groups="maintenance.group_equipment_manager,base.group_user"/>
+    <menuitem id="menu_pm_cal" name="Maintenance Calendar" parent="maintenance.menu_m_request_form"
+              action="maintenance.hr_equipment_request_action_cal" sequence="3"
+              groups="maintenance.group_equipment_manager,base.group_user"/>
+    <menuitem id="menu_pm_plan" name="Maintenance Plan" parent="maintenance.menu_m_request_form"
+              action="maintenance_plan.maintenance_plan_action" sequence="4"
+              groups="maintenance.group_equipment_manager,base.group_user"/>
+
+    <record id="maintenance.menu_m_request_calendar" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="maintenance_plan.menu_m_plan_form" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <menuitem id="menu_c_plan_form" name="Calibration Plan" parent="maintenance.menu_m_request"
               action="calibration_plan_action" groups="maintenance.group_equipment_manager,base.group_user"/>
-
 
     <!--    <record id="fnet_menu_equipment_request" model="ir.ui.menu">-->
     <!--        <field name="active">False</field>-->

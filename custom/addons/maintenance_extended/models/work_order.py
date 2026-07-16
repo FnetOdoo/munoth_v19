@@ -31,6 +31,7 @@ class WorkOrder(models.Model):
     material_request_count = fields.Integer("Material Request Count", compute='_get_material_request_count')
     is_material_request_created = fields.Boolean(copy=False, default=False)
     duration = fields.Float(string='Duration (Hours)', compute='_compute_duration', store=True, )
+    remarks = fields.Text(string='Remarks')
 
     @api.depends('date_start', 'date_end')
     def _compute_duration(self):

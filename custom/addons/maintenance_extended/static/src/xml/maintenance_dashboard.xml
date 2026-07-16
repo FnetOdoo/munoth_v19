@@ -17,7 +17,8 @@
                     <button class="btn btn-primary o_cmd_refresh"
                             t-on-click="loadData"
                             title="Refresh now">
-                        <i class="fa fa-refresh me-1"/> Refresh
+                        <i class="fa fa-refresh me-1"/>
+                        Refresh
                     </button>
                 </div>
             </div>
@@ -28,7 +29,7 @@
 
                 <div class="o_cmd_filter_group">
                     <span class="o_cmd_filter_label o_cmd_filter_label_open">
-                        Open Requests <small>(Create Date)</small>
+                        Preventive Maintenance Requests <small>(Scheduled Date)</small>
                     </span>
                     <label class="o_cmd_filter_field">
                         Start Date
@@ -46,16 +47,16 @@
 
                 <div class="o_cmd_filter_group">
                     <span class="o_cmd_filter_label o_cmd_filter_label_done">
-                        PM Completed <small>(Actual Start / End Date)</small>
+                        PM Completed
                     </span>
                     <label class="o_cmd_filter_field">
-                        Start Date <small>(Actual Start)</small>
+                        Actual Start Date
                         <input type="date"
                                t-model="state.filters.done_start"
                                t-on-change="onFilterChange"/>
                     </label>
                     <label class="o_cmd_filter_field">
-                        End Date <small>(Actual End)</small>
+                        Actual End Date
                         <input type="date"
                                t-model="state.filters.done_end"
                                t-on-change="onFilterChange"/>
@@ -65,7 +66,8 @@
                 <button class="btn btn-secondary o_cmd_filter_reset"
                         t-on-click="resetFilters"
                         title="Reset to present month">
-                    <i class="fa fa-undo me-1"/> This Month
+                    <i class="fa fa-undo me-1"/>
+                    This Month
                 </button>
             </div>
 
@@ -138,21 +140,32 @@
                     <span class="o_cmd_axis_arrow">&#10230;</span>
                 </div>
 
-                <!-- Legend -->
                 <div class="o_cmd_legend">
+    <span class="o_cmd_legend_item">
+        <span class="o_cmd_swatch o_cmd_swatch_open"/>
+        Preventive Maintenance Requests
+    </span>
                     <span class="o_cmd_legend_item">
-                        <span class="o_cmd_swatch o_cmd_swatch_open"/> Open Requests
-                    </span>
+        <span class="o_cmd_swatch o_cmd_swatch_wo_open"/>
+                        Pending Work Orders
+    </span>
                     <span class="o_cmd_legend_item">
-                        <span class="o_cmd_swatch o_cmd_swatch_wo_open"/> Pending Work Orders
-                    </span>
+        <span class="o_cmd_swatch o_cmd_swatch_progress"/>
+                        In Progress
+    </span>
                     <span class="o_cmd_legend_item">
-                        <span class="o_cmd_swatch o_cmd_swatch_done"/> PM Completed
-                    </span>
+        <span class="o_cmd_swatch o_cmd_swatch_wo_progress"/>
+                        In Progress Work Orders
+    </span>
                     <span class="o_cmd_legend_item">
-                        <span class="o_cmd_swatch o_cmd_swatch_wo_done"/> Done Work Orders
-                    </span>
-                </div>
+        <span class="o_cmd_swatch o_cmd_swatch_done"/>
+                        PM Completed
+    </span>
+                    <span class="o_cmd_legend_item">
+        <span class="o_cmd_swatch o_cmd_swatch_wo_done"/>
+                        Done Work Orders
+    </span>
+</div>
             </div>
         </div>
     </t>

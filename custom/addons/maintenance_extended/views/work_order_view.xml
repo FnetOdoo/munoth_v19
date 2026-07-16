@@ -45,6 +45,8 @@
                                 <field name="equipment_id" readonly="state != 'draft' or maintenance_id"/>
                                 <field name="duration" widget="float_time"
                                        readonly="state != 'draft' or maintenance_id"/>
+                                <field name="remarks"/>
+
                             </group>
                         </group>
 

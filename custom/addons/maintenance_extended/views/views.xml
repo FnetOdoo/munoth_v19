@@ -296,7 +296,7 @@
                         invisible="is_draft_state or is_calibration"/>
                 <button string="Calibration Done" name="action_complete_calibration" type="object" class="oe_highlight"
                         invisible="done or not is_calibration"/>
-                <button string="Cancel" name="action_cancel" type="object" class="btn-danger"
+                <button string="Cancel" name="action_cancel" type="object" class="btn btn-danger"
                         invisible="not is_draft_state" confirm="Are you sure you want to cancel this record?"/>
             </button>
             <xpath expr="//div[hasclass('oe_title')]" position="before">

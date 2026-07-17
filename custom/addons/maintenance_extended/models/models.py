@@ -68,6 +68,7 @@ class MaintenanceEquipment(models.Model):
     is_progress_state = fields.Boolean("Progress State", compute='_compute_state', store=True)
     is_draft_state = fields.Boolean("Draft State", compute='_compute_state', store=True)
     is_calibration_done = fields.Boolean("Done State", compute='_compute_state', store=True)
+    is_done_state = fields.Boolean()
     is_cancel_done = fields.Boolean("Cancel State", compute='_compute_state', store=True)
     actual_start_date = fields.Datetime(string="Actual Work Start Date")
     actual_end_date = fields.Datetime(string="Actual Work End Date")

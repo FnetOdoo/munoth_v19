@@ -503,7 +503,7 @@
         </field>
     </record>
     <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
-        <field name="name">Maintenance Request</field>
+        <field name="name">Preventive Maintenance Requests</field>
         <field name="context">{
             'search_default_active': True,
             'default_user_id': uid,
@@ -512,7 +512,9 @@
         </field>
     </record>
 
-
+    <record id="maintenance.menu_m_request_form" model="ir.ui.menu">
+        <field name="name">Maintenance Request</field>
+    </record>
     <menuitem id="menu_pm_requests" name="Preventive Maintenance Requests" parent="maintenance.menu_m_request_form"
               action="maintenance.hr_equipment_request_action" sequence="1"
               groups="maintenance.group_equipment_manager,base.group_user"/>

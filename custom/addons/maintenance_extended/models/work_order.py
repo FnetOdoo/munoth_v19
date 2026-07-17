@@ -84,12 +84,23 @@ class WorkOrder(models.Model):
             })
 
     def _check_and_mark_maintenance_done(self):
-        """Check if all non-cancelled work orders under this maintenance request are done,
-        and if so, move the maintenance request to its 'done' stage and capture the end date."""
+        """Check work orders under this maintenance request:
+        - if all non-cancelled work orders are done -> move request to done stage + end date
+        - if ALL work orders are cancelled -> flag the request as cancel-done."""
         all_work_orders = self.search([('maintenance_id', '=', self.maintenance_id.id)])
         active_work_orders = all_work_orders.filtered(lambda wo: wo.state != 'cancel')
+
+        # Case 1: every work order is cancelled (no active ones left)
+        if all_work_orders and not active_work_orders:
+            self.maintenance_id.write({
+                'is_cancel_done': True,
+            })
+            return
+
+        # Case 2: all remaining (non-cancelled) work orders are done
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
-            done_stage = self.env['maintenance.stage'].search([('is_done_state', '=', True)], limit=1)
+            done_stage = self.env['maintenance.stage'].search(
+                [('is_done_state', '=', True)], limit=1)
             if done_stage:
                 end_dates = active_work_orders.filtered(lambda wo: wo.date_end).mapped('date_end')
                 last_end_date = max(end_dates) if end_dates else fields.Datetime.now()

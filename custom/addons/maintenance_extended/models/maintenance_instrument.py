@@ -6,17 +6,18 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 import logging
 from odoo.exceptions import UserError
+from dateutil.relativedelta import relativedelta
 
 _logger = logging.getLogger(__name__)
 
 class MaintenanceEquipment(models.Model):
 
-    _inherit = "maintenance.equipment"
+    _inherit = "maintenance.instrument"
 
-    maintenance_plan_ids = fields.One2many(
+    instrument_plan_ids = fields.One2many(
         string="Maintenance plan",
         comodel_name="maintenance.plan",
-        inverse_name="equipment_id",
+        inverse_name="calibration_plan_id",
     )
     maintenance_plan_count = fields.Integer(
         compute="_compute_maintenance_plan_count",
@@ -28,47 +29,134 @@ class MaintenanceEquipment(models.Model):
     )
     maintenance_team_required = fields.Boolean(compute="_compute_team_required")
     notes = fields.Text()
+    calibration_plan_count = fields.Integer( string="Plan Count",compute="_compute_calibration_plan_count",)
+    calibration_request_count = fields.Char( string="Plan Count",compute="_compute_calibration_request_count",)
+    category_id = fields.Many2one('maintenance.equipment.category',string='Category')
 
-    @api.depends("maintenance_plan_ids", "maintenance_plan_ids.active")
+    def _cron_maintenance_alert(self):
+        manager_group = self.env.ref('maintenance.group_equipment_manager')
+        manager_users = self.env['res.users'].search([
+            ('group_ids', 'in', manager_group.id),
+        ])
+        email_list = [u.email or u.login for u in manager_users if (u.email or u.login)]
+        email_to = ','.join(email_list)
+
+        categ_ids = self.env['maintenance.equipment.category'].search([('alert_days', '>', 0)])
+        for category in categ_ids:
+            alert_day = fields.Datetime.now() + relativedelta(days=category.alert_days)
+            from_date = alert_day.replace(hour=0, minute=0, second=0, microsecond=0)
+            to_date = alert_day.replace(hour=23, minute=59, second=59, microsecond=999999)
+            request_ids = self.env['maintenance.request'].search([
+                ('is_calibration', '=', True),
+                ('calibration_category_id', '=', category.id),
+                ('schedule_date', '>=', from_date),
+                ('schedule_date', '<=', to_date),
+            ])
+            for request in request_ids:
+                subject = 'Calibration Alert - %s' % request.name
+                body = """
+                          <div style="font-family: 'Lucida Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF;">
+                              <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
+                                  <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
+                                      Calibration Alert
+                                  </strong>
+                              </div>
+                              <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
+                                  <p>Dear Maintenance Team,</p>
+                                  <p>Calibration request has been scheduled for %s on %s.</p>
+                                  <p>
+                                      Thanks &amp; Regards,<br/>
+                                      Odoo Bot.
+                                  </p>
+                              </div>
+                          </div>
+                                """ % (request.name, request.schedule_date)
+                mail = self.env['mail.mail'].sudo().create({
+                    'subject': subject,
+                    'body_html': body,
+                    'email_from': self.env.company.email or self.env.user.email,
+                    'email_to': email_to,
+                })
+                mail.sudo().send()
+
+    @api.depends("instrument_plan_ids")
+    def _compute_calibration_plan_count(self):
+        for instrument in self:
+            instrument.calibration_plan_count = len(instrument.instrument_plan_ids)
+
+    def _compute_calibration_request_count(self):
+        for instrument in self:
+            instrument.calibration_request_count = self.env["maintenance.request"].search_count([
+                ("instrument_id", "=", instrument.id),
+                ("is_calibration", "=", True),
+            ])
+    def get_all_instrument_plans(self):
+        """Open all maintenance.plan records linked to this instrument."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Maintenance Plans",
+            "res_model": "maintenance.plan",
+            "view_mode": "list,form",
+            "domain": [("calibration_plan_id", "=", self.id)],
+            "context": {
+                "default_calibration_plan_id": self.id,
+                "default_is_calibration": True,
+            },
+        }
+
+    def get_all_calibration_requests(self):
+        """Open all maintenance.request records linked to this instrument."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Maintenance Requests",
+            "res_model": "maintenance.request",
+            "view_mode": "list,form",
+            "domain": [("instrument_id", "=", self.id),("is_calibration", "=", True)],
+            "context": {
+                "default_instrument_id": self.id,
+                "default_is_calibration": True,
+            },
+        }
+
+    @api.depends("instrument_plan_ids")
     def _compute_maintenance_plan_count(self):
         for equipment in self:
-            equipment.maintenance_plan_count = len(
-                equipment.with_context(active_test=False).maintenance_plan_ids
-            )
+            equipment.maintenance_plan_count = len(equipment.instrument_plan_ids)
 
-    @api.depends("maintenance_plan_ids")
+    @api.depends("instrument_plan_ids")
     def _compute_search_maintenance_plan_count(self):
         for equipment in self:
             equipment.search_maintenance_plan_count = (
                 self.env["maintenance.plan"]
-                .with_context(active_test=False)
-                .search_count([("search_equipment_id", "=", equipment.id)])
+                .search_count([("search_instrument_id", "=", equipment.id)])
             )
 
-    @api.depends("maintenance_plan_ids")
+    @api.depends("instrument_plan_ids")
     def _compute_team_required(self):
         for equipment in self:
             equipment.maintenance_team_required = (
                 len(
-                    equipment.maintenance_plan_ids.filtered(
+                    equipment.instrument_plan_ids.filtered(
                         lambda r: not r.maintenance_team_id
                     )
                 )
                 >= 1
             )
 
-    @api.constrains("company_id", "maintenance_plan_ids")
-    def _check_company_id(self):
-        for rec in self:
-            if rec.company_id and not all(
-                rec.company_id == p.company_id for p in rec.maintenance_plan_ids
-            ):
-                raise ValidationError(
-                    _(
-                        "Some maintenance plan's company is incompatible with "
-                        "the company of this equipment."
-                    )
-                )
+    # @api.constrains("company_id", "instrument_plan_ids")
+    # def _check_company_id(self):
+    #     for rec in self:
+    #         if rec.company_id and not all(
+    #             rec.company_id == p.company_id for p in rec.instrument_plan_ids
+    #         ):
+    #             raise ValidationError(
+    #                 _(
+    #                     "Some maintenance plan's company is incompatible with "
+    #                     "the company of this equipment."
+    #                 )
+    #             )
 
     def _prepare_requests_from_plan(self, maintenance_plan, next_maintenance_date):
         if self:
@@ -92,7 +180,7 @@ class MaintenanceEquipment(models.Model):
         description = self.name if self else maintenance_plan.name
         kind = maintenance_plan.maintenance_kind_id.name or _("Unspecified kind")
         name = _(
-            "Preventive Maintenance (%(kind)s) - %(description)s",
+            "Calibration (%(kind)s) - %(description)s",
             kind=kind,
             description=description,
         )
@@ -101,11 +189,12 @@ class MaintenanceEquipment(models.Model):
             "name": name,
             "request_date": next_maintenance_date,
             "schedule_date": next_maintenance_date,
-            "category_id": self.category_id.id,
-            "equipment_id": self.id,
+            "calibration_category_id": self.category_id.id,
+            "equipment_id": self.equipment_id.id,
+            "instrument_id": self.id,
             "maintenance_type": "preventive",
-            "owner_user_id": self.owner_user_id.id or self.env.user.id,
-            "user_id": self.technician_user_id.id,
+            # "owner_user_id": self.owner_user_id.id or self.env.user.id,
+            # "user_id": self.technician_user_id.id,
             "maintenance_team_id": team_id,
             "maintenance_kind_id": maintenance_plan.maintenance_kind_id.id,
             "maintenance_plan_id": maintenance_plan.id,
@@ -164,15 +253,6 @@ class MaintenanceEquipment(models.Model):
             if next_maintenance_date >= fields.Date.today():
                 vals = self._prepare_requests_from_plan(mtn_plan, next_maintenance_date)
                 new_request = request_model.create(vals)
-                if not new_request.is_calibration:
-                    try:
-                        new_request.onchange_equipment()
-                        new_request.action_create_work_order()
-                    except UserError as e:
-                        _logger.warning(
-                            "Could not auto-create work order for maintenance request %s: %s",
-                            new_request.name, e
-                        )
                 requests |= new_request
             next_maintenance_date = next_maintenance_date + mtn_plan.get_relativedelta(
                 mtn_plan.interval, mtn_plan.interval_step or "year"
@@ -180,7 +260,7 @@ class MaintenanceEquipment(models.Model):
         return requests
 
     @api.model
-    def _cron_generate_requests(self):
+    def _cron_generate_calibration_requests(self):
         """
         Generates maintenance request on the next_maintenance_date or
         today if none exists
@@ -189,25 +269,24 @@ class MaintenanceEquipment(models.Model):
             self.env["maintenance.plan"]
             .sudo()
             .search([("interval", ">", 0)])
-            .filtered(lambda x: True if not x.equipment_id else x.equipment_id.active)
         ):
-            equipment = plan.equipment_id
+            equipment = plan.instrument_id
             equipment._create_new_request(plan)
 
     @api.depends(
-        "maintenance_plan_ids.next_maintenance_date", "maintenance_ids.request_date"
+        "instrument_plan_ids.next_maintenance_date", "maintenance_ids.request_date"
     )
     def _compute_next_maintenance(self):
         """Redefine the function to display next_action_date in kanban view"""
         for equipment in self:
-            next_plan_dates = equipment.maintenance_plan_ids.mapped(
+            next_plan_dates = equipment.instrument_plan_ids.mapped(
                 "next_maintenance_date"
             )
             next_unplanned_dates = (
                 self.env["maintenance.request"]
                 .search(
                     [
-                        ("equipment_id", "=", equipment.id),
+                        ("instrument_id", "=", equipment.id),
                         ("maintenance_kind_id", "=", None),
                         ("request_date", ">", fields.Date.context_today(self)),
                         ("stage_id.done", "!=", True),

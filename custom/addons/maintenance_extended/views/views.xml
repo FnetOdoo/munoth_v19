@@ -110,6 +110,11 @@
         <field name="model">maintenance.equipment</field>
         <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
         <field name="arch" type="xml">
+
+            <field name="technician_user_id" position="replace">
+                <field name="create_uid" string="Created User"/>
+            </field>
+
             <xpath expr="//notebook/page[last()]" position="after">
                 <page name="checklist" string="Checklist">
                     <field name="checklist_ids" domain="[('category_id', '=', category_id)]"/>
@@ -153,18 +158,59 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="get_all_instrument_plans"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-wrench">
+                            <field string="Calibration Plans" name="calibration_plan_count" widget="statinfo"/>
+                        </button>
+                        <button name="get_all_calibration_requests"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-wrench">
+                            <field string="Calibration Requests" name="calibration_request_count" widget="statinfo"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
                             <field name="description"/>
                             <field name="make_model"/>
+                            <field name="category_id"/>
                         </group>
                         <group>
                             <field name="spec_range"/>
                             <field name="area_location"/>
-                            <field name="equipment_id" invisible="0"/>
+                            <field name="equipment_id"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Calibration Plans">
+                            <field name="instrument_plan_ids" nolabel="1"
+                                   context="{'default_instrument_id': id,
+                                             'default_is_calibration': True,
+                                             'default_calibration_plan_id': id,
+                                             'default_equipment_id': equipment_id}">
+                                <list>
+                                    <field name="maintenance_kind_id" string="Kind"/>
+                                    <field name="maintenance_team_id" string="Team"/>
+                                    <field name="name"/>
+                                    <field name="calibration_plan_id" column_invisible="1"/>
+                                    <field name="is_calibration" column_invisible="1"/>
+                                    <field name="start_maintenance_date" string="Start Date"/>
+                                    <field name="interval"/>
+                                    <field name="interval_step"/>
+                                    <field name="duration"/>
+                                    <field name="next_maintenance_date" string="Next Calibration Date"/>
+                                    <field name="maintenance_plan_horizon" string="P. Horizon period"/>
+                                    <field name="planning_step" string="P. Horizon step"/>
+                                    <field name="calibration_document_name" column_invisible="1"/>
+                                    <field name="calibration_document" filename="calibration_document_name"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -180,6 +226,7 @@
                 <field name="make_model"/>
                 <field name="spec_range"/>
                 <field name="area_location"/>
+                <field name="category_id"/>
                 <field name="equipment_id" column_invisible="1"/>
             </list>
         </field>
@@ -204,9 +251,10 @@
                 <field name="enable_approval"/>
                 <field name="is_draft_state" widget="boolean_toggle"/>
                 <field name="is_progress_state" widget="boolean_toggle"/>
-                <field name="is_done_state" widget="boolean_toggle"/>
-                <field name="user_ids" widget="many2many_tags" readonly="enable_approval != True"
-                       required="enable_approval == True"/>
+                <field name="is_calibration_done" widget="boolean_toggle"/>
+                <field name="is_cancel_done" widget="boolean_toggle"/>
+                <!--                <field name="user_ids" widget="many2many_tags" readonly="enable_approval != True"-->
+                <!--                       required="enable_approval == True"/>-->
             </field>
         </field>
     </record>
@@ -217,13 +265,20 @@
         <field name="inherit_id" ref="maintenance_plan.maintenance_plan_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook/page[last()]" position="after">
-                <page name="checklist" string="Checklist">
+                <page name="checklist" string="Checklist" invisible="is_calibration">
                     <field name="checklist_ids"/>
                 </page>
             </xpath>
+            <field name="is_calibration" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
             <field name="is_calibration" position="after">
                 <field name="instrument_id" domain="[('equipment_id', '=', equipment_id)]"/>
                 <button name="change_start_date" string=" Danger" type="object" invisible="1"/>
+            </field>
+            <field name="next_maintenance_date" position="after">
+                <field name="calibration_document_name" invisible="1"/>
+                <field name="calibration_document" filename="calibration_document_name" invisible="not is_calibration"/>
             </field>
         </field>
     </record>
@@ -233,9 +288,16 @@
         <field name="model">maintenance.request</field>
         <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
         <field name="arch" type="xml">
+            <button name="archive_equipment_request" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
             <button name="archive_equipment_request" position="after">
                 <button string="Create Work Order" name="action_create_work_order" type="object" class="oe_highlight"
-                        invisible="is_done_state"/>
+                        invisible="is_draft_state or is_calibration"/>
+                <button string="Calibration Done" name="action_complete_calibration" type="object" class="oe_highlight"
+                        invisible="done or not is_calibration"/>
+                <button string="Cancel" name="action_cancel" type="object" class="oe_highlight"
+                        invisible="not is_draft_state" confirm="Are you sure you want to cancel this record?"/>
             </button>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div class="oe_button_box" name="button_box">
@@ -245,16 +307,27 @@
                     </button>
                 </div>
             </xpath>
+            <field name="recurring_maintenance" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="close_date" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+
+            <xpath expr="//field[@name='description']/ancestor::page[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <field name="priority" position="after">
+                <field name="completed_date" readonly="not is_draft_state" invisible="not is_calibration"/>
                 <label for="actual_start_date" string="Actual Work Start"/>
-                <div class="o_row">
+                <div class="o_row" invisible="is_calibration">
                     <field name="actual_start_date" widget="daterange" readonly="1"
-                           options="{'related_end_date': 'actual_end_date'}"/>
+                           options="{'related_end_date': 'actual_end_date'}" invisible="is_calibration"/>
                     <i class="fa fa-long-arrow-right mx-2" aria-label="Arrow icon" title="Arrow"/>
-                    <field name="actual_end_date" widget="daterange" readonly="1"
+                    <field name="actual_end_date" widget="daterange" readonly="1" invisible="is_calibration"
                            options="{'related_start_date': 'actual_start_date'}"/>
                 </div>
-                <field name="duration" widget="float_time"/>
+                <field name="duration" widget="float_time" invisible="is_calibration"/>
                 <field name="is_progress_state" invisible="1"/>
                 <field name="is_draft_state" invisible="1"/>
             </field>
@@ -273,9 +346,10 @@
                     </field>
 
                     <field name="is_changed" invisible="1"/>
+                    <field name="is_calibration" invisible="1"/>
                 </page>
-                <page string="Checklist" name="checklist">
-                    <field name="checklist_ids" readonly="is_done_state" editable="bottom">
+                <page string="Checklist" name="checklist" invisible="is_calibration">
+                    <field name="checklist_ids" readonly="not is_draft_state" editable="bottom">
                         <list no_open="1">
                             <field name="name"/>
                             <field name="category_id"/>
@@ -319,7 +393,7 @@
                 <attribute name="readonly">not is_draft_state</attribute>
             </field>
             <field name="note" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
 
         </field>
@@ -353,7 +427,7 @@
         <field name="inherit_id" ref="base_maintenance.equipment_request_view_form"/>
         <field name="arch" type="xml">
             <field name="description" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
         </field>
     </record>
@@ -387,6 +461,7 @@
             <field name="employee_id" position="before">
                 <field name="is_progress_state" invisible="1"/>
                 <field name="is_draft_state" invisible="1"/>
+                <field name="calibration_category_id" invisible="1"/>
             </field>
             <xpath expr="//field[@name='stage_id'][@widget='statusbar']" position="replace">
                 <field name="stage_id" widget="statusbar" invisible="archive"/>
@@ -398,12 +473,12 @@
             </button>
             <field name="request_date" position="before">
                 <field name="instrument_id" invisible="is_calibration == False"
-                       domain="[('equipment_id', '=', equipment_id)]"/>
+                       domain="[('equipment_id', '=', equipment_id)]" readonly="not is_draft_state"/>
                 <field name="is_calibration" invisible="1"/>
             </field>
             <xpath expr="//field[@name='category_id'][@groups]" position="attributes">
                 <attribute name="readonly">not is_draft_state</attribute>
-                <attribute name="invisible">0</attribute>
+                <attribute name="invisible">is_calibration</attribute>
             </xpath>
             <xpath expr="//field[@name='company_id'][@groups]" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -425,9 +500,11 @@
             </field>
             <field name="equipment_id" position="attributes">
                 <attribute name="readonly">not is_draft_state</attribute>
+                <attribute name="invisible">is_calibration</attribute>
             </field>
             <field name="category_id" position="attributes">
                 <attribute name="readonly">not is_draft_state</attribute>
+                <attribute name="invisible">is_calibration</attribute>
             </field>
             <field name="maintenance_type" position="attributes">
                 <attribute name="readonly">1</attribute>
@@ -443,16 +520,16 @@
             </field>
 
             <field name="instruction_type" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
             <field name="instruction_pdf" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
             <field name="instruction_google_slide" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
             <field name="instruction_text" position="attributes">
-                <attribute name="readonly">is_done_state</attribute>
+                <attribute name="readonly">done</attribute>
             </field>
         </field>
     </record>
@@ -502,6 +579,16 @@
             </xpath>
         </field>
     </record>
+    <record id="maintenance_plan.hr_equipment_request_action_calibration" model="ir.actions.act_window">
+        <!--        <field name="name">Preventive Maintenance Requests</field>-->
+        <field name="context">{
+            'search_default_active': True,
+            'default_user_id': uid,
+            'search_default_filter_schedule_date': 1,
+            }
+        </field>
+    </record>
+
     <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
         <field name="name">Preventive Maintenance Requests</field>
         <field name="context">{
@@ -512,6 +599,9 @@
         </field>
     </record>
 
+    <record id="maintenance_plan.menu_maintenance_calibration" model="ir.ui.menu">
+        <field name="name">Calibration Requests</field>
+    </record>
     <record id="maintenance.menu_m_request_form" model="ir.ui.menu">
         <field name="name">Maintenance Request</field>
     </record>

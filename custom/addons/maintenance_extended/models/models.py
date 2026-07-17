@@ -15,6 +15,7 @@ class MaintenanceRequest(models.Model):
     checklist_ids = fields.Many2many('equipment.checklist', string="Checkpoints")
     location_id = fields.Many2one('stock.location', string='Destination Location', copy=True)
     instrument_ids = fields.One2many('maintenance.instrument', 'equipment_id', string='Maintenance Instrument')
+    technician_user_id = fields.Many2one('res.users', 'Responsible', default=lambda self: self.env.uid)
 
     def _prepare_requests_from_plan(self, maintenance_plan, next_maintenance_date):
         res = super()._prepare_request_from_plan(maintenance_plan, next_maintenance_date)
@@ -66,18 +67,37 @@ class MaintenanceEquipment(models.Model):
     duration = fields.Float(string='Duration (Hours)',compute='_compute_duration',store=True,)
     is_progress_state = fields.Boolean("Progress State", compute='_compute_state', store=True)
     is_draft_state = fields.Boolean("Draft State", compute='_compute_state', store=True)
-    is_done_state = fields.Boolean("Done State", compute='_compute_state', store=True)
+    is_calibration_done = fields.Boolean("Done State", compute='_compute_state', store=True)
+    is_cancel_done = fields.Boolean("Cancel State", compute='_compute_state', store=True)
     actual_start_date = fields.Datetime(string="Actual Work Start Date")
     actual_end_date = fields.Datetime(string="Actual Work End Date")
+    calibration_category_id = fields.Many2one('maintenance.equipment.category', related='instrument_id.category_id', string='Category', store=True, readonly=True, index='btree_not_null')
+    completed_date = fields.Date("Calibration Completed Date")
+
+    def action_complete_calibration(self):
+        self.ensure_one()
+        if not self.completed_date:
+            raise UserError(_("Please select the Calibration Completed Date."))
+        done_stage = self.env['maintenance.stage'].search(
+            [('is_calibration_done', '=', True)], limit=1)
+        if not done_stage:
+            raise UserError(_("No maintenance stage is marked as 'Calibration Done'. "
+                              "Please configure one in Maintenance Stages."))
+        self.write({'stage_id': done_stage.id})
 
 
-
-    @api.depends('stage_id','stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_done_state')
+    def action_cancel(self):
+        cancel_stage = self.env['maintenance.stage'].search([('is_cancel_done', '=', True)], limit=1)
+        self.write({
+            'stage_id': cancel_stage.id,
+        })
+    @api.depends('stage_id','stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_calibration_done','stage_id.is_cancel_done')
     def _compute_state(self):
         for rec in self:
             rec.is_progress_state = rec.stage_id.is_progress_state
             rec.is_draft_state = rec.stage_id.is_draft_state
-            rec.is_done_state = rec.stage_id.is_done_state
+            rec.is_calibration_done = rec.stage_id.is_calibration_done
+            rec.is_cancel_done = rec.stage_id.is_cancel_done
 
     @api.depends('order_ids.duration')
     def _compute_duration(self):
@@ -152,46 +172,50 @@ class MaintenanceEquipment(models.Model):
         }
 
     def _cron_maintenance_alert(self):
+        # hoisted out of the loops: same recipients every time
+        manager_group = self.env.ref('maintenance.group_equipment_manager')
+        manager_users = self.env['res.users'].search([
+            ('group_ids', 'in', manager_group.id),
+        ])
+        email_list = [u.email or u.login for u in manager_users if (u.email or u.login)]
+        email_to = ','.join(email_list)
+
         categ_ids = self.env['maintenance.equipment.category'].search([('alert_days', '>', 0)])
         for category in categ_ids:
             alert_day = fields.Datetime.now() + relativedelta(days=category.alert_days)
-            from_date = alert_day.replace(hour=0, minute=0)
-            to_date = alert_day.replace(hour=23, minute=59)
+            from_date = alert_day.replace(hour=0, minute=0, second=0, microsecond=0)
+            to_date = alert_day.replace(hour=23, minute=59, second=59, microsecond=999999)
             request_ids = self.env['maintenance.request'].search([
                 ('category_id', '=', category.id),
                 ('schedule_date', '>=', from_date),
                 ('schedule_date', '<=', to_date),
-                ('user_id', '!=', False)])
-
+            ])
             for request in request_ids:
                 subject = 'Maintenance Alert - %s' % request.name
                 body = """
-                        <div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+                        <div style="font-family: 'Lucida Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF;">
                             <div style="height:auto; text-align: center; font-size: 30px; color: #29408c;">
                                 <strong style="border-bottom: 2px solid #29408c; padding-bottom: 1px; text-transform: uppercase;">
                                     Maintenance Alert
                                 </strong>
                             </div>
                             <div style="text-align: left; font-size: 20px; margin-top: 10px; color: #29408c;">
-                                <p>Dear %s,</p>
-                                <p>Maintenance request has been schedule for %s on %s.</p>
+                                <p>Dear Maintenance Team,</p>
+                                <p>Maintenance request has been scheduled for %s on %s.</p>
                                 <p>
-                                    Thanks & Regards,<br/>
+                                    Thanks &amp; Regards,<br/>
                                     Odoo Bot.
                                 </p>
                             </div>
                         </div>
-                              """ % (
-                request.user_id.name, request.name, request.schedule_date)
-                message_body = body
-                template_data = {
+                              """ % (request.name, request.schedule_date)
+                mail = self.env['mail.mail'].sudo().create({
                     'subject': subject,
-                    'body_html': message_body,
-                    'email_from': self.env.user.email,
-                    'email_to': request.user_id.login,
-                }
-                template_id = self.env['mail.mail'].sudo().create(template_data)
-                template_id.sudo().send()
+                    'body_html': body,
+                    'email_from': self.env.company.email or self.env.user.email,
+                    'email_to': email_to,
+                })
+                mail.sudo().send()
 
     @api.onchange('stage_id')
     def onchange_state(self):
@@ -294,13 +318,18 @@ class MaintenanceStage(models.Model):
     user_ids = fields.Many2many('res.users', string="Responsible")
     is_progress_state = fields.Boolean("Progress State")
     is_draft_state = fields.Boolean("Draft State")
-    is_done_state = fields.Boolean("Done State")
+    is_calibration_done = fields.Boolean("Calibration Done State")
+    is_cancel_done = fields.Boolean("Cancel State")
 
 class MaintenancePlan(models.Model):
     _inherit = "maintenance.plan"
 
     checklist_ids = fields.Many2many('equipment.checklist', string="Checklist")
     instrument_id = fields.Many2one('maintenance.instrument', string="Instrument ID")
+    calibration_plan_id = fields.Many2one('maintenance.instrument', string="Calibration ID")
+    calibration_document = fields.Binary("Calibration Document")
+    calibration_document_name = fields.Char("Calibration Document Name")
+
 
     def change_start_date(self):
         records = self.search([])

@@ -33,7 +33,8 @@
                                 groups="mrp_material_request.group_material_request_po_manager" type="object"
                                 string="Purchase Reject" invisible="state != 'purchase_request' or type == 'out_ward'"/>
 
-                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
+                        <button name="action_reject"
+                                groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
                                 type="object" string="Reject"
                                 invisible="state != 'request' or type == 'out_ward' or not show_approve_button"/>
 
@@ -48,14 +49,17 @@
                                 invisible="state != 'draft' or type != 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_return_approve" type="object"
-                                groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator" string="Manager Approve"
+                                groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
+                                string="Manager Approve"
                                 invisible="not show_approve_button or type != 'out_ward'"
                                 class="oe_highlight"/>
                         <button name="action_check_and_transfer"
-                                groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator" type="object"
+                                groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator"
+                                type="object"
                                 string="Check Transfer" class="oe_highlight"
                                 invisible="state not in ['manager_approve'] or is_delivery_created or type != 'out_ward'"/>
-                        <button name="action_reject" groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
+                        <button name="action_reject"
+                                groups="mrp_material_request.group_material_request_manager,mrp_material_request.group_material_request_administrator"
                                 type="object" string="Reject"
                                 invisible="state != 'request' or not show_approve_button or type != 'out_ward'"/>
                         <field name="state"
@@ -136,7 +140,8 @@
                         <notebook>
                             <page name="material" string="Material Lines">
                                 <field name="request_line_ids" widget="section_and_note_one2many" mode="list,kanban"
-                                       context="{'default_state': 'draft'}" readonly="state in ('material_accept') or work_order_id">
+                                       context="{'default_state': 'draft'}"
+                                       readonly="state in ('material_accept') or work_order_id">
                                     <list string="Purchase Order Lines" editable="bottom"
                                           decoration-warning="parent.is_mixed_availability == True"
                                           decoration-success="parent.is_product_available == True"
@@ -239,7 +244,32 @@
                     <field name="date"/>
                     <field name="user_id"/>
                     <field name="department_id"/>
-                    <field name="state"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state in ('request','purchase_request','available')"
+                           decoration-warning="state in ('manager_approve','purchase_approve','confirm','material_return_progress')"
+                           decoration-success="state in ('received','material_accept','material_returned')"
+                           decoration-danger="state in ('purchase_reject','material_reject','cancel','reject')"/>
+                </list>
+            </field>
+        </record>
+        <record id="view_maintenance_material_request_list" model="ir.ui.view">
+            <field name="name">view.mrp.material.request.list</field>
+            <field name="model">mrp.material.request</field>
+            <field name="arch" type="xml">
+                <list decoration-info="state == 'draft'" decoration-success="state == 'confirm'"
+                      decoration-danger="state == 'cancel'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="user_id"/>
+                    <field name="department_id"/>
+                    <field name="category_id"/>
+                    <field name="order_id"/>
+                    <field name="equipment_id"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state in ('request','purchase_request','available')"
+                           decoration-warning="state in ('manager_approve','purchase_approve','confirm','material_return_progress')"
+                           decoration-success="state in ('received','material_accept','material_returned')"
+                           decoration-danger="state in ('purchase_reject','material_reject','cancel','reject')"/>
                 </list>
             </field>
         </record>
@@ -312,7 +342,7 @@
             <field name="context">{'default_is_maintenance_material_request':True}</field>
             <field name="domain">[('is_maintenance_material_request','=',True)]</field>
             <field name="view_ids" eval="[(5, 0, 0),
-        (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_mrp_material_request_list')}),
+        (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_maintenance_material_request_list')}),
         (0, 0, {'view_mode': 'form', 'sequence': 2, 'view_id': ref('view_mrp_material_request_form')})]"/>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
@@ -367,15 +397,20 @@
         <menuitem id="menuitem_mrp_material_request_main" name="Material Requests"
                   web_icon="mrp_material_request,static/description/icon.png"
                   groups="mrp_material_request.group_material_request_purchase_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_manager"/>
-        <menuitem id="menuitem_mrp_material_request_request" name="Material Requests"
-                  parent="menuitem_mrp_material_request_main" action="action_mrp_material_request_main" sequence="1"/>
+
+        <menuitem id="menuitem_general_material_request_request" name="Material Request"
+                  parent="menuitem_mrp_material_request_main" sequence="1"/>
+
+        <menuitem id="menuitem_mrp_material_request_request" name="Department Material Requests"
+                  parent="menuitem_general_material_request_request" action="action_mrp_material_request_main"
+                  sequence="1"/>
+
+        <menuitem id="menu_maintenance_material_request" name="Maintenance Material Requests"
+                  parent="menuitem_general_material_request_request"
+                  action="action_maintenance_material_request" sequence="3"/>
 
         <menuitem id="menu_material_return" name="Material Returns" parent="menuitem_mrp_material_request_main"
                   action="action_mrp_material_return_main" sequence="2"/>
-
-        <menuitem id="menu_maintenance_material_request" name="Maintenance Material Requests"
-                  parent="menuitem_mrp_material_request_main"
-                  action="action_maintenance_material_request" sequence="3"/>
 
 
         <menuitem id="menu_maintenance_material_request_new" name="Material Request" parent="maintenance.menu_m_request"

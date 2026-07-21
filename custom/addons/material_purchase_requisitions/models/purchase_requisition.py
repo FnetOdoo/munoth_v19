@@ -34,8 +34,8 @@ class MaterialPurchaseRequisition(models.Model):
     )
     state = fields.Selection([
         ('draft', 'New'),
-        ('product_creation_request', 'Product Creation Request'),
-        ('product_creation_done', 'Product Creation Done'),
+        ('product_creation_request', 'Item Code Creation Request'),
+        ('product_creation_done', 'Item Code Creation Done'),
         ('requested', 'Waiting Department Approval'),
         ('dept_manager_approved', 'Department Manager Approved'),
         ('factory_manager_approved', 'Factory Manager Approved'),

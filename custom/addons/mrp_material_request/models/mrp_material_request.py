@@ -517,7 +517,6 @@ class MrpMaterialRequest(models.Model):
             first_approval = rec.approval_line_ids.filtered(
                 lambda l: not l.is_email_sent
             )[:1]
-            print("\n---------", first_approval, "-----------first_approval---------\n")
             if not first_approval:
                 raise UserError(_("Approval line not configured."))
 

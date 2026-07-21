@@ -3,7 +3,7 @@
         <record id="purchase_requisition_seq" model="ir.sequence">
             <field name="name">Purchase Requisition Sequence</field>
             <field name="code">purchase.requisition.seq</field>
-            <field name="prefix">EPR</field>
+            <field name="prefix">MIL/P1/PR/</field>
             <field name="padding">5</field>
         </record>
 </odoo>

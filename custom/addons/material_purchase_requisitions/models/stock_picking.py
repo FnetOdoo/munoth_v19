@@ -311,6 +311,8 @@ class StockPicking(models.Model):
                         or self.company_id.partner_id.email_formatted
                 ),
             }).send()
+
+
 class StockMove(models.Model):
     _inherit = 'stock.move'
     

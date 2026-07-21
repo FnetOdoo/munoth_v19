@@ -29,6 +29,8 @@
                     <attribute name="readonly">state in ('purchase', 'cancel') or is_downpayment or parent.material_request_id
                     </attribute>
                 </xpath>
+
+
                 <xpath expr="//field[@name='order_line']//list//control//create[@name='add_product_control']" position="attributes">
                     <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
                 </xpath>
@@ -42,7 +44,6 @@
                     <attribute name="invisible">parent.state != 'draft' or parent.material_request_id</attribute>
                 </xpath>
 
-                <!-- ✅ Correct: use xpath to target the existing button_box -->
                 <xpath expr="//div[@name='button_box']" position="inside">
                     <button name="action_view_mrp_request"
                             icon="fa-cubes"

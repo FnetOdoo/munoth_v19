@@ -52,19 +52,24 @@
                     <field name='approval_state' invisible="1"/>
                     <field name='user_ids' widget="many2many_tags" invisible="1" readonly="1"/>
                 </xpath>
-
-                <!-- tax_totals_json renamed to tax_totals in Odoo 17 -->
-                <xpath expr="//field[@name='tax_totals']" position="after">
-                    <div class="oe_subtotal_footer_separator oe_inline">
-                        <label for="amount_in_company_currency" class="oe_inline"/>
+                <xpath expr="//div[hasclass('clearfix')]" position="before">
+                    <div class="oe_subtotal_footer" style="display: flex; justify-content: flex-end;">
+                        <table style="border-top: 1px solid #dee2e6; padding-top: 8px; margin-top: 4px;">
+                            <tr>
+                                <td style="padding-right: 12px; color: #6c757d;">
+                                    Amount in Company Currency :
+                                </td>
+                                <td>
+                                    <field name="amount_in_company_currency"
+                                           widget="monetary"
+                                           options="{'currency_field': 'company_currency'}"
+                                           nolabel="1"/>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
-                    <field name="amount_in_company_currency" nolabel="1"
-                           class="oe_subtotal_footer_separator"
-                           widget='monetary'
-                           options="{'currency_field': 'company_currency'}"/>
                     <field name="company_currency" invisible="1"/>
                 </xpath>
-
                 <!-- Send For Approval button -->
                 <xpath expr="//button[@name='button_cancel']" position="before">
                     <button name="action_send_for_approval" type="object"
@@ -127,7 +132,8 @@
 
                 <!-- Order line readonly logic -->
                 <xpath expr="//field[@name='order_line']" position="attributes">
-                    <attribute name="readonly">editable_compute != True or state in ['purchase', 'done', 'cancel']</attribute>
+                    <attribute name="readonly">editable_compute != True or state in ['purchase', 'done', 'cancel']
+                    </attribute>
                 </xpath>
 
                 <!-- send_approve_process inside header -->

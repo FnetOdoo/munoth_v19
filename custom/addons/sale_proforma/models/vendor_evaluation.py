@@ -396,15 +396,21 @@ class StockMove(models.Model):
     reason = fields.Text(string='Reason For Return')
     rack_list_id = fields.Many2one('rack.list')
 
-
-
+    @api.depends('picking_id', 'picking_id.name', 'product_id')
     def _compute_return_quantity(self):
         for rec in self:
-            # rec.reversed_quantity = 0
-            return_picking = self.env['stock.picking'].search([('origin', '=', 'Return of ' + rec.picking_id.name)])
+            if not rec.picking_id or not rec.picking_id.name:
+                rec.reversed_quantity = 0
+                continue
+
+            return_picking = self.env['stock.picking'].search([
+                ('origin', '=', 'Return of ' + rec.picking_id.name)
+            ])
             quantity_done = 0
             for picking in return_picking:
                 quantity_done += sum(
-                    picking.move_ids.filtered(lambda x: x.product_id.id == rec.product_id.id).mapped(
-                        'quantity'))
+                    picking.move_ids.filtered(
+                        lambda x: x.product_id.id == rec.product_id.id
+                    ).mapped('quantity')
+                )
             rec.reversed_quantity = quantity_done

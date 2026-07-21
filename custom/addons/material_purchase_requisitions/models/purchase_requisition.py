@@ -34,6 +34,8 @@ class MaterialPurchaseRequisition(models.Model):
     )
     state = fields.Selection([
         ('draft', 'New'),
+        ('product_creation_request', 'Product Creation Request'),
+        ('product_creation_done', 'Product Creation Done'),
         ('requested', 'Waiting Department Approval'),
         ('dept_manager_approved', 'Department Manager Approved'),
         ('factory_manager_approved', 'Factory Manager Approved'),
@@ -60,13 +62,14 @@ class MaterialPurchaseRequisition(models.Model):
     location_id = fields.Many2one('stock.location', string='Source Location',
         copy=True,domain=[('stock_location', '=', True)],default=lambda self: self.env.user._get_default_warehouse_id().lot_stock_id.id,)
     requisition_line_ids = fields.One2many('material.purchase.requisition.line','requisition_id', string='Purchase Requisitions Line', copy=True,)
+    product_creation_line_ids = fields.One2many('product.creation.line','product_creation_id', string='Purchase Requisitions Line', copy=True,)
     date_end = fields.Date(string='Requisition Deadline', readonly=True,help='Last date for the product to be needed', copy=True,)
     date_done = fields.Date(string='Date Done',  readonly=True,  help='Date of Completion of Purchase Requisition',)
     managerapp_date = fields.Date( string='Department Approval Date',readonly=True,copy=False,)
     manareject_date = fields.Date(string='Department Manager Reject Date', readonly=True,)
     userreject_date = fields.Date( string='Rejected Date', readonly=True, copy=False,)
     userrapp_date = fields.Date(string='Approved Date',readonly=True, copy=False,)
-    receive_date = fields.Date(string='Received Date', readonly=True, copy=False)
+    receive_date = fields.Date(string='Purchased Material Received Date', readonly=True, copy=False)
     reason = fields.Text(string='Reason for Requisitions', required=False, copy=True)
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', copy=True)
     dest_location_id = fields.Many2one('stock.location', string='Destination Location', required=False, copy=True)
@@ -81,6 +84,22 @@ class MaterialPurchaseRequisition(models.Model):
     is_transfer_created = fields.Boolean(copy=False)
     reject_reason = fields.Text()
 
+    item_code_request_sent = fields.Boolean(string='Item Code Request Sent', copy=False, readonly=True)
+    item_code_creation_done = fields.Boolean(string='Item Code Creation Done', copy=False, readonly=True)
+
+    is_employee_login = fields.Boolean(
+        string='Is Employee Login',
+        compute='_compute_is_employee_login',
+    )
+
+    @api.depends('employee_id')
+    def _compute_is_employee_login(self):
+        for rec in self:
+            rec.is_employee_login = bool(
+                self.env['hr.employee'].sudo().search(
+                    [('user_id', '=', self.env.uid)], limit=1
+                )
+            )
     @api.depends('dept_manager_id')
     def _compute_is_manager_login(self):
         current_employee = self.env.user.sudo().employee_id
@@ -102,6 +121,378 @@ class MaterialPurchaseRequisition(models.Model):
             if not vals.get('name'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('purchase.requisition.seq') or _('New')
         return super().create(vals_list)
+
+    def action_item_code_creation_request(self):
+        for rec in self:
+            if not rec.product_creation_line_ids:
+                raise UserError(_('Please add at least one product in the Item Code Creation tab.'))
+            for line in rec.product_creation_line_ids:
+                if not line.product_name:
+                    raise UserError(_('Please enter a Product Name in the Product Creation Tab.'))
+                if not line.specification:
+                    raise UserError(_('Please enter a Specification in the Product Creation Tab.'))
+                if not line.qty:
+                    raise UserError(_('Please enter a Quantity in the Product Creation Tab.'))
+                if not line.remarks:
+                    raise UserError(_('Please enter Remarks in the Product Creation Tab.'))
+
+
+            team_group = self.env.ref(
+                'material_purchase_requisitions.group_purchase_requisition_purchase',
+                raise_if_not_found=False
+            )
+            emails = []
+            if team_group:
+                users = self.env['res.users'].sudo().search([('group_ids', 'in', team_group.id)])
+                for user in users:
+                    emp = self.env['hr.employee'].sudo().search([('user_id', '=', user.id)], limit=1)
+                    if emp and emp.work_email:
+                        emails.append(emp.work_email)
+                    elif user.email:
+                        emails.append(user.email)
+
+            if not emails:
+                raise UserError(_('No Product Creation Team member with a configured email was found.'))
+
+            rec.item_code_request_sent = True
+            employee_sudo = rec.employee_id.sudo()
+            company = rec.company_id
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
+            today_str = fields.Date.today().strftime('%d %B %Y')
+
+            body_html = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+                </head>
+                <body style="margin:0;padding:0;background-color:#E8EBF0;
+                             font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                         style="background-color:#E8EBF0;padding:40px 16px;">
+                    <tr>
+                      <td align="center">
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="width:100%;background:#FFFFFF;border-radius:10px;
+                                      overflow:hidden;border:1px solid #E2E8F0;">
+
+                          <!-- Top accent bar -->
+                          <tr>
+                            <td style="background:#D97706;height:4px;font-size:0;line-height:0;">&nbsp;</td>
+                          </tr>
+
+                          <!-- Header -->
+                          <tr>
+                            <td style="padding:22px 32px 18px;border-bottom:1px solid #E2E8F0;background:#FEF3C7;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                  <td style="vertical-align:middle;">
+                                    <div style="font-size:11px;color:#92400E;letter-spacing:0.8px;
+                                                text-transform:uppercase;margin-bottom:4px;">
+                                      <b>Purchase Requisition</b>
+                                    </div>
+                                    <div style="font-size:15px;font-weight:600;color:#0F172A;">
+                                      Item Code Creation Request
+                                    </div>
+                                  </td>
+                                  <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+                                    <span style="display:inline-block;
+                                                 background:#FFFBEB;
+                                                 border:1px solid #D97706;
+                                                 border-radius:20px;
+                                                 padding:4px 14px;
+                                                 font-size:11px;font-weight:600;
+                                                 color:#92400E;
+                                                 letter-spacing:0.4px;">
+                                      Action Required
+                                    </span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+
+                          <!-- Greeting -->
+                          <tr>
+                            <td style="padding:22px 32px 0;">
+                              <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
+                                Dear <strong style="color:#0F172A;">Product Creation Team</strong>,
+                              </p>
+                              <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
+                                Please create item codes for the products listed in the
+                                <strong>Item Code Creation</strong> tab of Purchase Requisition
+                                <strong style="color:#0F172A;">{rec_name}</strong>.
+                                Kindly complete the item code creation and update the request.
+                              </p>
+                            </td>
+                          </tr>
+
+                          <!-- Detail Card -->
+                          <tr>
+                            <td style="padding:18px 32px;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                     style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;">
+
+                                <tr>
+                                  <td colspan="2"
+                                      style="background:#FEF3C7;border-bottom:1px solid #E2E8F0;padding:9px 20px;">
+                                    <span style="font-size:10px;font-weight:700;letter-spacing:1px;
+                                                 text-transform:uppercase;color:#92400E;">Requisition Details</span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <td style="padding:12px 20px 8px;font-size:12px;color:#1E293B;
+                                             width:38%;vertical-align:top;font-weight:600;
+                                             border-bottom:1px solid #F1F5F9;">Requisition No.</td>
+                                  <td style="padding:12px 20px 8px;vertical-align:top;
+                                             border-bottom:1px solid #F1F5F9;">
+                                    <span style="background:#FFFBEB;border:1px solid #FDE68A;
+                                                 border-radius:5px;padding:3px 10px;
+                                                 font-family:monospace;font-size:12px;color:#92400E;">
+                                      {rec_name}
+                                    </span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <td style="padding:11px 20px;font-size:12px;color:#1E293B;font-weight:600;
+                                             border-bottom:1px solid #F1F5F9;">Requested By</td>
+                                  <td style="padding:11px 20px;font-size:13px;color:#0F172A;
+                                             border-bottom:1px solid #F1F5F9;">{employee_name}</td>
+                                </tr>
+
+                                <tr>
+                                  <td style="padding:11px 20px 13px;font-size:12px;color:#1E293B;font-weight:600;">
+                                    Requested On</td>
+                                  <td style="padding:11px 20px 13px;font-size:13px;color:#0F172A;">
+                                    {today_str}
+                                  </td>
+                                </tr>
+
+                              </table>
+                            </td>
+                          </tr>
+
+                          <!-- Divider -->
+                          <tr>
+                            <td style="padding:0 32px;">
+                              <hr style="border:none;border-top:1px solid #E2E8F0;margin:0;">
+                            </td>
+                          </tr>
+
+                          <!-- CTA Button -->
+                          <tr>
+                            <td style="padding:18px 32px;">
+                              <a href="{base_url}"
+                                 style="display:inline-block;background-color:#D97706;color:#ffffff;
+                                        text-decoration:none;font-size:13px;font-weight:600;
+                                        padding:10px 22px;border-radius:7px;letter-spacing:0.02em;">
+                                Open Requisition &#8594;
+                              </a>
+                            </td>
+                          </tr>
+
+                          <!-- Closing -->
+                          <tr>
+                            <td style="padding:4px 32px 22px;">
+                              <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
+                                Thanks &amp; regards,<br>
+                                <strong style="color:#0F172A;">{employee_name}</strong>
+                              </p>
+                            </td>
+                          </tr>
+
+                          <!-- Footer -->
+                          <tr>
+                            <td style="background:#FEF3C7;border-top:1px solid #E2E8F0;
+                                       padding:12px 32px;text-align:center;">
+                              <p style="font-size:11px;color:#92400E;line-height:1.7;margin:0;">
+                                You are receiving this because you are a member of the Product Creation Team.<br/>
+                                &copy; {company_name}
+                              </p>
+                            </td>
+                          </tr>
+
+                          <!-- Bottom accent bar -->
+                          <tr>
+                            <td style="background:#D97706;height:3px;font-size:0;line-height:0;">&nbsp;</td>
+                          </tr>
+
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                </body>
+                </html>
+            """.format(
+                rec_name=rec.name or '',
+                employee_name=employee_sudo.name or '',
+                today_str=today_str,
+                base_url=base_url,
+                company_name=company.name or '',
+            )
+
+            self.env['mail.mail'].sudo().create({
+                'subject': 'Item Code Creation Request - %s' % (rec.name or ''),
+                'email_from': employee_sudo.work_email or company.email,
+                'email_to': ','.join(emails),
+                'body_html': body_html,
+                'auto_delete': False,
+            }).send()
+            self.write({'state':'product_creation_request'})
+
+
+    def action_product_creation_done(self):
+        for rec in self:
+            if not rec.item_code_request_sent:
+                raise UserError(_('Item Code Creation request has not been sent yet.'))
+            if not rec.product_creation_line_ids:
+                raise UserError(_('There are no Item Code Creation lines on this requisition.'))
+            for line in rec.product_creation_line_ids:
+                if not line.item_code_created:
+                    raise UserError(_('Please create a Product in the Item Code Creation Tab.'))
+            pending_lines = rec.product_creation_line_ids.filtered(lambda l: not l.product_id)
+            if pending_lines:
+                raise UserError(_(
+                    'Please click "Create Product" for: %s'
+                ) % ', '.join(pending_lines.mapped('product_name')))
+
+            for line in rec.product_creation_line_ids:
+                self.env['material.purchase.requisition.line'].sudo().create({
+                    'requisition_id': rec.id,
+                    'product_id': line.product_id.id,
+                    'description': line.specification or line.product_id.display_name,
+                    'qty': line.qty,
+                    'uom': line.uom.id if line.uom else False,
+                })
+
+            rec.item_code_creation_done = True
+
+            employee_sudo = rec.employee_id.sudo()
+            company = rec.company_id
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            base_url += '/web#id=%d&view_type=form&model=%s' % (rec.id, self._name)
+
+            current_employee = self.env['hr.employee'].sudo().search(
+                [('user_id', '=', self.env.uid)], limit=1
+            )
+
+            body_html = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+                </head>
+                <body style="margin:0;padding:0;background-color:#EEF3F0;
+                             font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                         style="background-color:#EEF3F0;padding:40px 16px;">
+                    <tr>
+                      <td align="center">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="width:100%;background:#FFFFFF;border-radius:10px;
+                                      overflow:hidden;border:1px solid #E5EDE8;">
+                          <tr>
+                            <td style="background:#86C79B;height:4px;font-size:0;line-height:0;">&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:22px 32px 18px;border-bottom:1px solid #E5EDE8;background:#F1F8F4;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                  <td style="vertical-align:middle;">
+                                    <div style="font-size:11px;color:#4B7C63;letter-spacing:0.8px;
+                                                text-transform:uppercase;margin-bottom:4px;">
+                                      <b>Purchase Requisition</b>
+                                    </div>
+                                    <div style="font-size:15px;font-weight:600;color:#0F172A;">
+                                      Item Code Creation Completed
+                                    </div>
+                                  </td>
+                                  <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+                                    <span style="display:inline-block;
+                                                 background:#F1F8F4;
+                                                 border:1px solid #A9D6BA;
+                                                 border-radius:20px;
+                                                 padding:4px 14px;
+                                                 font-size:11px;font-weight:600;
+                                                 color:#3F6B52;
+                                                 letter-spacing:0.4px;">
+                                      Completed
+                                    </span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:22px 32px 26px;">
+                              <p style="margin:0 0 6px;font-size:14px;color:#1E293B;">
+                                Dear <strong style="color:#0F172A;">{employee_name}</strong>,
+                              </p>
+                              <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
+                                All requested item codes for Purchase Requisition
+                                <strong style="color:#0F172A;">{rec_name}</strong>
+                                have been created successfully and added to the Requisition Lines.
+                                You may now proceed with the Purchase Requisition process.
+                              </p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:0 32px;">
+                              <hr style="border:none;border-top:1px solid #E5EDE8;margin:0;">
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:18px 32px;">
+                              <a href="{base_url}"
+                                 style="display:inline-block;background-color:#6FAF88;color:#ffffff;
+                                        text-decoration:none;font-size:13px;font-weight:600;
+                                        padding:10px 22px;border-radius:7px;letter-spacing:0.02em;">
+                                Open Requisition &#8594;
+                              </a>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:4px 32px 22px;">
+                              <p style="margin:0;font-size:13px;color:#1E293B;line-height:1.7;">
+                                Thanks &amp; regards,<br>
+                                <strong style="color:#0F172A;">{team_member_name}</strong>
+                              </p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="background:#86C79B;height:3px;font-size:0;line-height:0;">&nbsp;</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </body>
+                </html>
+            """.format(
+                employee_name=employee_sudo.name or '',
+                rec_name=rec.name or '',
+                base_url=base_url,
+                team_member_name=current_employee.name or 'Product Creation Team',
+                company_name=company.name or '',
+            )
+
+            self.env['mail.mail'].sudo().create({
+                'subject': 'Item Code Creation Completed - %s' % (rec.name or ''),
+                'email_from': current_employee.work_email or company.email,
+                'email_to': employee_sudo.work_email,
+                'body_html': body_html,
+                'auto_delete': False,
+            }).send()
+            self.write({'state':'product_creation_done'})
+
 
     def requisition_confirm(self):
         for rec in self:
@@ -361,7 +752,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': employee_sudo.work_email or company.email,
                 'email_to': rec.dept_manager_id.sudo().work_email,
                 'body_html': body_html,
-                'auto_delete': True,
+                'auto_delete': False,
             }
 
             self.env['mail.mail'].sudo().create(mail_values).send()
@@ -569,7 +960,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': dept_manager_sudo.work_email,
                 'email_to': employee_sudo.work_email,
                 'body_html': employee_body,
-                'auto_delete': True,
+                'auto_delete': False,
             }).send()
 
             # ============================================================
@@ -761,7 +1152,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': dept_manager_sudo.work_email,
                 'email_to': factory_manager_sudo.work_email,
                 'body_html': factory_manager_body,
-                'auto_delete': True,
+                'auto_delete': False,
             }).send()
 
             rec.state = 'dept_manager_approved'
@@ -955,7 +1346,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': reject_employee_sudo.work_email or company.email,
                 'email_to': employee_sudo.work_email,
                 'body_html': reject_body,
-                'auto_delete': True,
+                'auto_delete': False,
             }).send()
 
     def action_factory_manager_approve(self):
@@ -1083,7 +1474,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': employee_sudo.work_email or company.email,
                 'email_to': employee_sudo.work_email,
                 'body_html': requester_body,
-                'auto_delete': True,
+                'auto_delete': False,
             }).send()
 
             # EMAIL 2: To Purchase User
@@ -1264,7 +1655,7 @@ class MaterialPurchaseRequisition(models.Model):
                 'email_from': employee_sudo.work_email or company.email,
                 'email_to': purchase_user_email_to,
                 'body_html': purchase_user_body,
-                'auto_delete': True,
+                'auto_delete': False,
             }).send()
 
     #@api.multi
@@ -1375,8 +1766,7 @@ class MaterialPurchaseRequisition(models.Model):
                 if line.requisition_type == 'purchase':
                     if not line.partner_id:
                         raise UserError(
-                            _('Please enter at least one vendor on Requisition Lines for Requisition Action Purchase'))
-
+                            _('Please enter at least one vendor for the product on the Requisition Lines tab.'))
                     for partner in line.partner_id:
                         if partner not in po_dict:
                             po_vals = {

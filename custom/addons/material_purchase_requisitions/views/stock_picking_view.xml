@@ -7,9 +7,9 @@
             <field name="model">stock.picking</field>
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='origin']" position="after">
-                    <field name="custom_requisition_id" invisble="1"/>
-                </xpath>
+<!--                <xpath expr="//field[@name='origin']" position="after">-->
+<!--                    <field name="custom_requisition_id" invisble="1"/>-->
+<!--                </xpath>-->
                 <div class="oe_button_box" name="button_box">
                 <button name="action_view_pr" icon="fa-building" type="object" string="Purchase Requisition"
                         invisible="not custom_requisition_id" class="oe_stat_button">

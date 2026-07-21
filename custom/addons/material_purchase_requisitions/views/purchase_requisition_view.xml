@@ -109,7 +109,7 @@
                             </page>
                             <page string="Requisitions Lines">
                                 <field name="requisition_line_ids"
-                                       readonly="state in ('po_created','cancel','receive','done','cancel')">
+                                       readonly="state in ('po_created','cancel','receive','done','cancel','reject')">
                                     <list editable="bottom">
                                         <control>
                                             <create name="add_product_control" string="Add a product"
@@ -131,20 +131,18 @@
                                            placeholder="Add Reason for Internal Requistion ...."/>
                                 </group>
                             </page>
-                            <page string="Picking Details"
-                                  groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                  readonly="state in ('done')">
+                            <page string="Picking Details">
                                 <group>
                                     <group>
                                         <field name="location_id"
-                                               groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               readonly="state in ('reject','cancel','receive','done')"/>
+                                               groups="material_purchase_requisitions.group_purchase_requisition_user,material_purchase_requisitions.group_purchase_requisition_store"
+                                               readonly="state != 'draft'"/>
                                         <field name="dest_location_id"
-                                               groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               readonly="state in ('reject','cancel','receive','done')"/>
+                                               groups="material_purchase_requisitions.group_purchase_requisition_user,material_purchase_requisitions.group_purchase_requisition_store"
+                                               readonly="state != 'draft'"/>
                                         <field name="custom_picking_type_id"
-                                               groups="material_purchase_requisitions.group_purchase_requisition_user,stock.group_stock_user"
-                                               readonly="state in ('reject','cancel','receive','done')"/>
+                                               groups="material_purchase_requisitions.group_purchase_requisition_user,material_purchase_requisitions.group_purchase_requisition_store"
+                                               readonly="state != 'draft'"/>
                                     </group>
                                 </group>
                             </page>

@@ -31,7 +31,7 @@ class MaterialPurchaseRequisitionLine(models.Model):
     def unlink(self):
         for rec in self:
             parent = rec.requisition_id or rec.product_creation_id
-            if parent and parent.state not in ('draft', 'cancel', 'reject'):
+            if parent and parent.state not in ('draft'):
                 raise UserError(
                     _('You cannot delete a Purchase Requisition line which is not in draft, '
                       'cancelled, or rejected state.')
@@ -58,7 +58,7 @@ class ProductCreationLine(models.Model):
     def unlink(self):
         for rec in self:
             parent = rec.requisition_id or rec.product_creation_id
-            if parent and parent.state not in ('draft', 'cancel', 'reject'):
+            if parent and parent.state not in ('draft'):
                 raise UserError(
                     _('You cannot delete a Purchase Requisition line which is not in draft, '
                       'cancelled, or rejected state.')

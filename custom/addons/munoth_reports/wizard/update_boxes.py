@@ -47,6 +47,7 @@ class UpdateBoxesWizard(models.TransientModel):
 
             move_line = move_lines[idx]
             move_line.boxes = boxes_value
+            move_line.lot_name = lot_serial
 
             print(f"[DEBUG] Row {idx + 2} → Lot: {lot_serial}, Box: {boxes_value}, Move Line ID: {move_line.id}")
 

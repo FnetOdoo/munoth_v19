@@ -355,14 +355,51 @@ class ProductionProcess(models.Model):
     is_next_capacity_process = fields.Boolean(compute='_compute_process_flags', store=True)
     is_power_bank = fields.Boolean(copy=False)
     is_sub_process_created = fields.Boolean(copy=False)
-    get_rejection = fields.Boolean(compute='_compute_allow_lot_create')
-    allow_lot_create = fields.Boolean(compute='_compute_allow_lot_create')
+    get_rejection = fields.Boolean(compute='_compute_rejection_summary')
+    allow_lot_create = fields.Boolean(compute='_compute_allow_lot_create',store=True)
 
     rejection_reason_html = fields.Html(
         string="Rejection Summary",
         compute="_compute_rejection_summary",
         sanitize=False,
     )
+
+    def _compute_rejection_summary(self):
+        for rec in self:
+            get_quality = self.env['mrp.quality'].search([
+                ('manufacturing_process_id', '=', rec.id),
+            ])
+            rec.get_rejection = bool(get_quality)
+
+            if get_quality:
+                reason_count = Counter(get_quality.mapped('reason'))
+
+                html = """
+                      <div style="font-family: Arial, sans-serif;">
+                          <table style="border-collapse: collapse; width: 100%;">
+                              <thead>
+                                  <tr style="background-color:#f5f5f5;">
+                                      <th style="border:1px solid #ddd;padding:8px;text-align:left;">Reason</th>
+                                      <th style="border:1px solid #ddd;padding:8px;text-align:center;">Count</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                  """
+                for reason, count in reason_count.items():
+                    html += """
+                          <tr>
+                              <td style="border:1px solid #ddd;padding:8px;">{}</td>
+                              <td style="border:1px solid #ddd;padding:8px;text-align:center;">{}</td>
+                          </tr>
+                      """.format(reason or '-', count)
+                html += """
+                              </tbody>
+                          </table>
+                      </div>
+                  """
+                rec.rejection_reason_html = html
+            else:
+                rec.rejection_reason_html = ""
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -377,49 +414,12 @@ class ProductionProcess(models.Model):
         records = super(ProductionProcess, self).create(vals_list)
         return records
 
-
+    @api.depends('operation_id')
     def _compute_allow_lot_create(self):
         for rec in self:
-            rec.allow_lot_create = bool(rec.operation_id.allow_lot_create)
+            rec.allow_lot_create = rec.operation_id.allow_lot_create
 
-            get_quality = self.env['mrp.quality'].search([
-                ('manufacturing_process_id', '=', rec.id),
-            ])
-            rec.get_rejection = bool(get_quality)
 
-            if get_quality:
-                # Count each rejection reason
-                reason_count = Counter(get_quality.mapped('reason'))
-
-                html = """
-                    <div style="font-family: Arial, sans-serif;">
-                        <table style="border-collapse: collapse; width: 100%;">
-                            <thead>
-                                <tr style="background-color:#f5f5f5;">
-                                    <th style="border:1px solid #ddd;padding:8px;text-align:left;">Reason</th>
-                                    <th style="border:1px solid #ddd;padding:8px;text-align:center;">Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                """
-
-                for reason, count in reason_count.items():
-                    html += """
-                        <tr>
-                            <td style="border:1px solid #ddd;padding:8px;">{}</td>
-                            <td style="border:1px solid #ddd;padding:8px;text-align:center;">{}</td>
-                        </tr>
-                    """.format(reason or '-', count)
-
-                html += """
-                            </tbody>
-                        </table>
-                    </div>
-                """
-
-                rec.rejection_reason_html = html
-            else:
-                rec.rejection_reason_html = ""
     @api.depends('manufacturing_process_type_id', 'is_capacity_created', 'is_voltage_created','state',
                  'is_packing_created', 'next_manufacturing_process_type_id')
     def _compute_process_flags(self):
@@ -1325,9 +1325,14 @@ class ProductionProcess(models.Model):
             self.location_dest_id = self.operation_id.location_dest_id.id
             self.production_location_id = production_location.id
             self.bom_id = self.operation_id.bom_id.id
-            self.product_id.write({
-                'tracking': 'none',
-            })
+            if self.allow_lot_create:
+                self.product_id.write({
+                    'tracking': 'serial',
+                })
+            else:
+                self.product_id.write({
+                    'tracking': 'none',
+                })
         else:
             self.bom_id = False
             self.component_ids =False

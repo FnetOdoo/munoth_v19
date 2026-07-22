@@ -12,41 +12,37 @@ class UpdateBoxesWizard(models.TransientModel):
     stock_picking_id = fields.Many2one('stock.picking', string='Stock Picking')
 
     def action_update_boxes_delivery(self):
-
         if not self.upload_file:
             raise ValidationError(_('The uploaded file is empty. Please upload a valid file.'))
 
-        # Decode uploaded file
         try:
-            upload_file = base64.b64decode(self.upload_file)
-            wb = xlrd.open_workbook(file_contents=upload_file)
-        except (xlrd.biffh.XLRDError, base64.binascii.Error):
-            raise ValidationError(_('Upload a valid .xls file.'))
+            file_data = base64.b64decode(self.upload_file)
+            wb = load_workbook(filename=io.BytesIO(file_data))
+        except Exception:
+            raise ValidationError(_('Upload a valid .xlsx file.'))
 
-        sheet = wb.sheet_by_index(0)
-
-        # Get move lines sorted by ID
+        sheet = wb.active
         move_lines = self.stock_picking_id.move_line_ids.sorted('id')
 
-        # Check for row mismatch
-        if sheet.nrows - 1 > len(move_lines):
+        rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        if len(rows) > len(move_lines):
             raise ValidationError(_('More rows in Excel than move lines.'))
 
-        # Clear old box values in one go (only if same value needed)
         move_lines.write({'boxes': False})
 
-        # Step: Loop and assign values
-        for idx in range(1, sheet.nrows):
-            raw_box_value = sheet.cell_value(idx, 1)
-            try:
-                boxes_value = str(raw_box_value).strip() if raw_box_value else ''
-            except ValueError:
-                raise ValidationError(_('Invalid number format in Excel at row %s') % (idx + 1))
+        for idx, row in enumerate(rows):
+            lot_serial = str(row[0]).strip() if row[0] else ''  # column A: Lot/Serial Number
+            raw_box_value = row[2] if len(row) > 2 else None  # column C: Done? adjust index to your real "Boxes" column
+            boxes_value = str(raw_box_value).strip() if raw_box_value else ''
 
-            move_line = move_lines[idx - 1]
-            move_line.boxes = boxes_value  # ✅ Best way to update One2many field value
+            move_line = move_lines[idx]
+            move_line.boxes = boxes_value
 
-            # 👇 Debug print
-            print(f"[DEBUG] Row {idx + 1} → Raw: {raw_box_value}, Cleaned: {boxes_value}, Move Line ID: {move_line.id}")
+            # if you actually need to match/update lot on the move line:
+            # matching_lot = self.env['stock.lot'].search([('name', '=', lot_serial), ...], limit=1)
+            # if matching_lot:
+            #     move_line.lot_id = matching_lot.id
+
+            print(f"[DEBUG] Row {idx + 2} → Lot: {lot_serial}, Box: {boxes_value}, Move Line ID: {move_line.id}")
 
         return {'type': 'ir.actions.client', 'tag': 'reload'}

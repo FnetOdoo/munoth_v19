@@ -22,7 +22,6 @@
                             <field name="manufacturing_stages_id" invisible="is_power_bank"
                                    required="not is_power_bank"/>
                             <field name="max_rework_count"/>
-                            <field name="max_rework_count"/>
                         </group>
                         <group>
                             <field name="location_src_id" required="1" string="Source Location"/>

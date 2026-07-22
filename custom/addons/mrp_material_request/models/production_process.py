@@ -44,7 +44,6 @@ class ProductionProcess(models.Model):
             'operation_id': self.operation_id.id if self.operation_id else False,
             'origin': self.name,
             'production_process_id': self.id,
-            'responsible_user_id': self.user_id.id,
             'location_dest_id': self.location_src_id.id,
             'request_line_ids': request_lines,
         })

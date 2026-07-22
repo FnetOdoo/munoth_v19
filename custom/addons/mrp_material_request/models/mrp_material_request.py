@@ -115,6 +115,11 @@ class MrpMaterialRequest(models.Model):
     category_id = fields.Many2one('material.request.configuration', string='Category', ondelete='set null',  domain="[('is_sub_department','=',True), ('is_maintenance', '=', True)]",)
     work_order_id = fields.Many2one('work.order', string="Work Order")
 
+    @api.constrains('responsible_user_id', 'user_id')
+    def _check_responsible_user(self):
+        for rec in self:
+            if rec.responsible_user_id and rec.user_id and rec.responsible_user_id.id == rec.user_id.id:
+                raise ValidationError(_("Requested Person cannot be the Responsible Person."))
 
     @api.onchange('order_id')
     def onchange_order_id(self):
@@ -486,6 +491,7 @@ class MrpMaterialRequest(models.Model):
             self.location_dest_id = self.picking_type_id.default_location_src_id.id
 
     def action_request(self):
+
         if not self.sub_department_id and not self.is_maintenance_material_request:
             raise UserError('Please Select the Sub Department')
         if self.is_maintenance_material_request :

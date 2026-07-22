@@ -7,6 +7,7 @@ import io
 from openpyxl import load_workbook
 import logging
 import re
+from collections import Counter
 
 _logger = logging.getLogger(__name__)
 
@@ -194,6 +195,8 @@ class ProductionProcess(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = "id desc"
 
+
+
     @api.model
     def default_get(self, fields):
         defaults = super(ProductionProcess, self).default_get(fields)
@@ -355,6 +358,11 @@ class ProductionProcess(models.Model):
     get_rejection = fields.Boolean(compute='_compute_allow_lot_create')
     allow_lot_create = fields.Boolean(compute='_compute_allow_lot_create')
 
+    rejection_reason_html = fields.Html(
+        string="Rejection Summary",
+        compute="_compute_rejection_summary",
+        sanitize=False,
+    )
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -379,6 +387,39 @@ class ProductionProcess(models.Model):
             ])
             rec.get_rejection = bool(get_quality)
 
+            if get_quality:
+                # Count each rejection reason
+                reason_count = Counter(get_quality.mapped('reason'))
+
+                html = """
+                    <div style="font-family: Arial, sans-serif;">
+                        <table style="border-collapse: collapse; width: 100%;">
+                            <thead>
+                                <tr style="background-color:#f5f5f5;">
+                                    <th style="border:1px solid #ddd;padding:8px;text-align:left;">Reason</th>
+                                    <th style="border:1px solid #ddd;padding:8px;text-align:center;">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                """
+
+                for reason, count in reason_count.items():
+                    html += """
+                        <tr>
+                            <td style="border:1px solid #ddd;padding:8px;">{}</td>
+                            <td style="border:1px solid #ddd;padding:8px;text-align:center;">{}</td>
+                        </tr>
+                    """.format(reason or '-', count)
+
+                html += """
+                            </tbody>
+                        </table>
+                    </div>
+                """
+
+                rec.rejection_reason_html = html
+            else:
+                rec.rejection_reason_html = ""
     @api.depends('manufacturing_process_type_id', 'is_capacity_created', 'is_voltage_created','state',
                  'is_packing_created', 'next_manufacturing_process_type_id')
     def _compute_process_flags(self):
@@ -775,6 +816,9 @@ class ProductionProcess(models.Model):
         }
 
     def lot_creation(self):
+        if self.out_file and not self.lot_ids:
+            raise UserError("A lot file has been uploaded. Please click the 'Upload Serial' button in the 'Serial Number' tab to import the serial numbers.")
+
         if not self.lot_ids:
             raise UserError(_("Please upload the Lot/Serial Number in the Serial Number tab."))
 

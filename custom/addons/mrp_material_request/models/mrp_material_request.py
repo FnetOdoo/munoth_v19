@@ -45,7 +45,7 @@ class MrpMaterialRequest(models.Model):
             rec.po_count = self.env['purchase.order'].search_count([('material_request_id', '=', self.id)])
 
     name = fields.Char(string='Issue No', required=True, readonly=True, default=lambda self: _('New'), copy=False)
-    state = fields.Selection([('draft', 'Draft'), ('request', 'Requested'), ('manager_approve', 'Manager Approved'), ('purchase_request', 'Waiting for Purchase Approval'), ('purchase_approve', 'Purchase Manager Approved'),('purchase_reject', 'Purchase Manager Rejected'), ('confirm', 'Confirmed'), ('received', 'Purchased Material Received'), ('material_accept','Material Accepted'),('material_reject','Material Rejected'), ('cancel', 'Canceled'), ('reject', 'Rejected'),('available','Check Availability'),('material_return_progress', 'Material Return In Progress'),('material_returned','Material Returned')], string="Status", default='draft', tracking=True)
+    state = fields.Selection([('draft', 'Draft'), ('request', 'Requested'), ('manager_approve', 'Manager Approved'), ('purchase_request', 'Waiting for Purchase Approval'), ('purchase_approve', 'Purchase Manager Approved'),('purchase_reject', 'Purchase Manager Rejected'), ('confirm', 'Confirmed'), ('partial_received', 'Partial Material Received'),('received', 'Purchased Material Received'), ('material_accept','Material Accepted'),('material_reject','Material Rejected'), ('cancel', 'Cancelled'), ('reject', 'Rejected'),('available','Check Availability'),('material_return_progress', 'Material Return In Progress'),('material_returned','Material Returned')], string="Status", default='draft', tracking=True)
     user_id = fields.Many2one('res.users', 'Requested by', tracking=True, default=lambda self: self.env.user)
     responsible_user_id = fields.Many2one('res.users', 'Responsible', tracking=True)
     type = fields.Selection([('in_ward', 'Internal'),
@@ -2385,18 +2385,20 @@ class MrpMaterialRequest(models.Model):
 
     def action_raise_po(self):
         self.state = 'purchase_approve'
-        lines_to_process = self.request_line_ids.filtered(lambda l: l.line_state == 'unavailable' and not l.display_type)
+        lines_to_process = self.request_line_ids.filtered(
+            lambda l: l.line_state == 'unavailable' and not l.display_type)
         if not lines_to_process:
-             lines_to_process = self.request_line_ids.filtered(lambda l: not l.display_type)
+            lines_to_process = self.request_line_ids.filtered(lambda l: not l.display_type)
         if not lines_to_process:
             return
-        # Group lines by vendor
-        vendors = lines_to_process.mapped('vendor_id')
-        if not vendors or any(not v for v in vendors):
+
+        # Group lines by vendor (a line can belong to more than one vendor now)
+        vendors = lines_to_process.mapped('vendor_ids')
+        if not vendors or any(not l.vendor_ids for l in lines_to_process):
             raise UserError(_("Please select vendor in all relevant request lines."))
 
         for vendor in vendors:
-            vendor_lines = lines_to_process.filtered(lambda l: l.vendor_id == vendor)
+            vendor_lines = lines_to_process.filtered(lambda l: vendor in l.vendor_ids)
             fpos = self.env['account.fiscal.position'].sudo()._get_fiscal_position(vendor)
 
             order = self.env['purchase.order'].create({
@@ -2415,7 +2417,6 @@ class MrpMaterialRequest(models.Model):
                 seller = line.product_id.seller_ids.filtered(
                     lambda s: s.partner_id.id == vendor.id
                 )
-
                 price_unit = seller[:1].price if seller else 0.0
 
                 qty_to_purchase = line.purchase_qty if line.purchase_qty > 0 else line.quantity
@@ -2428,7 +2429,15 @@ class MrpMaterialRequest(models.Model):
                     'date_planned': fields.Datetime.now(),
                     'order_id': order.id,
                 })
-                line.line_state = 'po_created'
+
+            # Mark po_created only once a PO exists for every vendor on this line
+            for line in vendor_lines:
+                other_vendors_pending = self.env['purchase.order'].search_count([
+                    ('material_request_id', '=', self.id),
+                    ('partner_id', 'in', line.vendor_ids.ids),
+                ]) < len(line.vendor_ids)
+                if not other_vendors_pending:
+                    line.line_state = 'po_created'
 
         # -----------------------------
         # Send Email to Store Users
@@ -2721,7 +2730,7 @@ class MrpMaterialRequestLine(models.Model):
     display_type = fields.Selection([
         ('line_section', "Section"),
         ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
-    vendor_id = fields.Many2one('res.partner', string="Vendor", domain=[('is_vendor', '=', True)])
+    vendor_ids = fields.Many2many('res.partner', string="Vendors", domain=[('is_vendor', '=', True)])
     transfer_qty = fields.Float("Transfer Quantity", digits='Product Unit of Measure')
     purchase_qty = fields.Float("Purchase Quantity", digits='Product Unit of Measure')
     is_transfer_complete = fields.Boolean(compute='compute_is_transfer_complete')

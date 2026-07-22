@@ -13,20 +13,20 @@ class PurchaseOrderLine(models.Model):
     #                 raise UserError(_('You cannot add new lines to an order linked to a Material Request.'))
     #     return super().create(vals_list)
 
-    def write(self, vals):
-        for line in self:
-            if line.order_id.material_request_id:
-                if 'product_qty' in vals:
-                    request_line = line.order_id.material_request_id.request_line_ids.filtered(
-                        lambda l: l.product_id == line.product_id
-                    )
-                    if request_line:
-                        max_qty = request_line[0].purchase_qty
-                        if vals['product_qty'] < max_qty:
-                            raise UserError(_(
-                                '%s: PO Quantity (%s) cannot be less than Material Requests Purchase Quantity (%s).'
-                            ) % (line.product_id.name, vals['product_qty'], max_qty))
-        return super().write(vals)
+    # def write(self, vals):
+    #     for line in self:
+    #         if line.order_id.material_request_id:
+    #             if 'product_qty' in vals:
+    #                 request_line = line.order_id.material_request_id.request_line_ids.filtered(
+    #                     lambda l: l.product_id == line.product_id
+    #                 )
+    #                 if request_line:
+    #                     max_qty = request_line[0].purchase_qty
+    #                     if vals['product_qty'] < max_qty:
+    #                         raise UserError(_(
+    #                             '%s: PO Quantity (%s) cannot be less than Material Requests Purchase Quantity (%s).'
+    #                         ) % (line.product_id.name, vals['product_qty'], max_qty))
+    #     return super().write(vals)
 
     def unlink(self):
         for line in self:

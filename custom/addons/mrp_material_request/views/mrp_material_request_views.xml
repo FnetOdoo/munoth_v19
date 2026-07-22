@@ -183,7 +183,9 @@
                                                groups="mrp_material_request.group_material_request_po_manager"/>
                                         <field name="state" column_invisible="1"/>
                                         <field name="line_state" column_invisible="1"/>
-                                        <field name="vendor_id" column_invisible="parent.type == 'out_ward'"
+                                        <field name="vendor_ids"
+                                               widget="many2many_tags"
+                                               column_invisible="parent.type == 'out_ward'"
                                                groups="mrp_material_request.group_material_request_po_manager"
                                                readonly="parent.state not in ('draft', 'purchase_request') or line_state == 'done' or is_transfer_complete or parent.type == 'out_ward'"/>
                                         <field name="check_available" column_invisible="1"/>

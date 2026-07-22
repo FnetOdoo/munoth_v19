@@ -236,7 +236,7 @@ class StockPicking(models.Model):
     #             'email_from': self.env.user.email_formatted or self.company_id.partner_id.email_formatted,
     #         }).send()
 
-    def send_material_received_notification(self):
+    def send_material_received_notification(self, is_partial=False):
         material_request = self.purchase_id.material_request_id
         if not material_request:
             return
@@ -256,6 +256,20 @@ class StockPicking(models.Model):
             material_request._name
         )
 
+        status_label = "Partially Received" if is_partial else "Fully Received"
+        header_color = "#c68a1a" if is_partial else "#1a6b3c"
+        header_text = "Material Partially Received" if is_partial else "Material Received - Stock Updated"
+        intro_text = (
+            "Part of the purchased materials have been received and stock has been "
+            "updated. The remaining quantity is still pending from the vendor(s). "
+            "Kindly proceed with the internal transfer or distribution for the "
+            "received portion."
+            if is_partial else
+            "The purchased materials have been received and stock has been "
+            "updated successfully. Kindly proceed with the internal transfer "
+            "or distribution process."
+        )
+
         for user in store_users:
             if not user.partner_id.email:
                 continue
@@ -264,9 +278,9 @@ class StockPicking(models.Model):
             <div style="font-family: Arial, sans-serif; margin: 0 auto;
                         border: 1px solid #c0c0c0; border-radius: 8px; overflow: hidden;">
 
-                <div style="background-color: #1a6b3c; padding: 24px 32px;">
+                <div style="background-color: %s; padding: 24px 32px;">
                     <h2 style="color: #ffffff; margin: 0; font-size: 20px;">
-                        Material Received - Stock Updated
+                        %s
                     </h2>
                 </div>
 
@@ -277,13 +291,11 @@ class StockPicking(models.Model):
                     </p>
 
                     <p style="font-size:14px; line-height:1.6;">
-                        The purchased materials have been received and stock has been
-                        updated successfully. Kindly proceed with the internal transfer
-                        or distribution process.
+                        %s
                     </p>
 
                     <div style="background-color:#edf7f1;
-                                border-left:4px solid #1a6b3c;
+                                border-left:4px solid %s;
                                 padding:16px 20px;
                                 margin:20px 0;">
 
@@ -297,6 +309,11 @@ class StockPicking(models.Model):
                             <tr>
                                 <td><b>Purchase Order</b></td>
                                 <td>%s</td>
+                            </tr>
+
+                            <tr>
+                                <td><b>Receipt Status</b></td>
+                                <td><b>%s</b></td>
                             </tr>
 
                             <tr>
@@ -321,7 +338,7 @@ class StockPicking(models.Model):
                     <div style="margin:24px 0;">
                         <a href="%s"
                            style="display:inline-block;
-                                  background-color:#1a6b3c;
+                                  background-color:%s;
                                   color:#ffffff;
                                   text-decoration:none;
                                   padding:10px 24px;
@@ -337,7 +354,7 @@ class StockPicking(models.Model):
 
                 </div>
 
-                <div style="background-color:#1a6b3c;
+                <div style="background-color:%s;
                             padding:16px;
                             text-align:center;">
 
@@ -349,14 +366,21 @@ class StockPicking(models.Model):
 
             </div>
             """ % (
+                header_color,
+                header_text,
                 user.name,
-                material_request.name,  # Material Request name
-                self.purchase_id.name,  # Purchase Order name
+                intro_text,
+                header_color,
+                material_request.name,
+                self.purchase_id.name,
+                status_label,
                 material_request.user_id.name or '',
                 self.env.user.name,
                 fields.Date.today().strftime('%d-%m-%Y'),
                 base_url,
+                header_color,
                 self.env.user.name,
+                header_color,
                 self.company_id.name or 'Odoo ERP'
             )
 
@@ -369,7 +393,10 @@ class StockPicking(models.Model):
                         or self.env.ref('base.user_root').email_formatted
                 ),
                 'email_to': user.partner_id.email,
-                'subject': 'Material Received - %s' % material_request.name,
+                'subject': '%s - %s' % (
+                    'Material Partially Received' if is_partial else 'Material Received',
+                    material_request.name
+                ),
                 'body_html': body_html,
             }).send()
 
@@ -415,10 +442,7 @@ class StockPicking(models.Model):
                             <td width="40%%"><b>MR Reference</b></td>
                             <td>%s</td>
                         </tr>
-                        <tr>
-                            <td><b>Transfer Ref</b></td>
-                            <td>%s</td>
-                        </tr>
+                       
                         <tr>
                             <td><b>Requested By</b></td>
                             <td>%s</td>
@@ -450,7 +474,6 @@ class StockPicking(models.Model):
         """ % (
             material_request.user_id.name,  # Dear %s
             material_request.name,  # requested in %s
-            material_request.name,  # MR Reference
             self.name,  # Transfer Ref
             material_request.user_id.name or '',  # Requested By
             fields.Date.today().strftime('%d-%m-%Y'),  # Sent Date
@@ -478,12 +501,50 @@ class StockPicking(models.Model):
             if not mr:
                 continue
 
-            # Send notifications BEFORE clearing
-            if rec.material_request_id and not rec.purchase_id:
-                rec._send_material_sent_notification()
+            # # Send notifications BEFORE clearing
+            # if rec.material_request_id and not rec.purchase_id:
+            #     rec._send_material_sent_notification()
+
+            # ---------- PURCHASE RECEIPT: check qty received vs required ----------
             if rec.purchase_id and rec.purchase_id.material_request_id:
-                rec.send_material_received_notification()
+                po_mr_lines = mr.request_line_ids.filtered(lambda l: not l.display_type)
+                all_received = True
+                any_received = False
+
+                for line in po_mr_lines:
+                    qty_needed = line.purchase_qty if line.purchase_qty > 0 else line.quantity
+
+                    # Sum done qty for this product across ALL POs linked to this MR
+                    total_received = sum(self.env['stock.move'].search([
+                        ('product_id', '=', line.product_id.id),
+                        ('state', '=', 'done'),
+                        ('picking_id.purchase_id.material_request_id', '=', mr.id),
+                    ]).mapped('quantity'))
+
+                    if total_received <= 0:
+                        all_received = False
+                    elif total_received < qty_needed:
+                        all_received = False
+                        any_received = True
+                        line.line_state = 'received'
+                    else:
+                        any_received = True
+                        line.line_state = 'done'
+
+                is_partial = any_received and not all_received
+
+                if all_received and po_mr_lines:
+                    mr.state = 'received'
+                    mr.date_issued = fields.Date.today()
+                elif any_received:
+                    mr.state = 'partial_received'
+
+                # Send notification AFTER we know the real status
+                rec.send_material_received_notification(is_partial=is_partial)
+
                 rec.material_request_id = False
+                continue
+            # ------------------------------------------------------------------
 
             # Material return picking: set state directly, skip line-satisfaction check
             if rec.material_return_id:
@@ -491,7 +552,7 @@ class StockPicking(models.Model):
                 mr.returned_date = fields.Date.today()
                 continue
 
-            # Check every line in the Material Request
+            # Check every line in the Material Request (internal transfer path — unchanged)
             all_lines_satisfied = True
             mr_lines = mr.request_line_ids.filtered(lambda l: not l.display_type)
             if not mr_lines:

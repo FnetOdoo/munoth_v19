@@ -21,19 +21,27 @@ class UpdateBoxesWizard(models.TransientModel):
         try:
             wb = load_workbook(filename=io.BytesIO(file_data))
             sheet = wb.active
-            rows_data = list(sheet.iter_rows(min_row=2, values_only=True))
+            rows_data = [
+                row for row in sheet.iter_rows(min_row=2, values_only=True)
+                if any(cell is not None and str(cell).strip() != '' for cell in row)
+            ]
         except Exception:
             try:
                 wb = xlrd.open_workbook(file_contents=file_data)
                 sheet = wb.sheet_by_index(0)
-                rows_data = [sheet.row_values(r) for r in range(1, sheet.nrows)]
+                rows_data = [
+                    sheet.row_values(r) for r in range(1, sheet.nrows)
+                    if any(str(v).strip() != '' for v in sheet.row_values(r))
+                ]
             except Exception:
                 raise ValidationError(_('Upload a valid .xls or .xlsx file.'))
 
         move_lines = self.stock_picking_id.move_line_ids.sorted('id')
 
         if len(rows_data) > len(move_lines):
-            raise ValidationError(_('More rows in Excel than move lines.'))
+            raise ValidationError(_(
+                'More rows in Excel (%s) than move lines (%s).'
+            ) % (len(rows_data), len(move_lines)))
 
         move_lines.write({'boxes': False})
 
@@ -41,14 +49,14 @@ class UpdateBoxesWizard(models.TransientModel):
         used_move_line_ids = set()
 
         for row in rows_data:
-            lot_serial = str(row[0]).strip() if row[0] else ''
-            raw_box_value = row[1] if len(row) > 1 else None
+            # Column A = S.No (ignored), Column B = Lot/Serial Number, Column C = Boxes
+            lot_serial = str(row[1]).strip() if len(row) > 1 and row[1] else ''
+            raw_box_value = row[2] if len(row) > 2 else None
             boxes_value = str(raw_box_value).strip() if raw_box_value else ''
 
             if not lot_serial:
                 continue
 
-            # find the existing lot for this product
             lot = self.env['stock.lot'].search([
                 ('name', '=', lot_serial),
                 ('product_id', '=', self.stock_picking_id.move_lines[:1].product_id.id),
@@ -58,7 +66,6 @@ class UpdateBoxesWizard(models.TransientModel):
                 missing_serials.append(lot_serial)
                 continue
 
-            # find an available move line not yet assigned to a lot
             move_line = move_lines.filtered(
                 lambda ml: not ml.lot_id and ml.id not in used_move_line_ids
             )[:1]

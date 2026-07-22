@@ -412,8 +412,8 @@
                                         <field name="out_file_name" invisible="1"/>
                                         <field name="out_file" filename="out_file_name"
                                                readonly="state not in ['draft']"/>
-                                        <button name="action_upload_serial" type="object" string="Upload Serial"/>
-                                        <button name="action_download_sample" type="object" string="Download Sample"/>
+                                        <button name="action_upload_serial" type="object" string="Upload Serial" invisible="state not in ['draft']"/>
+                                        <button name="action_download_sample" type="object" string="Download Sample" invisible="state not in ['draft']"/>
                                     </div>
                                 </group>
                             </group>

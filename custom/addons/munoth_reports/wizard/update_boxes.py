@@ -16,16 +16,13 @@ class UpdateBoxesWizard(models.TransientModel):
             raise ValidationError(_('The uploaded file is empty. Please upload a valid file.'))
 
         file_data = base64.b64decode(self.upload_file)
+        rows_data = []
 
-        rows_data = []  # list of row-value-tuples, 0-indexed, header excluded
-
-        # Try xlsx (openpyxl) first
         try:
             wb = load_workbook(filename=io.BytesIO(file_data))
             sheet = wb.active
             rows_data = list(sheet.iter_rows(min_row=2, values_only=True))
         except Exception:
-            # Fall back to legacy .xls (xlrd)
             try:
                 wb = xlrd.open_workbook(file_contents=file_data)
                 sheet = wb.sheet_by_index(0)
@@ -40,15 +37,46 @@ class UpdateBoxesWizard(models.TransientModel):
 
         move_lines.write({'boxes': False})
 
-        for idx, row in enumerate(rows_data):
+        missing_serials = []
+        used_move_line_ids = set()
+
+        for row in rows_data:
             lot_serial = str(row[0]).strip() if row[0] else ''
             raw_box_value = row[1] if len(row) > 1 else None
             boxes_value = str(raw_box_value).strip() if raw_box_value else ''
 
-            move_line = move_lines[idx]
-            move_line.boxes = boxes_value
-            move_line.lot_name = lot_serial
+            if not lot_serial:
+                continue
 
-            print(f"[DEBUG] Row {idx + 2} → Lot: {lot_serial}, Box: {boxes_value}, Move Line ID: {move_line.id}")
+            # find the existing lot for this product
+            lot = self.env['stock.lot'].search([
+                ('name', '=', lot_serial),
+                ('product_id', '=', self.stock_picking_id.move_lines[:1].product_id.id),
+            ], limit=1)
+
+            if not lot:
+                missing_serials.append(lot_serial)
+                continue
+
+            # find an available move line not yet assigned to a lot
+            move_line = move_lines.filtered(
+                lambda ml: not ml.lot_id and ml.id not in used_move_line_ids
+            )[:1]
+
+            if not move_line:
+                missing_serials.append(lot_serial)
+                continue
+
+            move_line.lot_id = lot.id
+            move_line.boxes = boxes_value
+            used_move_line_ids.add(move_line.id)
+
+            print(f"[DEBUG] Lot: {lot_serial} → Box: {boxes_value}, Move Line ID: {move_line.id}")
+
+        if missing_serials:
+            raise ValidationError(
+                _('The following serials could not be assigned (lot not found or no line available): %s')
+                % ', '.join(missing_serials)
+            )
 
         return {'type': 'ir.actions.client', 'tag': 'reload'}

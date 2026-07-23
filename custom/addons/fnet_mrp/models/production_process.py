@@ -1470,6 +1470,14 @@ class ProductionProcess(models.Model):
 
     def check_available_stock(self):
         for rec in self:
+            if rec.allow_lot_create:
+                rec.product_id.write({
+                    'tracking': 'serial',
+                })
+            else:
+                rec.product_id.write({
+                    'tracking': 'none',
+                })
             rec.need_material_request = False
             rec.check_available = False
             for line in rec.input_material_lines:

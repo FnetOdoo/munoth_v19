@@ -334,7 +334,6 @@ class MaterialLine(models.Model):
                     }))
 
                     if self.product_id.id == record.product_id.id:
-                        print("Adding Serial:", lot.name)
 
                         serials.append((0, 0, {
                             'product_id': self.product_id.id,
@@ -384,7 +383,6 @@ class MaterialLine(models.Model):
                     }))
 
                     if self.product_id.id == record.product_id.id:
-                        print("Adding Serial:", lot.name)
 
                         serials.append((0, 0, {
                             'product_id': self.product_id.id,

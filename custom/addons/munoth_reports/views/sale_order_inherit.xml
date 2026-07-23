@@ -18,12 +18,13 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='origin']" position="after">
                 <field name="items" invisible="True"/>
+                <field name="picking_type_code" invisible="True"/>
             </xpath>
             <xpath expr="//field[@name='move_ids']" position="before">
                 <group string="Upload file">
-                    <button name="action_update_boxes" type="object" string="Upload boxes"/>
+                    <button name="action_update_boxes" type="object" string="Upload boxes &amp; Lot/Serial No"/>
                     <button name="action_download_update_boxes_sample" type="object" string="Download Sample"/>
-                    <button name="action_download_update_boxes" type="object" string="Delivered Cells"/>
+                    <button name="action_download_update_boxes" type="object" string="Delivered Cells" invisible="picking_type_code != 'outgoing'"/>
                 </group>
             </xpath>
         </field>

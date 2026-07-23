@@ -1,24 +1,34 @@
 <odoo>
     <data>
 
-        <record id="view_update_boxes_wizard" model="ir.ui.view">
-            <field name="name">view.update.boxes.wizard</field>
+        <record id="view_update_boxes_wizard_form" model="ir.ui.view">
+            <field name="name">update.boxes.wizard.form</field>
             <field name="model">update.boxes.wizard</field>
             <field name="arch" type="xml">
-                <form>
+                <form string="Update Boxes">
                     <group>
-                        <field name="upload_file"/>
+                        <field name="stock_picking_id" invisible="1"/>
+                        <field name="picking_type_code" invisible="1"/>
                         <field name="file_name" invisible="1"/>
-                        <field name="stock_picking_id" invisible="1"/>
-                        <field name="stock_picking_id" invisible="1"/>
+                        <field name="upload_file"
+                               filename="file_name"
+                               widget="binary"
+                               string="Upload Excel File"/>
                     </group>
                     <footer>
-                        <button string='Upload' name="action_update_boxes_delivery" type="object" class="btn-primary" />
+                        <button name="action_update_boxes_delivery"
+                                type="object"
+                                string="Update"
+                                class="btn-primary" invisible="picking_type_code != 'outgoing'"/>
+                        <button name="action_update_boxes_receipt"
+                                type="object"
+                                string="Update"
+                                class="btn-primary" invisible="picking_type_code != 'incoming'"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
                     </footer>
                 </form>
             </field>
         </record>
-
 
 
         <record model="ir.actions.act_window" id="update_boxes_action">
@@ -26,7 +36,7 @@
             <field name="res_model">update.boxes.wizard</field>
             <field name="domain">[]</field>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="view_update_boxes_wizard"/>
+            <field name="view_id" ref="view_update_boxes_wizard_form"/>
             <field name="target">new</field>
         </record>
     </data>

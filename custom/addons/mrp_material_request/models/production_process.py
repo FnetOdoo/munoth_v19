@@ -22,13 +22,20 @@ class ProductionProcess(models.Model):
 
     def action_create_material_request(self):
         self.ensure_one()
-
         request_lines = []
+
         for line in self.input_material_lines:
+            if not line.product_id:
+                continue
+
             available_qty = line.product_id.get_available_quantity(line.location_src_id)
 
             if available_qty < line.product_qty:
                 shortfall = line.product_qty - available_qty
+
+                # Set this product's tracking to 'none' when creating the material request
+                line.product_id.write({'tracking': 'none'})
+
                 request_lines.append((0, 0, {
                     'product_id': line.product_id.id,
                     'product_uom': line.product_uom_id.id,
@@ -47,6 +54,7 @@ class ProductionProcess(models.Model):
             'location_dest_id': self.location_src_id.id,
             'request_line_ids': request_lines,
         })
+
         self.material_request_id = request.id
 
         return {

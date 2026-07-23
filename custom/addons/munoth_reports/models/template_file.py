@@ -425,33 +425,19 @@ class StockPicking(models.Model):
 
         sheet.set_row(0, 20)
         sheet.set_column('B:B', 30)
-        # sheet.set_column('C:C', 30)
-        # sheet.set_column('D:G', 30)
-        # sheet.set_column('H:H', 30)
-        # sheet.set_column('I:I', 30)
-        # Writing headers
+
+        # Match the columns the upload wizard actually expects
         sheet.write(0, 0, 'S.No', format_header)
-        sheet.write(0, 1, 'Boxes', format_header)
-        # sheet.write(0, 2, 'Location', format_header)
-        # sheet.write(0, 3, 'Lot/Serial Number', format_header)
-        # sheet.write(0, 4, 'Boxes', format_header)
-        # sheet.write(0, 5, 'Reserved', format_header)
-        # sheet.write(0, 2, 'Done', format_header)
-        # sheet.write(0, 7, 'Unit', format_header)
+        sheet.write(0, 1, 'Lot/Serial Number', format_header)
+        sheet.write(0, 2, 'Boxes', format_header)
 
         s_no = 1
-        row = 1  # Start from row 1 (row 0 is for headers)
+        row = 1
 
         for rec in self.move_line_ids:
-            sheet.write(row, 0, s_no, format_text)  # Column 0 -> 'S.No'
-            sheet.write(row, 1, rec.boxes if rec.boxes else False, format_text)
-            # sheet.write(row, 1, rec.product_id.name if rec.product_id.name else '', format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 2, rec.location_id.name if rec.location_id.name else '', format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 3, rec.lot_id.name if rec.lot_id.name else '', format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 4, rec.boxes if rec.boxes else False, format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 5, rec.product_uom_qty if rec.product_uom_qty else False, format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 2, rec.qty_done if rec.qty_done else False, format_text)  # Column 1 -> 'Boxes'
-            # sheet.write(row, 7, rec.product_uom_id.name if rec.product_uom_id.name else '', format_text)  # Column 1 -> 'Boxes'
+            sheet.write(row, 0, s_no, format_text)
+            sheet.write(row, 1, rec.lot_id.name if rec.lot_id.name else '', format_text)
+            sheet.write(row, 2, rec.boxes if rec.boxes else False, format_text)
             s_no += 1
             row += 1
 

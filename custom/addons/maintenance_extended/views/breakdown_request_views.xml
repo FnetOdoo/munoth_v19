@@ -53,16 +53,18 @@
                                            readonly="state != 'request'"/>
                                     <field name="corrective" required="state == 'request'"
                                            readonly="state != 'request'"/>
-                                </group>
-                                <group>
                                     <field name="solution_permanent"
                                            widget="receipt_selector"
                                            options="{'horizontal': true}" readonly="state != 'request'"/>
+                                </group>
+                                <group>
+
                                     <field name="start_date" required="state == 'request'"
                                            readonly="state != 'request'"/>
                                     <field name="end_date" required="state == 'request'" readonly="state != 'request'"/>
-                                    <!--                                    <field name="down_time" readonly="state != 'request'"/>-->
-                                    <field name="duration" readonly="1" string="Down Time"/>
+                                    <field name="down_time" required="state == 'request'"
+                                           readonly="state != 'request'"/>
+                                    <field name="duration" readonly="1"/>
 
                                 </group>
                             </group>

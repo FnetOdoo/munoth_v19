@@ -26,7 +26,7 @@ class BreakdownRequest(models.Model):
     # Filled by the maintenance user
     attended_by = fields.Many2one('res.users', string='Attended By')
     root_cause = fields.Text()
-    corrective = fields.Char()
+    corrective = fields.Char('Corrective action')
     start_date = fields.Datetime()
     end_date = fields.Datetime()
     down_time = fields.Char()

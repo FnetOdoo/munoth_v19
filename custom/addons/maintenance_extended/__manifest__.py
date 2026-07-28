@@ -14,6 +14,7 @@
     ],
 },
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'datas/sequence.xml',
         'datas/crons.xml',
@@ -22,6 +23,7 @@
         'views/work_order_view.xml',
         'views/material_request.xml',
         'views/maintenance_report_wizard_views.xml',
+        'views/breakdown_request_views.xml',
     ],
     'installable': True,
 }

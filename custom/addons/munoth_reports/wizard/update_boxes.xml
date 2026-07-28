@@ -16,14 +16,7 @@
                                string="Upload Excel File"/>
                     </group>
                     <footer>
-                        <button name="action_update_boxes_delivery"
-                                type="object"
-                                string="Update"
-                                class="btn-primary" invisible="picking_type_code != 'outgoing'"/>
-                        <button name="action_update_boxes_receipt"
-                                type="object"
-                                string="Update"
-                                class="btn-primary" invisible="picking_type_code != 'incoming'"/>
+                        <button string="Upload" name="action_update_boxes_delivery" type="object" class="btn-primary"/>
                         <button string="Cancel" class="btn-secondary" special="cancel"/>
                     </footer>
                 </form>

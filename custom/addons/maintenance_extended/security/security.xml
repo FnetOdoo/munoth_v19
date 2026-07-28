@@ -1,2 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="group_equipment_user" model="res.groups">
+        <field name="name">Equipment User</field>
+        <field name="sequence">5</field>
+        <field name="privilege_id" ref="maintenance.res_groups_privilege_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">The user will be able to raise and view breakdown requests.</field>
+    </record>
 </odoo>

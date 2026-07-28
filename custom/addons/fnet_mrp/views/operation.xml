@@ -407,6 +407,7 @@
             <list string="Manufacturing Operation" sample="1">
                 <field name="sequence" widget="handle"/>
                 <field name="manufacturing_process_type_id" column_invisible="0"/>
+                <field name="manufacturing_stages_id" column_invisible="0"/>
                 <field name="allow_lot_create"/>
                 <field name="product_model_id" string="Model"/>
                 <field name="bom_id"/>

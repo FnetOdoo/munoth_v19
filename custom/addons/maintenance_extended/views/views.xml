@@ -611,9 +611,8 @@
     <menuitem id="menu_pm_requests" name="Preventive Maintenance Requests" parent="maintenance.menu_m_request_form"
               action="maintenance.hr_equipment_request_action" sequence="1"
               groups="maintenance.group_equipment_manager,base.group_user"/>
-    <menuitem id="menu_bd_requests" name="Breakdown Requests" parent="maintenance.menu_m_request_form"
-              action="maintenance.hr_equipment_request_action" sequence="2"
-              groups="maintenance.group_equipment_manager,base.group_user"/>
+
+
     <menuitem id="menu_pm_cal" name="Maintenance Calendar" parent="maintenance.menu_m_request_form"
               action="maintenance.hr_equipment_request_action_cal" sequence="3"
               groups="maintenance.group_equipment_manager,base.group_user"/>

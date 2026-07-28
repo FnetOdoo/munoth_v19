@@ -136,7 +136,7 @@
                 <field name="line_number"/>
                 <field name="expected_production_qty"/>
                 <!--                    <field name="qty_produced"/>-->
-                <field name="qty_remaining"/>
+<!--                <field name="qty_remaining"/>-->
                 <field name="state"/>
             </list>
         </field>

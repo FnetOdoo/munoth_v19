@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================================================
+             Odoo 19 security structure:  Category -> Privilege -> Group
+             ('category_id' on res.groups was replaced by 'privilege_id',
+              which is a M2O to the new res.groups.privilege model)
+        ============================================================ -->
+
+        <!-- Module category -->
+        <record id="module_category_user_manual" model="ir.module.category">
+            <field name="name">User Manual</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Privilege (groups attach to this, the privilege attaches to the category) -->
+        <record id="privilege_user_manual" model="res.groups.privilege">
+            <field name="name">User Manual</field>
+            <field name="sequence">20</field>
+            <field name="category_id" ref="module_category_user_manual"/>
+        </record>
+
+        <!-- READ ONLY group -->
+        <record id="group_user_manual_user" model="res.groups">
+            <field name="name">User (Read Only)</field>
+            <field name="privilege_id" ref="privilege_user_manual"/>
+        </record>
+
+        <!-- FULL ACCESS group: read / write / create / delete -->
+        <record id="group_user_manual_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="privilege_id" ref="privilege_user_manual"/>
+            <field name="implied_ids" eval="[Command.link(ref('group_user_manual_user'))]"/>
+            <field name="user_ids" eval="[Command.link(ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- Default = TRUE: every internal user gets read access automatically -->
+        <record id="base.group_user" model="res.groups">
+            <field name="implied_ids" eval="[Command.link(ref('group_user_manual_user'))]"/>
+        </record>
+
+    </data>
+</odoo>

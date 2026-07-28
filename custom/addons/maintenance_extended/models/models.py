@@ -75,6 +75,17 @@ class MaintenanceEquipment(models.Model):
     calibration_category_id = fields.Many2one('maintenance.equipment.category', related='instrument_id.category_id', string='Category', store=True, readonly=True, index='btree_not_null')
     completed_date = fields.Date("Calibration Completed Date")
 
+
+    # Breakdown Request Field
+    is_breakdown_request = fields.Boolean()
+    ticket_no = fields.Char()
+    shift_id = fields.Many2one('mrp.shift')
+    requested_user_id = fields.Many2one('res.users')
+    problem_category = fields.Selection([('breakdown', 'Breakdown')], string='Problem Category', default="breakdown")
+    nature_of_problem = fields.Char()
+    requested_time = fields.Datetime()
+
+
     def action_complete_calibration(self):
         self.ensure_one()
         if not self.completed_date:

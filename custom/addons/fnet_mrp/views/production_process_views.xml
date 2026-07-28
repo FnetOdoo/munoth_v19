@@ -38,13 +38,13 @@
             <list string="Manufacturing Process Type">
                 <field name="name"/>
                 <field name="prefix"/>
-                <field name="is_split_process" string="Enable Split" widget="boolean_toggle" readonly="1"/>
-                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle" readonly="1"/>
-                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle" readonly="1"/>
-                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle" readonly="1"/>
-                <field name="is_next_packing_process" string="Next Packing Process ?"
-                       widget="boolean_toggle" readonly="1"/>
-                <field name="is_power_bank" widget="boolean_toggle" readonly="1"/>
+<!--                <field name="is_split_process" string="Enable Split" widget="boolean_toggle" readonly="1"/>-->
+<!--                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle" readonly="1"/>-->
+<!--                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle" readonly="1"/>-->
+<!--                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle" readonly="1"/>-->
+<!--                <field name="is_next_packing_process" string="Next Packing Process ?"-->
+<!--                       widget="boolean_toggle" readonly="1"/>-->
+<!--                <field name="is_power_bank" widget="boolean_toggle" readonly="1"/>-->
 
             </list>
         </field>
@@ -140,7 +140,7 @@
             <form string="QR Code Printing" duplicate="0" delete="0" create="0">
                 <header>
                     <button name="action_start" string="Start" type="object"
-                            invisible="state != 'draft' or not check_available or is_sub_process or  allow_lot_create and not done_lot"
+                            invisible="state != 'draft' or not check_available or is_sub_process"
                             class="oe_highlight"/>
                     <button name="action_complete_sub_process" string="Complete Production" type="object"
                             invisible="state != 'draft' or not is_sub_process"
@@ -162,8 +162,8 @@
                             invisible="state != 'done' or not lot_ids or sub_process_lot_ids or is_sub_process"/>
                     <button string="Completed &amp; Create Sub Process" name="action_create_sub_process" type="object"
                             invisible="state != 'done' or not sub_process_lot_ids or is_sub_process or sub_process_manufacturing_process_id"/>
-                    <button name="lot_creation" type="object" string="Lot Creation"
-                            invisible="done_lot or not check_available or state != 'draft' or not allow_lot_create"/>
+                    <!--                    <button name="lot_creation" type="object" string="Lot Creation"-->
+                    <!--                            invisible="done_lot or not check_available or state != 'draft' or not allow_lot_create"/>-->
                     <field name="state" widget="statusbar" statusbar_visible="draft,progress,done"/>
                 </header>
 
@@ -171,8 +171,8 @@
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" string="Production Plan" name="action_open_production_plan"
                                 type="object" icon="fa-industry" invisible="not production_plan_id"/>
-                        <!--                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"-->
-                        <!--                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']"/>-->
+                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"
+                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']"/>
                         <button class="oe_stat_button" string="Quality" name="action_view_quality" type="object"
                                 icon="fa-thermometer-half"
                                 invisible="state in ['draft','confirmed','progress'] or is_sub_process or not get_rejection"/>
@@ -334,35 +334,23 @@
                             <field name="before_manufacturing_process_id" invisible="1"/>
                             <field name="is_split_process" invisible="1"/>
                             <field name="is_packing_process" invisible="1"/>
-                            <field name="capacity_from_lot" invisible="1"/>
+                            <!--                            <field name="capacity_from_lot" invisible="1"/>-->
                             <field name="enable_capacity_test" invisible="1"/>
                             <field name="enable_ocv_ir" invisible="1"/>
                         </group>
                     </group>
-                    <group invisible="not is_split_process or state != 'close'">
+                    <group invisible="not is_split_process or state != 'progress'">
                         <group string="Capacity Test" invisible="not enable_capacity_test" class="o_range_group">
-                            <label for="capacity_from_lot" string="Capacity Range"/>
-                            <div class="d-flex align-items-center o_range_row">
-                                <field name="capacity_from_lot" nolabel="1" class="oe_inline o_range_input"
-                                       readonly="is_capacity_created"/>
-                                <span class="mx-2 o_range_sep">to</span>
-                                <field name="capacity_to_lot" nolabel="1" class="oe_inline o_range_input"
-                                       readonly="is_capacity_created"/>
-                            </div>
-                            <button name="action_create_capacity_lot" type="object" string="Check"
-                                    class="btn-secondary mt-2" invisible="is_capacity_created"/>
+                            <field name="capacity_lots" nolabel="1"
+                                   widget="many2many_tags"
+                                   domain="[('id', 'in', lot_ids), ('id', 'not in', voltage_lots)]"
+                                   readonly="is_capacity_created"/>
                         </group>
                         <group string="Voltage Test" invisible="not enable_ocv_ir" class="o_range_group">
-                            <label for="voltage_from_lot" string="Voltage Range"/>
-                            <div class="d-flex align-items-center o_range_row">
-                                <field name="voltage_from_lot" nolabel="1" class="oe_inline o_range_input"
-                                       readonly="is_voltage_created"/>
-                                <span class="mx-2 o_range_sep">to</span>
-                                <field name="voltage_to_lot" nolabel="1" class="oe_inline o_range_input"
-                                       readonly="is_voltage_created"/>
-                            </div>
-                            <button name="action_create_voltage_lot" type="object" string="Check"
-                                    class="btn-secondary mt-2" invisible="is_voltage_created"/>
+                            <field name="voltage_lots" nolabel="1"
+                                   widget="many2many_tags"
+                                   domain="[('id', 'in', lot_ids), ('id', 'not in', capacity_lots)]"
+                                   readonly="is_voltage_created"/>
                         </group>
                     </group>
                     <notebook>
@@ -402,22 +390,24 @@
                                 <group string="From Material Tab">
                                     <div>
                                         <button name="get_serial_numbers" type="object"
-                                                invisible="state not in ['draft']" string="Get All Serial"/>
+                                                invisible="state not in ['progress']" string="Get All Serial"/>
                                         <button name="clear_serial_numbers" type="object" string="Clear All Serial"
-                                                invisible="state not in ['draft']"/>
+                                                invisible="state not in ['progress']"/>
                                     </div>
                                 </group>
                                 <group string="Upload file">
                                     <div>
                                         <field name="out_file_name" invisible="1"/>
                                         <field name="out_file" filename="out_file_name"
-                                               readonly="state not in ['draft']"/>
-                                        <button name="action_upload_serial" type="object" string="Upload Serial" invisible="lot_ids"/>
-                                        <button name="action_download_sample" type="object" string="Download Sample" invisible="state not in ['draft']"/>
+                                               readonly="state not in ['progress']"/>
+                                        <button name="action_upload_serial" type="object" string="Upload Serial"
+                                                invisible="lot_ids"/>
+                                        <button name="action_download_sample" type="object" string="Download Sample"
+                                                invisible="state not in ['progress']"/>
                                     </div>
                                 </group>
                             </group>
-                            <field name="lot_ids" readonly="1" force_save="1"
+                            <field name="lot_ids" readonly="1" force_save="1" invisible="not lot_ids"
                                    context="{'default_product_id': product_id, 'default_product_uom_id': product_uom_id}">
                                 <list editable="bottom">
                                     <field name="name" required="1" string="Serial Number"/>
@@ -575,13 +565,17 @@
                             </field>
                         </page>
 
-                        <page string="Others">
+                        <page string="Location Details">
                             <group>
                                 <group>
                                     <!--                                    <field name="type" readonly="state in ['done','close']"/>-->
                                     <field name="location_src_id" readonly="state not in ['draft']"/>
-                                    <field name="location_dest_id" readonly="state not in ['draft']"/>
                                     <field name="production_location_id" readonly="state not in ['draft']"/>
+                                    <field name="location_dest_id" readonly="state not in ['draft']"/>
+                                    <field name="capacity_dest_location_id" readonly="1"
+                                           invisible="not is_split_process"/>
+                                    <field name="voltage_dest_location_id" readonly="1"
+                                           invisible="not is_split_process"/>
                                 </group>
                             </group>
                         </page>

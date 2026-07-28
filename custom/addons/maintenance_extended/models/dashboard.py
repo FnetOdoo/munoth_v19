@@ -30,7 +30,7 @@ class MaintenanceRequest(models.Model):
         return {
             'open': [('stage_id.is_draft_state', '=', True)],
             'progress': [('stage_id.is_progress_state', '=', True)],   # NEW
-            'done': [('stage_id.is_done_state', '=', True)],
+            'done': [('stage_id.done', '=', True)],
         }
 
     @api.model

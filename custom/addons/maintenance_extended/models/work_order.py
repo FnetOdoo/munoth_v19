@@ -100,7 +100,7 @@ class WorkOrder(models.Model):
         # Case 2: all remaining (non-cancelled) work orders are done
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
             done_stage = self.env['maintenance.stage'].search(
-                [('is_done_state', '=', True)], limit=1)
+                [('done', '=', True)], limit=1)
             if done_stage:
                 end_dates = active_work_orders.filtered(lambda wo: wo.date_end).mapped('date_end')
                 last_end_date = max(end_dates) if end_dates else fields.Datetime.now()

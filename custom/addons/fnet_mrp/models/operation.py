@@ -9,8 +9,8 @@ class ManufacturingOperation(models.Model):
 
     next_operation_id             = fields.Many2one('manufacturing.operation')
     bom_id                        = fields.Many2one('manufacturing.bom')
-    manufacturing_stages_id       = fields.Many2one('manufacturing.stages')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
+    manufacturing_stages_id       = fields.Many2one('manufacturing.stages',string='Stage')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Type")
     is_power_bank                 = fields.Boolean(related='manufacturing_process_type_id.is_power_bank')
     show_injection        = fields.Boolean(related='manufacturing_process_type_id.show_injection',        store=True)
     show_degas            = fields.Boolean(related='manufacturing_process_type_id.show_degas',            store=True)

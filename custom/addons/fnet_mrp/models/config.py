@@ -166,8 +166,7 @@ class MaterialLine(models.Model):
                 rec.qty_done = sum(rec.component_ids.mapped('available_qty'))
 
     def action_show_details(self):
-        if self.manufacturing_process_id.operation_id.allow_lot_create and not self.manufacturing_process_id.lot_ids:
-            raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
+
         if self.manufacturing_process_id.operation_id.allow_lot_create and self.manufacturing_process_id.lot_ids:
             for lot in self.manufacturing_process_id.lot_ids:
                if not lot.lot_id and not lot.is_available:
@@ -340,7 +339,49 @@ class MaterialLine(models.Model):
                             'name': lot.name,
                             'product_uom_id': self.product_uom_id.id,
                         }))
+            elif self.manufacturing_process_id.lot_ids:
+                print("Loading Lots From Production Plan based on the Lot_ids")
+                print("Production Plan ID:", self.production_plan_id.id)
+                print("Production Plan Name:", self.production_plan_id.name)
+                print("Location:", self.location_src_id.display_name)
 
+                # NEW: search only by the names already present in manufacturing_process_id.lot_ids
+                serial_names = self.manufacturing_process_id.lot_ids.mapped('name')
+                print("Serial Names to Search:", serial_names)
+
+                lot_ids = self.env['stock.lot'].search([
+                    ('product_id', '=', self.product_id.id),
+                    ('name', 'in', serial_names),
+                ])
+
+                print("Lots Found Count:", len(lot_ids))
+                print("Lots Found:", lot_ids.ids)
+                if not lot_ids:
+                    print("ERROR: No Lots Found")
+                    raise UserError(
+                        _("No lots available for the plan %s at location %s" %
+                          (self.production_plan_id.name,
+                           self.location_src_id.name))
+                    )
+                for lot in lot_ids:
+                    print("Processing Lot:", lot.id, lot.name)
+                    child_records.append((0, 0, {
+                        'product_id': self.product_id.id,
+                        'name': self.product_id.name,
+                        'product_uom_id': self.product_uom_id.id,
+                        'lot_id': lot.id,
+                        'product_qty': 1,
+                        'check_available': True,
+                        'material_id': self.id,
+                        'location_src_id': self.location_src_id.id,
+                        'location_dest_id': self.location_dest_id.id,
+                    }))
+                    if self.product_id.id == record.product_id.id:
+                        serials.append((0, 0, {
+                            'product_id': self.product_id.id,
+                            'name': lot.name,
+                            'product_uom_id': self.product_uom_id.id,
+                        }))
             else:
                 print("Loading Lots From Production Plan")
 

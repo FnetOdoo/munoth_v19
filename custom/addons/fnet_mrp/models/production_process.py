@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import timedelta, datetime
 import base64
@@ -49,11 +50,35 @@ class ProductionProcessType(models.Model):
     enable_ocv_ir = fields.Boolean(copy=False)
     enable_capacity_test = fields.Boolean(copy=False)
     is_next_packing_process = fields.Boolean(copy=False)
+    process_type1_id = fields.Many2one('manufacturing.process.type',domain="[('id', '!=', id)]",)
+    process_type2_id = fields.Many2one( 'manufacturing.process.type',domain="[('id', '!=', id)]",)
+    # @api.model_create_multi
+    # def create(self, vals_list):
+    #     for vals in vals_list:
+    #         if vals.get('is_split_process'):
+    #             vals.update({
+    #                 'enable_ocv_capacity': True,
+    #                 'enable_ocv_ir': True,
+    #                 'enable_capacity_test': True,
+    #             })
+    #     return super().create(vals_list)
+    #
+    # def write(self, vals):
+    #     if vals.get('is_split_process'):
+    #         vals.update({
+    #             'enable_ocv_capacity': True,
+    #             'enable_ocv_ir': True,
+    #             'enable_capacity_test': True,
+    #         })
+    #     return super().write(vals)
 
 
-    @api.constrains('is_power_bank','is_packing_process')
+    @api.constrains('is_power_bank','is_packing_process','is_split_process')
     def _check_power_bank(self):
         for rec in self:
+            if rec.is_split_process:
+                if not rec.enable_ocv_ir and not rec.enable_capacity_test:
+                    raise UserError("Please Select Any one Enable OCV/IR or Enable Capacity Testing")
             if rec.is_power_bank:
                 existing_record = self.search([
                     ('is_power_bank', '=', True),
@@ -328,14 +353,6 @@ class ProductionProcess(models.Model):
     batch_id = fields.Many2one('manufacturing.batch', related='production_plan_id.batch_id', string='Batch',store=True)
     check_available = fields.Boolean(copy=False)
 
-
-
-    capacity_from_lot = fields.Char()
-    capacity_to_lot = fields.Char()
-
-    voltage_from_lot = fields.Char()
-    voltage_to_lot = fields.Char()
-
     is_capacity_created = fields.Boolean(copy=False)
     is_voltage_created = fields.Boolean(copy=False)
     is_packing_created = fields.Boolean(copy=False)
@@ -357,12 +374,63 @@ class ProductionProcess(models.Model):
     is_sub_process_created = fields.Boolean(copy=False)
     get_rejection = fields.Boolean(compute='_compute_rejection_summary')
     allow_lot_create = fields.Boolean(compute='_compute_allow_lot_create',store=True)
+    capacity_lots = fields.Many2many(
+        'product.serial.number',
+        'manufacturing_process_capacity_lots_rel',
+        'manufacturing_process_id',
+        'serial_id',
+        string='Capacity Lots',
+    )
+    voltage_lots = fields.Many2many(
+        'product.serial.number',
+        'manufacturing_process_voltage_lots_rel',
+        'manufacturing_process_id',
+        'serial_id',
+        string='Voltage Lots',
+    )
 
     rejection_reason_html = fields.Html(
         string="Rejection Summary",
         compute="_compute_rejection_summary",
         sanitize=False,
     )
+    capacity_dest_location_id = fields.Many2one('stock.location', string='Capacity Destination Location')
+    voltage_dest_location_id = fields.Many2one('stock.location', string='Voltage Destination Location')
+
+    @api.onchange('capacity_lots')
+    def _onchange_capacity_lots(self):
+        # If a lot gets added to Capacity, automatically drop it from Voltage
+        if self.capacity_lots and self.voltage_lots:
+            overlap = self.voltage_lots & self.capacity_lots
+            if overlap:
+                self.voltage_lots = self.voltage_lots - overlap
+
+    @api.onchange('voltage_lots')
+    def _onchange_voltage_lots(self):
+        # If a lot gets added to Voltage, automatically drop it from Capacity
+        if self.voltage_lots and self.capacity_lots:
+            overlap = self.capacity_lots & self.voltage_lots
+            if overlap:
+                self.capacity_lots = self.capacity_lots - overlap
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._dedupe_capacity_voltage_lots()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'capacity_lots' in vals or 'voltage_lots' in vals:
+            self._dedupe_capacity_voltage_lots()
+        return res
+
+    def _dedupe_capacity_voltage_lots(self):
+        # Whatever is in capacity_lots always wins; silently remove overlap from voltage_lots
+        for rec in self:
+            overlap = rec.capacity_lots & rec.voltage_lots
+            if overlap:
+                rec.voltage_lots = rec.voltage_lots - overlap
 
     def _compute_rejection_summary(self):
         for rec in self:
@@ -400,6 +468,7 @@ class ProductionProcess(models.Model):
                 rec.rejection_reason_html = html
             else:
                 rec.rejection_reason_html = ""
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -604,52 +673,11 @@ class ProductionProcess(models.Model):
 
     def action_create_capacity_lot(self):
         for rec in self:
-            capacity_from = rec.capacity_from_lot
-            capacity_to = rec.capacity_to_lot
-            if not capacity_from or not capacity_to:
-                raise UserError(_("Please set both 'Capacity From' and 'Capacity To' values."))
-
-            def extract_prefix_and_number(value):
-                match = re.match(r'^(.*?)(\d+)$', value or '')
-                if not match:
-                    return None, None
-                return match.group(1), int(match.group(2))
-
-            from_prefix, from_num = extract_prefix_and_number(capacity_from)
-            to_prefix, to_num = extract_prefix_and_number(capacity_to)
-
-            if from_num is None or to_num is None:
-                raise UserError(_("Invalid lot number format in 'Capacity From/To'."))
-            if from_prefix != to_prefix:
-                raise UserError(_("'Capacity From' and 'Capacity To' must share the same prefix."))
-            if from_num > to_num:
-                raise UserError(_("'Capacity From' cannot be greater than 'Capacity To'."))
-
-            # --- Same name check (e.g. PP1 to PP1) ---
-            if capacity_from == capacity_to:
-                exists = rec.lot_ids.filtered(lambda s: s.name == capacity_from)
-                if not exists:
-                    raise UserError(_("Serial number '%s' is not available.") % capacity_from)
-
-            # --- Overlap check against Voltage range ---
-            if rec.voltage_from_lot and rec.voltage_to_lot:
-                v_from_prefix, v_from_num = extract_prefix_and_number(rec.voltage_from_lot)
-                v_to_prefix, v_to_num = extract_prefix_and_number(rec.voltage_to_lot)
-                if v_from_num is not None and v_to_num is not None and v_from_prefix == from_prefix:
-                    if from_num <= v_to_num and v_from_num <= to_num:
-                        raise UserError(_(
-                            "Capacity range (%s-%s) overlaps with Voltage range (%s-%s). Please use non-overlapping ranges."
-                        ) % (capacity_from, capacity_to, rec.voltage_from_lot, rec.voltage_to_lot))
-
-            all_serials = rec.lot_ids
-            matching_serials = all_serials.filtered(
-                lambda s: extract_prefix_and_number(s.name)[0] == from_prefix
-                          and extract_prefix_and_number(s.name)[1] is not None
-                          and from_num <= extract_prefix_and_number(s.name)[1] <= to_num
-            )
+            if not rec.capacity_lots:
+                raise UserError(_("Please select the Capacity Lots."))
 
             existing_names = set(rec.capacity_lot_ids.mapped('name'))
-            new_serials = matching_serials.filtered(lambda s: s.name not in existing_names)
+            new_serials = rec.capacity_lots.filtered(lambda s: s.name not in existing_names)
 
             if not new_serials:
                 raise UserError(_("Selected serials are already added to Capacity lot."))
@@ -668,52 +696,14 @@ class ProductionProcess(models.Model):
 
     def action_create_voltage_lot(self):
         for rec in self:
-            voltage_from = rec.voltage_from_lot
-            voltage_to = rec.voltage_to_lot
-            if not voltage_from or not voltage_to:
-                raise UserError(_("Please set both 'Voltage From' and 'Voltage To' values."))
-
-            def extract_prefix_and_number(value):
-                match = re.match(r'^(.*?)(\d+)$', value or '')
-                if not match:
-                    return None, None
-                return match.group(1), int(match.group(2))
-
-            from_prefix, from_num = extract_prefix_and_number(voltage_from)
-            to_prefix, to_num = extract_prefix_and_number(voltage_to)
-
-            if from_num is None or to_num is None:
-                raise UserError(_("Invalid lot number format in 'Voltage From/To'."))
-            if from_prefix != to_prefix:
-                raise UserError(_("'Voltage From' and 'Voltage To' must share the same prefix."))
-            if from_num > to_num:
-                raise UserError(_("'Voltage From' cannot be greater than 'Voltage To'."))
-
-            # --- Same name check (e.g. PP1 to PP1) ---
-            if voltage_from == voltage_to:
-                exists = rec.lot_ids.filtered(lambda s: s.name == voltage_from)
-                if not exists:
-                    raise UserError(_("Serial number '%s' is not available.") % voltage_from)
-
-            # --- Overlap check against Capacity range ---
-            if rec.capacity_from_lot and rec.capacity_to_lot:
-                c_from_prefix, c_from_num = extract_prefix_and_number(rec.capacity_from_lot)
-                c_to_prefix, c_to_num = extract_prefix_and_number(rec.capacity_to_lot)
-                if c_from_num is not None and c_to_num is not None and c_from_prefix == from_prefix:
-                    if from_num <= c_to_num and c_from_num <= to_num:
-                        raise UserError(_(
-                            "Voltage range (%s-%s) overlaps with Capacity range (%s-%s). Please use non-overlapping ranges."
-                        ) % (voltage_from, voltage_to, rec.capacity_from_lot, rec.capacity_to_lot))
-
-            all_serials = rec.lot_ids
-            matching_serials = all_serials.filtered(
-                lambda s: extract_prefix_and_number(s.name)[0] == from_prefix
-                          and extract_prefix_and_number(s.name)[1] is not None
-                          and from_num <= extract_prefix_and_number(s.name)[1] <= to_num
-            )
+            if not rec.voltage_lots:
+                raise UserError(_("Please select the Voltage Lots."))
 
             existing_names = set(rec.voltage_lot_ids.mapped('name'))
-            new_serials = matching_serials.filtered(lambda s: s.name not in existing_names)
+            new_serials = rec.voltage_lots.filtered(lambda s: s.name not in existing_names)
+
+            if not new_serials:
+                raise UserError(_("Selected serials are already added to Voltage lot."))
 
             for serial in new_serials:
                 self.env['product.serial.number'].create({
@@ -804,97 +794,56 @@ class ProductionProcess(models.Model):
 
     def action_view_lots(self):
         self.ensure_one()
+
+        move_lines = self.finished_move_ids if self.is_first_process else self.component_ids
+
         return {
             'name': _('Available Lots'),
             'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
             'res_model': 'stock.lot',
-            'domain': [
-                ('production_plan_id', '=', self.production_plan_id.id),
-            ],
-            'context': {'group_by': 'production_plan_id'},
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', move_lines.mapped('lot_id').ids)],
         }
-
     def lot_creation(self):
-        if self.out_file and not self.lot_ids:
-            raise UserError("A lot file has been uploaded. Please click the 'Upload Serial' button in the 'Serial Number' tab to import the serial numbers.")
-
-        if not self.lot_ids:
-            raise UserError(_("Please upload the Lot/Serial Number in the Serial Number tab."))
-
         if self.product_id:
-            self.product_id.write({'tracking': 'serial'})
+            self.product_id.write({
+                'tracking': 'serial',
+            })
 
-        # ---- lines that still need a NEW lot created ----
-        new_serials = self.lot_ids.filtered(lambda s: not s.lot_id)
-        qty_needed = len(new_serials)  # 1 unit per line, same as your original inventory_quantity=1.0
-
-        # ---- the existing bulk / no-lot quant at the source location ----
-        no_lot_quant = self.env['stock.quant'].sudo().search([
-            ('product_id', '=', self.product_id.id),
-            ('location_id', '=', self.location_src_id.id),
-            ('lot_id', '=', False),
-        ], limit=1)
-
-        available_qty = no_lot_quant.quantity if no_lot_quant else 0.0
-
-        # # ---- validate BEFORE creating anything ----
-        # if qty_needed > available_qty:
-        #     raise UserError(_(
-        #         "Not enough available stock for %s at %s.\n"
-        #         "Available (no lot): %.2f | Required for new lots: %.2f"
-        #     ) % (self.product_id.name, self.location_src_id.name, available_qty, qty_needed))
+        # for lot in self.lot_ids:
+        #     if lot.lot_id:
+        #         available_qty = self.env['stock.quant']._get_available_quantity(
+        #             self.product_id,
+        #             self.production_location_id,
+        #             lot_id=lot.lot_id
+        #         )
+        #         if available_qty == 0:
+        #             _logger.error(_("Lot not available in %s" % self.production_location_id.name))
+                    # raise UserError(_("Lot not available in %s" % self.production_location_id.name))
 
         if self.product_id.tracking != 'none':
             for serial in self.lot_ids:
                 if not serial.lot_id:
                     if not self.operation_id.allow_lot_create:
-                        raise UserError(_(
-                            "The lot %s is not available and the current operation does not "
-                            "allow creating new lot numbers.\nPlease enable lot creation or check the inventory."
-                        ) % serial.name)
+                        _logger.error(
+                            _("The lot %s is not available and The current operation is not allowed to create new lot number.\n Please enable lot creation or check the inventory." % serial.name))
 
-                    lot_id = self.env['stock.lot'].sudo().create({
+                    lot_id = self.env['stock.lot'].create({
                         'name': serial.name,
                         'ref': serial.name,
                         'product_id': self.product_id.id,
                         'company_id': self.env.company.id,
                         'production_plan_id': self.production_plan_id.id,
-                        'final_location_id': self.location_src_id.id,
+                        'final_location_id': self.production_location_id.id,
                     })
-                    serial.write({'lot_id': lot_id.id})
-
-                    # 1) create the new lot-tracked quant (1 unit)
-                    new_quant = self.env['stock.quant'].sudo().create({
+                    update_stock = self.env['stock.quant'].sudo().create({
                         'product_id': self.product_id.id,
-                        'location_id': self.location_src_id.id,
+                        'location_id': self.production_location_id.id,
                         'lot_id': lot_id.id,
                         'inventory_quantity': 1.0,
-                        'cell_weight': serial.cell_weight,
                     })
-                    new_quant.action_apply_inventory()
-
-                    # 2) pull that same 1 unit OUT of the bulk/no-lot quant
-                    if no_lot_quant:
-                        no_lot_quant.inventory_quantity = no_lot_quant.quantity - 1.0
-                        no_lot_quant.action_apply_inventory()
-
-                    self.env['stock.quant'].invalidate_model()
-
-                else:
-                    # lot already exists -> just refresh cell_weight
-                    existing_quant = self.env['stock.quant'].sudo().search([
-                        ('product_id', '=', self.product_id.id),
-                        ('location_id', '=', self.location_src_id.id),
-                        ('lot_id', '=', serial.lot_id.id),
-                    ], limit=1)
-                    if existing_quant:
-                        existing_quant.write({'cell_weight': serial.cell_weight})
-
-        # sync component line locations with the process source location
-        for comp in self.component_ids:
-            if comp.product_id.id == self.product_id.id:
-                comp.write({'location_src_id': self.location_src_id.id})
+                    update_stock.action_apply_inventory()
+                    serial.write({'lot_id': lot_id.id})
 
         self.done_lot = True
 
@@ -962,20 +911,15 @@ class ProductionProcess(models.Model):
     def action_upload_serial(self):
         if not self.out_file:
             raise UserError(_("Please upload the serial number updated file."))
-
         file_data = base64.b64decode(self.out_file)
         wb = load_workbook(filename=io.BytesIO(file_data))
         sheet = wb.active
-
         serial_data = []  # list of (serial_no, cell_weight)
-
         for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             row_values = list(row)
             if not row_values or not row_values[0]:
                 continue
-
             serial_no = str(row_values[0])
-
             # ── read cell_weight from column B (index 1) ─────────────────────
             cell_weight = 0.0
             if len(row_values) > 1 and row_values[1] is not None:
@@ -983,13 +927,22 @@ class ProductionProcess(models.Model):
                     cell_weight = float(row_values[1])
                 except (ValueError, TypeError):
                     cell_weight = 0.0
-
             serial_data.append((serial_no, cell_weight))
 
         if len(serial_data) != self.product_qty:
             raise UserError(_(
                 "The uploaded file contains %s serial numbers, but the required quantity is %s."
             ) % (len(serial_data), self.product_qty))
+
+        # NEW: check for serials that already exist before creating anything
+        uploaded_names = [s[0] for s in serial_data]
+        existing_serials = self.env['product.serial.number'].search([
+            ('name', 'in', uploaded_names),
+        ])
+        if existing_serials:
+            raise UserError(_(
+                "The following serial number(s) already exist and cannot be uploaded again: %s"
+            ) % ", ".join(existing_serials.mapped('name')))
 
         for serial_no, cell_weight in serial_data:
             self.env['product.serial.number'].create({
@@ -1000,6 +953,7 @@ class ProductionProcess(models.Model):
                 'batch_id': self.production_plan_id.batch_id.id if self.production_plan_id.batch_id else False,
                 'manufacturing_process_id': self.id,
             })
+
 
     @api.depends('start_time', 'operation_id')
     def compute_end_date(self):
@@ -1273,22 +1227,23 @@ class ProductionProcess(models.Model):
 
     @api.onchange('operation_id')
     def _onchange_of_operation(self):
-        if self.operation_id and self.before_manufacturing_process_id.is_split_process:
-            production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            self.product_id = self.operation_id.product_id.id
-            self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
-            self.location_dest_id = self.operation_id.location_dest_id.id
-            self.production_location_id = production_location.id
-            self.bom_id = self.operation_id.bom_id.id
-            if self.allow_lot_create:
-                self.product_id.write({
-                    'tracking': 'serial',
-                })
-            else:
-                self.product_id.write({
-                    'tracking': 'none',
-                })
-        elif self.operation_id and self.is_sub_process:
+        # if self.operation_id and self.before_manufacturing_process_id.is_split_process:
+        #     production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
+        #     self.product_id = self.operation_id.product_id.id
+        #     self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
+        #     self.location_dest_id = self.operation_id.location_dest_id.id
+        #     self.production_location_id = production_location.id
+        #     self.bom_id = self.operation_id.bom_id.id
+        #     if self.allow_lot_create:
+        #         self.product_id.write({
+        #             'tracking': 'serial',
+        #         })
+        #     else:
+        #         self.product_id.write({
+        #             'tracking': 'none',
+        #         })
+
+        if self.operation_id and self.is_sub_process:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
             self.product_id = self.operation_id.product_id.id
             self.location_src_id = self.before_manufacturing_process_id.location_src_id.id
@@ -1303,21 +1258,21 @@ class ProductionProcess(models.Model):
                 self.product_id.write({
                     'tracking': 'none',
                 })
-        elif self.operation_id and self.before_manufacturing_process_id.is_packing_process_next:
-            production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            self.product_id = self.operation_id.product_id.id
-            self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
-            self.location_dest_id = self.operation_id.location_dest_id.id
-            self.production_location_id = production_location.id
-            self.bom_id = self.operation_id.bom_id.id
-            if self.allow_lot_create:
-                self.product_id.write({
-                    'tracking': 'serial',
-                })
-            else:
-                self.product_id.write({
-                    'tracking': 'none',
-                })
+        # elif self.operation_id and self.before_manufacturing_process_id.is_packing_process_next:
+        #     production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
+        #     self.product_id = self.operation_id.product_id.id
+        #     self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
+        #     self.location_dest_id = self.operation_id.location_dest_id.id
+        #     self.production_location_id = production_location.id
+        #     self.bom_id = self.operation_id.bom_id.id
+        #     if self.allow_lot_create:
+        #         self.product_id.write({
+        #             'tracking': 'serial',
+        #         })
+        #     else:
+        #         self.product_id.write({
+        #             'tracking': 'none',
+        #         })
         elif self.operation_id:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
             self.product_id = self.operation_id.product_id.id
@@ -1376,7 +1331,6 @@ class ProductionProcess(models.Model):
                 }))
 
         elif self.is_sub_process:
-            # Use remaining_qty from before process instead of product_qty ratio
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
                     'product_id': line.product_id.id,
@@ -1432,7 +1386,13 @@ class ProductionProcess(models.Model):
                     'manufacturing_process_id': self._origin.id or False,
                 }))
         else:
-            # Use remaining_qty from before process instead of product_qty ratio
+            all_lines = self.production_plan_id.operation_ids.sorted('sequence')
+            get_voltage_process = all_lines.filtered(
+                lambda x: x.manufacturing_process_type_id.is_voltage_process == True)
+            get_capacity_process = all_lines.filtered(
+                lambda x: x.manufacturing_process_type_id.is_capacity_process == True)  # FIXED
+            self.capacity_dest_location_id = get_capacity_process.operation_id.location_src_id.id  # FIXED (was get_voltage_process)
+            self.voltage_dest_location_id = get_voltage_process.operation_id.location_src_id.id  # FIXED (was get_capacity_process)
             remaining_qty = self.before_manufacturing_process_id.remaining_qty
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
@@ -1545,16 +1505,16 @@ class ProductionProcess(models.Model):
                             before_process.remaining_qty,
                         )
                     )
-            if rec.operation_id.allow_lot_create and not rec.lot_ids:
-                raise UserError(
-                    _("This is a lot-enabled product. Please upload the Lot/Serial Number in the Serial Number tab.")
-                )
+            # if rec.operation_id.allow_lot_create and not rec.lot_ids:
+            #     raise UserError(
+            #         _("This is a lot-enabled product. Please upload the Lot/Serial Number in the Serial Number tab.")
+            #     )
 
-            for lot in rec.lot_ids:
-                if not lot.lot_id and not lot.is_available:
-                    raise UserError(
-                        _("This product requires a Lot/Serial Number. Please create or select a Lot/Serial Number.")
-                    )
+            # for lot in rec.lot_ids:
+            #     if not lot.lot_id and not lot.is_available:
+            #         raise UserError(
+            #             _("This product requires a Lot/Serial Number. Please create or select a Lot/Serial Number.")
+            #         )
 
             rec.check_available_stock()
 
@@ -1566,7 +1526,160 @@ class ProductionProcess(models.Model):
     # def action_done_production(self):
     #     self.with_delay(eta=10)._action_done_production()
 
+    def _process_serial_moves(self, serials, dest_location):
+        """
+        Per-serial lot creation + stock move to a given destination location.
+        Extracted from action_done_production so it can be reused for both
+        the split-process case (3 destinations) and the normal case (1 destination),
+        with identical logic in both cases.
+        """
+        for serial in serials:
+            lot_id = serial.lot_id
+
+            if not serial.lot_id:
+                # check production_location_id first before creating a duplicate lot.
+                # If lot_creation() already produced this serial's lot there, reuse it.
+                existing_lot = self.env['stock.lot'].sudo().search([
+                    ('name', '=', serial.name),
+                    ('product_id', '=', self.product_id.id),
+                ], limit=1)
+
+                available_qty = 0
+                if existing_lot:
+                    available_qty = self.env['stock.quant']._get_available_quantity(
+                        self.product_id,
+                        self.production_location_id,
+                        lot_id=existing_lot,
+                    )
+
+                if existing_lot and available_qty > 0:
+                    # lot already exists & available in production_location_id -> reuse, don't recreate
+                    lot_id = existing_lot
+                    serial.write({'lot_id': lot_id.id})
+                else:
+                    if not self.operation_id.allow_lot_create:
+                        _logger.error(_(
+                            "The lot %s is not available and The current operation "
+                            "is not allowed to create new lot number.\n "
+                            "Please enable lot creation or check the inventory." % serial.name
+                        ))
+                    lot_id = self.env['stock.lot'].sudo().create({
+                        'name': serial.name,
+                        'ref': serial.name,
+                        'product_id': self.product_id.id,
+                        'company_id': self.env.company.id,
+                        'production_plan_id': self.production_plan_id.id,
+                    })
+                    #  Create quant with cell_weight + batch_id
+                    update_stock = self.env['stock.quant'].sudo().create({
+                        'product_id': self.product_id.id,
+                        'location_id': self.production_location_id.id,
+                        'lot_id': lot_id.id,
+                        'inventory_quantity': 1.0,
+                        'cell_weight': serial.cell_weight,
+                        'batch_id': serial.batch_id.id if serial.batch_id else False,
+                    })
+                    update_stock.action_apply_inventory()
+                    serial.write({'lot_id': lot_id.id})
+
+            else:
+                #  Lot exists — update existing quant cell_weight + batch_id
+                existing_quant = self.env['stock.quant'].sudo().search([
+                    ('product_id', '=', self.product_id.id),
+                    ('location_id', '=', self.production_location_id.id),
+                    ('lot_id', '=', lot_id.id),
+                ], limit=1)
+                if existing_quant:
+                    existing_quant.write({
+                        'cell_weight': serial.cell_weight,
+                        'batch_id': serial.batch_id.id if serial.batch_id else False,
+                    })
+                else:
+                    self.env['stock.quant'].sudo().create({
+                        'product_id': self.product_id.id,
+                        'location_id': self.production_location_id.id,
+                        'lot_id': lot_id.id,
+                        'inventory_quantity': 1.0,
+                        'cell_weight': serial.cell_weight,
+                        'batch_id': serial.batch_id.id if serial.batch_id else False,
+                    })
+
+            stock_move = self.env['stock.move'].sudo().create({
+                'inventory_name': self.name,
+                'product_id': self.product_id.id,
+                'product_uom': self.product_uom_id.id,
+                'product_uom_qty': 1,
+                'location_id': self.production_location_id.id,
+                'location_dest_id': dest_location.id,
+                'manufacturing_process_id': self.id,
+            })
+            stock_move._action_confirm()
+            stock_move._action_assign()
+            existing_move_lines = self.env['stock.move.line'].search([
+                ('move_id', '=', stock_move.id)
+            ])
+            if not existing_move_lines:
+                self.env['stock.move.line'].sudo().create({
+                    'move_id': stock_move.id,
+                    'product_id': self.product_id.id,
+                    'product_uom_id': self.product_uom_id.id,
+                    'quantity': 1,
+                    'location_id': self.production_location_id.id,
+                    'location_dest_id': dest_location.id,
+                    'company_id': self.company_id.id,
+                    'lot_id': lot_id.id,
+                    'manufacturing_process_id': self.id,
+                    'out_manufacturing_process_id': self.id,
+                })
+                existing_move_lines = self.env['stock.move.line'].search([
+                    ('move_id', '=', stock_move.id)
+                ])
+            existing_move_lines.write({
+                'manufacturing_process_id': self.id,
+                'out_manufacturing_process_id': self.id,
+                'lot_id': lot_id.id,
+            })
+            stock_move.move_line_ids.picked = True
+            stock_move._action_done()  # Moved here so dest quant exists before search below
+
+            #  Update dest location quant cell_weight + batch_id after move done
+            dest_quant = self.env['stock.quant'].sudo().search([
+                ('product_id', '=', self.product_id.id),
+                ('location_id', '=', dest_location.id),
+                ('lot_id', '=', lot_id.id),
+            ], limit=1)
+            if dest_quant:
+                dest_quant.write({
+                    'cell_weight': serial.cell_weight,
+                    'batch_id': serial.batch_id.id if serial.batch_id else False,
+                })
+            else:
+                #  Dest quant missing — create it with batch_id
+                self.env['stock.quant'].sudo().create({
+                    'product_id': self.product_id.id,
+                    'location_id': dest_location.id,
+                    'lot_id': lot_id.id,
+                    'inventory_quantity': 1.0,
+                    'cell_weight': serial.cell_weight,
+                    'batch_id': serial.batch_id.id if serial.batch_id else False,
+                })
+
     def action_done_production(self):
+        if self.operation_id.allow_lot_create and not self.lot_ids:
+            raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
+        for rec in self:
+            rec.lot_creation()
+
+        # NEW: if this is a split process, trigger Capacity/Voltage lot creation first.
+        # These already call action_create_packing_lot() internally, so packing_lot_ids
+        # gets populated too as the "remaining" serials.
+        for rec in self:
+            if rec.is_split_process:
+                if rec.enable_capacity_test:
+                    rec.action_create_capacity_lot()
+                if rec.enable_ocv_ir:
+                    rec.action_create_voltage_lot()
+
         for rec in self:
             rec.check_available_stock()
             stock_moves = []
@@ -1620,11 +1733,11 @@ class ProductionProcess(models.Model):
             if lot.lot_id:
                 available_qty = self.env['stock.quant']._get_available_quantity(
                     self.product_id,
-                    self.location_src_id,
+                    self.production_location_id,
                     lot_id=lot.lot_id
                 )
                 if available_qty == 0:
-                    _logger.error(_("Lot not available in %s" % self.location_src_id.name))
+                    _logger.error(_("Lot not available in %s" % self.production_location_id.name))
 
         if self.product_id.tracking == 'none':
             stock_move = self.env['stock.move'].create({
@@ -1662,7 +1775,6 @@ class ProductionProcess(models.Model):
             })
             stock_move.move_line_ids.picked = True
 
-            #  Update dest quant with batch_id for tracking == 'none'
             dest_quant = self.env['stock.quant'].sudo().search([
                 ('product_id', '=', self.product_id.id),
                 ('location_id', '=', self.location_dest_id.id),
@@ -1680,117 +1792,18 @@ class ProductionProcess(models.Model):
                 })
 
         else:
-            for serial in self.lot_ids:
-                lot_id = serial.lot_id
+            # NEW: route serials to different destinations when is_split_process
+            if self.is_split_process:
+                if self.packing_lot_ids:
+                    self._process_serial_moves(self.packing_lot_ids, self.location_dest_id)
+                if self.capacity_lot_ids:
+                    self._process_serial_moves(self.capacity_lot_ids, self.capacity_dest_location_id)
+                if self.voltage_lot_ids:
+                    self._process_serial_moves(self.voltage_lot_ids, self.voltage_dest_location_id)
+            else:
+                # UNCHANGED: exact same behavior as before this refactor
+                self._process_serial_moves(self.lot_ids, self.location_dest_id)
 
-                if not serial.lot_id:
-                    if not self.operation_id.allow_lot_create:
-                        _logger.error(_(
-                            "The lot %s is not available and The current operation "
-                            "is not allowed to create new lot number.\n "
-                            "Please enable lot creation or check the inventory." % serial.name
-                        ))
-                    lot_id = self.env['stock.lot'].sudo().create({
-                        'name': serial.name,
-                        'ref': serial.name,
-                        'product_id': self.product_id.id,
-                        'company_id': self.env.company.id,
-                        'production_plan_id': self.production_plan_id.id,
-                    })
-                    #  Create quant with cell_weight + batch_id
-                    update_stock = self.env['stock.quant'].sudo().create({
-                        'product_id': self.product_id.id,
-                        'location_id': self.production_location_id.id,
-                        'lot_id': lot_id.id,
-                        'inventory_quantity': 1.0,
-                        'cell_weight': serial.cell_weight,
-                        'batch_id': serial.batch_id.id if serial.batch_id else False,  #  batch_id
-                    })
-                    update_stock.action_apply_inventory()
-                    serial.write({'lot_id': lot_id.id})
-
-                else:
-                    #  Lot exists — update existing quant cell_weight + batch_id
-                    existing_quant = self.env['stock.quant'].sudo().search([
-                        ('product_id', '=', self.product_id.id),
-                        ('location_id', '=', self.production_location_id.id),
-                        ('lot_id', '=', lot_id.id),
-                    ], limit=1)
-                    if existing_quant:
-                        existing_quant.write({
-                            'cell_weight': serial.cell_weight,
-                            'batch_id': serial.batch_id.id if serial.batch_id else False,  #  batch_id
-                        })
-                    else:
-                        #  No quant found — create one with batch_id
-                        self.env['stock.quant'].sudo().create({
-                            'product_id': self.product_id.id,
-                            'location_id': self.production_location_id.id,
-                            'lot_id': lot_id.id,
-                            'inventory_quantity': 1.0,
-                            'cell_weight': serial.cell_weight,
-                            'batch_id': serial.batch_id.id if serial.batch_id else False,  #  batch_id
-                        })
-
-                stock_move = self.env['stock.move'].sudo().create({
-                    'inventory_name': self.name,
-                    'product_id': self.product_id.id,
-                    'product_uom': self.product_uom_id.id,
-                    'product_uom_qty': 1,
-                    'location_id': self.production_location_id.id,
-                    'location_dest_id': self.location_dest_id.id,
-                    'manufacturing_process_id': self.id,
-                })
-                stock_move._action_confirm()
-                stock_move._action_assign()
-                existing_move_lines = self.env['stock.move.line'].search([
-                    ('move_id', '=', stock_move.id)
-                ])
-                if not existing_move_lines:
-                    self.env['stock.move.line'].sudo().create({
-                        'move_id': stock_move.id,
-                        'product_id': self.product_id.id,
-                        'product_uom_id': self.product_uom_id.id,
-                        'quantity': 1,
-                        'location_id': self.production_location_id.id,
-                        'location_dest_id': self.location_dest_id.id,
-                        'company_id': self.company_id.id,
-                        'lot_id': lot_id.id,
-                        'manufacturing_process_id': self.id,
-                        'out_manufacturing_process_id': self.id,
-                    })
-                    existing_move_lines = self.env['stock.move.line'].search([
-                        ('move_id', '=', stock_move.id)
-                    ])
-                existing_move_lines.write({
-                    'manufacturing_process_id': self.id,
-                    'out_manufacturing_process_id': self.id,
-                    'lot_id': lot_id.id,
-                })
-                stock_move.move_line_ids.picked = True
-                stock_move._action_done()  #  Moved here so dest quant exists before search below
-
-                #  Update dest location quant cell_weight + batch_id after move done
-                dest_quant = self.env['stock.quant'].sudo().search([
-                    ('product_id', '=', self.product_id.id),
-                    ('location_id', '=', self.location_dest_id.id),
-                    ('lot_id', '=', lot_id.id),
-                ], limit=1)
-                if dest_quant:
-                    dest_quant.write({
-                        'cell_weight': serial.cell_weight,
-                        'batch_id': serial.batch_id.id if serial.batch_id else False,  #  batch_id
-                    })
-                else:
-                    #  Dest quant missing — create it with batch_id
-                    self.env['stock.quant'].sudo().create({
-                        'product_id': self.product_id.id,
-                        'location_id': self.location_dest_id.id,
-                        'lot_id': lot_id.id,
-                        'inventory_quantity': 1.0,
-                        'cell_weight': serial.cell_weight,
-                        'batch_id': serial.batch_id.id if serial.batch_id else False,  #  batch_id
-                    })
         if self.allow_lot_create:
             self.state = 'done'
         else:

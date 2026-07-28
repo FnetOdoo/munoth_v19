@@ -6,12 +6,12 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button name="action_create_mrp_stock_request" string="Mrp Request" type="object"
-                        invisible="picking_type_code != 'outgoing'" class="btn-primary"/>
+                        invisible="picking_type_code != 'outgoing' or state not in [ 'draft','confirmed','waiting','assigned']" class="btn-primary"/>
                <button name="action_check_availability"
                             string="Check Availability"
                             type="object"
                             class="btn-primary"
-                            groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator,material_purchase_requisitions.group_purchase_requisition_store"
+                            groups="mrp_material_request.group_material_request_store_user,mrp_material_request.group_material_request_administrator,material_purchase_requisitions.group_purchase_requisition_store,material_purchase_requisitions.group_purchase_requisition_administrator"
                             invisible="state not in ('draft', 'confirmed', 'assigned') or not material_request_id or material_return_id or purchase_id or is_product_qty_checked"/>
             </xpath>
             <xpath expr="//field[@name='location_dest_id']" position="before">

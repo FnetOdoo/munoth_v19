@@ -24,7 +24,7 @@
                                 <field name="name"/>
                                 <field name="manufacturing_process_type_id" string="Type" invisible="0"/>
                                 <!--                                <field name="type_id"/>-->
-                                <field name="roll_size" string="Roll Size" invisible="type not in ['anode_slitting', 'cathode_slitting']" required="type in ['anode_slitting', 'cathode_slitting']"/>
+<!--                                <field name="roll_size" string="Roll Size" invisible="type not in ['anode_slitting', 'cathode_slitting']" required="type in ['anode_slitting', 'cathode_slitting']"/>-->
                                 <field name="quantity" invisible="1"/>
                                 <field name="company_id"/>
                             </group>
@@ -58,7 +58,7 @@
                     <field name="name"/>
                     <field name="product_tmpl_id"/>
                     <field name="product_model_id" string="Model" required="1"/>
-                    <field name="type"/>
+                    <field name="manufacturing_process_type_id"/>
                     <field name="product_qty"/>
                 </list>
             </field>

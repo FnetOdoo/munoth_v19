@@ -1,6 +1,6 @@
 from odoo import models, api, fields, _
 from odoo.exceptions import ValidationError
-
+from markupsafe import Markup
 
 class BreakdownRequest(models.Model):
     _name = 'breakdown.request'
@@ -85,6 +85,9 @@ class BreakdownRequest(models.Model):
         machine = self.machine_id.display_name or 'N/A'
         shift = self.shift_id.display_name or 'N/A'
         req_time = self.requested_time and fields.Datetime.to_string(self.requested_time) or 'N/A'
+        raw_desc = self.problem_description or 'N/A'
+        problem_desc = Markup('<br/>').join(raw_desc.split('\n'))
+        priority_label = dict(self._fields['priority'].selection).get(self.priority) or 'N/A'
 
         mail_body = f"""
             <table border="0" cellpadding="0" cellspacing="0" width="100%"
@@ -103,7 +106,7 @@ class BreakdownRequest(models.Model):
                 <tr>
                     <td style="padding:32px;">
 
-                        <p style="margin:0 0 16px 0;">Hello,</p>
+                        <p style="margin:0 0 16px 0;">Dear Team,</p>
 
                         <p style="margin:0 0 16px 0; line-height:1.6;">
                             A breakdown request has been raised and requires attention.
@@ -116,18 +119,18 @@ class BreakdownRequest(models.Model):
                                       border-radius:4px; margin:24px 0;">
                             <tr>
                                 <td style="padding:16px 20px;">
-                                    <table border="0" cellpadding="6" cellspacing="0" width="100%">
+                                   <table border="0" cellpadding="6" cellspacing="0" width="100%">
                                         <tr>
-                                            <td style="color:#666666; font-size:13px; width:160px;">Ticket No</td>
-                                            <td style="color:#2d2d2d; font-weight:600;">{self.name or ''}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color:#666666; font-size:13px;">Machine</td>
+                                            <td style="color:#666666; font-size:13px; width:160px;">Machine</td>
                                             <td style="color:#2d2d2d; font-weight:600;">{machine}</td>
                                         </tr>
                                         <tr>
-                                            <td style="color:#666666; font-size:13px;">Shift</td>
-                                            <td style="color:#2d2d2d; font-weight:600;">{shift}</td>
+                                            <td style="color:#666666; font-size:13px; vertical-align:top;">Problem Description</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{problem_desc}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Priority</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{priority_label}</td>
                                         </tr>
                                         <tr>
                                             <td style="color:#666666; font-size:13px;">Requested By</td>
@@ -136,6 +139,10 @@ class BreakdownRequest(models.Model):
                                         <tr>
                                             <td style="color:#666666; font-size:13px;">Requested Time</td>
                                             <td style="color:#2d2d2d; font-weight:600;">{req_time}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Shift</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{shift}</td>
                                         </tr>
                                     </table>
                                 </td>

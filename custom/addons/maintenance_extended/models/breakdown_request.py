@@ -12,7 +12,7 @@ class BreakdownRequest(models.Model):
     name = fields.Char(string='Ticket No', default=lambda self: _('New'),
                             copy=False, readonly=True)
     is_breakdown_request = fields.Boolean()
-    machine_id = fields.Many2one('manufacturing.machine', string='Machine')
+    machine_id = fields.Many2one('maintenance.equipment', string='Machine')
     shift_id = fields.Many2one('mrp.shift', string='Shift')
     problem_category = fields.Selection([('breakdown', 'Breakdown')],
                                         string='Problem Category', default='breakdown')

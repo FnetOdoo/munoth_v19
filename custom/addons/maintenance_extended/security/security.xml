@@ -7,4 +7,9 @@
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         <field name="comment">The user will be able to raise and view breakdown requests.</field>
     </record>
+
+    <!-- Make Equipment Manager imply Equipment User (required for privilege widget hierarchy) -->
+    <record id="maintenance.group_equipment_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('maintenance_extended.group_equipment_user'))]"/>
+    </record>
 </odoo>

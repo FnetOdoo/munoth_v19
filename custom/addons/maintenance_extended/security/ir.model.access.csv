@@ -6,6 +6,9 @@ access_maintenance_material_request_base_user,maintenance_material_request_base_
 access_material_request_line_base_user,material_request_line_base_user,model_material_request_line,base.group_user,1,1,1,1
 access_maintenance_instrument,maintenance_instrument,model_maintenance_instrument,base.group_user,1,1,1,1
 access_engineering_change_request,engineering_change_request,model_engineering_change_request,base.group_user,1,1,1,1
-
 access_maintenance_report_wizard_user,maintenance.report.wizard.user,model_maintenance_report_wizard,base.group_user,1,1,1,1
-access_breakdown_request_user,breakdown.request.user,model_breakdown_request,base.group_user,1,1,1,1
+
+
+
+access_breakdown_request_user,breakdown.request.user,model_breakdown_request,maintenance_extended.group_equipment_user,1,1,1,0
+access_breakdown_request_manager,breakdown.request.manager,model_breakdown_request,maintenance.group_equipment_manager,1,1,1,1

@@ -29,7 +29,6 @@ class BreakdownRequest(models.Model):
     corrective = fields.Char('Corrective action')
     start_date = fields.Datetime()
     end_date = fields.Datetime()
-    duration = fields.Float(string='Down Time',compute='_compute_duration', store=True)
     solution_permanent = fields.Selection([('yes', 'Yes'), ('no', 'No')],
                                           default='yes', string='Permanent Solution',
                                           tracking=True)
@@ -37,7 +36,15 @@ class BreakdownRequest(models.Model):
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda self: self.env.company, required=True)
     problem_description = fields.Text()
+    duration = fields.Float(string='Down Time', compute='_compute_duration', store=True)
+    duration_display = fields.Char(string='Down Time', compute='_compute_duration_display')
 
+    @api.depends('duration')
+    def _compute_duration_display(self):
+        for rec in self:
+            total_minutes = int(rec.duration)
+            seconds = int(round((rec.duration - total_minutes) * 60))
+            rec.duration_display = f"{total_minutes}:{seconds:02d} mins"
     @api.depends('start_date', 'end_date')
     def _compute_duration(self):
         for rec in self:

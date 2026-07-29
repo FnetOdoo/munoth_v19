@@ -936,13 +936,13 @@ class ProductionProcess(models.Model):
 
         # NEW: check for serials that already exist before creating anything
         uploaded_names = [s[0] for s in serial_data]
-        existing_serials = self.env['product.serial.number'].search([
+        existing_lots = self.env['stock.lot'].search([
             ('name', 'in', uploaded_names),
         ])
-        if existing_serials:
+        if existing_lots:
             raise UserError(_(
                 "The following serial number(s) already exist and cannot be uploaded again: %s"
-            ) % ", ".join(existing_serials.mapped('name')))
+            ) % ", ".join(existing_lots.mapped('name')))
 
         for serial_no, cell_weight in serial_data:
             self.env['product.serial.number'].create({
@@ -1665,10 +1665,12 @@ class ProductionProcess(models.Model):
                 })
 
     def action_done_production(self):
+        for rec in self:
+            rec.action_upload_serial()
+            rec.lot_creation()
         if self.operation_id.allow_lot_create and not self.lot_ids:
             raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
-        for rec in self:
-            rec.lot_creation()
+
 
         # NEW: if this is a split process, trigger Capacity/Voltage lot creation first.
         # These already call action_create_packing_lot() internally, so packing_lot_ids

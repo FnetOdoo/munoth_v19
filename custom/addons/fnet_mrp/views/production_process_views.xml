@@ -357,7 +357,7 @@
                         <page string="Materials">
                             <field name="input_material_lines" readonly="state not in ['draft']">
                                 <list editable="bottom" decoration-success="product_qty &gt;= qty_done"
-                                      readonly="parent.state != 'draft'"
+                                      readonly="parent.state != 'draft'" delete="0" create="0"
                                       decoration-danger="qty_done &lt; product_qty">
                                     <field name="has_tracking" column_invisible="1"/>
                                     <field name="product_uom_category_id" column_invisible="1"/>
@@ -365,8 +365,7 @@
                                     <field name="name" readonly="parent.before_manufacturing_process_id"/>
                                     <field name="location_src_id" readonly="parent.before_manufacturing_process_id"/>
                                     <field name="product_uom_id" readonly="parent.before_manufacturing_process_id"/>
-                                    <field name="product_qty" string="Required Qty"
-                                           readonly="parent.before_manufacturing_process_id"/>
+                                    <field name="product_qty" string="Required Qty"/>
                                     <field name="qty_done" string="Reserved Qty"/>
                                     <button name="action_show_details" type="object" icon="fa-list"/>
                                 </list>
@@ -390,20 +389,20 @@
                                 <group string="From Material Tab">
                                     <div>
                                         <button name="get_serial_numbers" type="object"
-                                                invisible="state not in ['progress']" string="Get All Serial"/>
+                                                 invisible="state not in ['draft','progress']" string="Get All Serial"/>
                                         <button name="clear_serial_numbers" type="object" string="Clear All Serial"
-                                                invisible="state not in ['progress']"/>
+                                                invisible="state not in ['draft','progress']"/>
                                     </div>
                                 </group>
                                 <group string="Upload file">
                                     <div>
                                         <field name="out_file_name" invisible="1"/>
                                         <field name="out_file" filename="out_file_name"
-                                               readonly="state not in ['progress']"/>
+                                               readonly="state not in ['draft','progress']"/>
                                         <button name="action_upload_serial" type="object" string="Upload Serial"
                                                 invisible="lot_ids"/>
                                         <button name="action_download_sample" type="object" string="Download Sample"
-                                                invisible="state not in ['progress']"/>
+                                                invisible="state not in ['draft','progress']"/>
                                     </div>
                                 </group>
                             </group>

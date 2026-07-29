@@ -21,7 +21,7 @@ class BreakdownRequest(models.Model):
                                  ('2', 'Normal'), ('3', 'High')], string='Priority')
     requested_user_id = fields.Many2one('res.users', string='Requested By')
     requested_time = fields.Datetime(string='Requested Time',default=fields.Datetime.now)
-    state = fields.Selection([('draft', 'Draft'), ('request', 'Requested'),('done', 'Breakdown Completed'), ('cancel', 'Cancelled')],default='draft', string='Status', tracking=True)
+    state = fields.Selection([('draft', 'Draft'), ('request', 'Requested'),('done', 'Closed')],default='draft', string='Status', tracking=True)
 
     # Filled by the maintenance user
     attended_by = fields.Many2one('res.users', string='Attended By')
@@ -29,15 +29,14 @@ class BreakdownRequest(models.Model):
     corrective = fields.Char('Corrective action')
     start_date = fields.Datetime()
     end_date = fields.Datetime()
-    down_time = fields.Char()
-    duration = fields.Float(string='Duration (Minutes)',
-                            compute='_compute_duration', store=True)
+    duration = fields.Float(string='Down Time',compute='_compute_duration', store=True)
     solution_permanent = fields.Selection([('yes', 'Yes'), ('no', 'No')],
                                           default='yes', string='Permanent Solution',
                                           tracking=True)
     remarks = fields.Text()
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda self: self.env.company, required=True)
+    problem_description = fields.Text()
 
     @api.depends('start_date', 'end_date')
     def _compute_duration(self):
@@ -183,10 +182,4 @@ class BreakdownRequest(models.Model):
 
     def action_done(self):
         self.write({'state': 'done'})
-
-    def action_cancel(self):
-        self.write({'state': 'cancel'})
-
-    def action_draft(self):
-        self.write({'state': 'draft'})
 

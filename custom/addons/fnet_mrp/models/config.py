@@ -714,6 +714,7 @@ class TypeChangeDuration(models.Model):
         ('voltage_test_2', 'Voltage Test 2'),
         ('packing', 'Packing')
     ])
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Type")
     duration = fields.Float()
 
 

@@ -508,9 +508,13 @@ class ManufacturingOperation(models.Model):
 
     @api.model
     def _search_display_name(self, operator, value):
-        domain = ['|', ('type', operator, value), ('reference', operator, value)]
-        return domain
-
+        return [
+            '|', '|', '|',
+            ('product_model_id.name', operator, value),
+            ('vendor_id.name', operator, value),
+            ('reference', operator, value),
+            ('manufacturing_process_type_id', operator, value),
+        ]
 class ProductBom(models.Model):
     _name = 'operation.bom.line'
     _description = 'Operation BOM Line'

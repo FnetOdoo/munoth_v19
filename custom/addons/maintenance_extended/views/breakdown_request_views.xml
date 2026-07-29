@@ -42,7 +42,10 @@
                             <field name="requested_time" readonly="state != 'draft'" required="state == 'draft'"/>
                         </group>
                     </group>
-
+                    <separator string="Problem Description"/>
+                    <field name="problem_description" nolabel="1" colspan="2"
+                           required="state == 'draft'"
+                           placeholder="Enter Problem Description here..." readonly="state != 'draft'"/>
                     <notebook>
                         <page string="Maintenance User" name="material">
                             <group>
@@ -62,8 +65,6 @@
                                     <field name="start_date" required="state == 'request'"
                                            readonly="state != 'request'"/>
                                     <field name="end_date" required="state == 'request'" readonly="state != 'request'"/>
-                                    <field name="down_time" required="state == 'request'"
-                                           readonly="state != 'request'"/>
                                     <field name="duration" readonly="1"/>
 
                                 </group>
@@ -86,8 +87,9 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="priority" widget="priority" readonly="1"/>
                 <field name="machine_id"/>
+                <field name="problem_description"/>
+                <field name="priority" widget="priority" readonly="1"/>
                 <field name="requested_user_id"/>
                 <field name="requested_time"/>
                 <field name="shift_id"/>
@@ -95,8 +97,7 @@
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'request'"
-                       decoration-success="state == 'done'"
-                       decoration-muted="state == 'cancel'"/>
+                       decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>

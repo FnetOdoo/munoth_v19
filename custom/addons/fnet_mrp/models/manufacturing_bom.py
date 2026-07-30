@@ -9,16 +9,20 @@ class ManufacturingBom(models.Model):
     def name_get(self):
         result = []
         for rec in self:
-            name = (rec.product_model_id.name or '') + ' : ' + (rec.name or '') + ' - ' + (rec.type or '')
+            name = (rec.product_model_id.name or '') + ' : ' + (rec.name or '') + ' - ' + (rec.manufacturing_process_type_id.name or '')
             result.append((rec.id, name))
         return result
 
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=100):
-        domain = ['|', ('product_model_id', operator, name), ('product_id', operator, name)]
+        domain = ['|', '|',
+                  ('product_model_id', operator, name),
+                  ('product_id', operator, name),
+                  ('manufacturing_process_type_id', operator, name),
+                  ]
         args = args or []
-        rec = self.search(domain + args, limit=limit)
-        return rec.name_get()
+        recs = self.search(domain + args, limit=limit)
+        return [(r.id, r.display_name) for r in recs]
 
     def _get_default_product_uom_id(self):
         return self.env['uom.uom'].search([], limit=1, order='id').id
@@ -54,7 +58,7 @@ class ManufacturingBom(models.Model):
         'res.company', 'Company', index=True,
         default=lambda self: self.env.company)
     product_model_id = fields.Many2one('product.model')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string='Type')
     type = fields.Selection([
         ('anode_slitting', 'Anode Slitting '),
         ('cathode_slitting', 'Cathode Slitting '),
@@ -83,6 +87,7 @@ class ManufacturingBom(models.Model):
         ('packing', 'Packing'),
         ('powerbank', 'Power Bank')
     ])
+    manufacturing_stages_id = fields.Many2one('manufacturing.stages',string='Process')
 
     # type_id = fields.Many2one('bom.operation.type', 'Operation Type')
 
@@ -105,7 +110,7 @@ class ManufacturingBom(models.Model):
         res = {}
         if not self.product_uom_id or not self.product_tmpl_id:
             return
-        if self.product_uom_id.uom_category_id.id != self.product_tmpl_id.uom_id.relative_uom_id.id:
+        if self.product_uom_id.product_uom_category_id.id != self.product_tmpl_id.uom_id.relative_uom_id.id:
             self.product_uom_id = self.product_tmpl_id.uom_id.id
             res['warning'] = {'title': _('Warning'), 'message': _(
                 'The Product Unit of Measure you chose has a different category than in the product form.')}

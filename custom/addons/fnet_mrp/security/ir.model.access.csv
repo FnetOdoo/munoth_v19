@@ -72,3 +72,7 @@ access_manufacturing_stages_user,access.manufacturing.stages.user,model_manufact
 access_manufacturing_process_type_user,access.manufacturing.process.type.user,model_manufacturing_process_type,base.group_user,1,1,1,1
 access_manufacturing_process_user,access.manufacturing.process.user,model_manufacturing_process,base.group_user,1,1,1,1
 access_manufacturing_batch,manufacturing.batch,model_manufacturing_batch,base.group_user,1,1,1,1
+
+
+access_manufacturing_stages_revision,manufacturing.stages.revision,model_manufacturing_stages_revision,base.group_user,1,1,1,1
+access_manufacturing_stages_revision_line,manufacturing.stages.revision.line,model_manufacturing_stages_revision_line,base.group_user,1,1,1,1

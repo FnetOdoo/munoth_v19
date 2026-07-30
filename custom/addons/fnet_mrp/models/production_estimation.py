@@ -48,7 +48,7 @@ class ManufacturingStage(models.Model):
         ('stage_6', 'Process Type 6')], default='stage_1', help='Choose stage of going to production')
     component_ids = fields.One2many('manufacturing.component', 'stage_id')
     manufacturing_stages_id = fields.Many2one('manufacturing.stages', string='Stage')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type', string="Type")
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type', string="Operation Type")
 
 
     def name_get(self):
@@ -70,7 +70,7 @@ class ManufacturingStageLine(models.Model):
     _name = 'mrp.stage.line'
     _description = 'Manufacturing Stage Line'
 
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type', string="Type")
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type', string="Operation Type")
 
     machine_id = fields.Many2many('manufacturing.machine')
     qty = fields.Float()

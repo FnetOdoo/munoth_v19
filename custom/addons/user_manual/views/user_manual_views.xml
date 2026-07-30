@@ -58,9 +58,9 @@
             <list string="User Manuals">
                 <field name="name"/>
                 <field name="manual_filename"/>
-                <field name="state" widget="badge"
-                       decoration-info="state == 'draft'"
-                       decoration-success="state == 'submitted'"/>
+<!--                <field name="state" widget="badge"-->
+<!--                       decoration-info="state == 'draft'"-->
+<!--                       decoration-success="state == 'submitted'"/>-->
             </list>
         </field>
     </record>
@@ -101,11 +101,11 @@
 
     <menuitem id="menu_user_manual_root"
               name="User Manuals"
-              sequence="50" web_icon="user_manual,static/icon.png"/>
-    <menuitem id="menu_user_manual_main"
-              name="Manuals"
-              parent="menu_user_manual_root"
-              action="action_user_manual"
-              sequence="10"/>
+              sequence="50" web_icon="user_manual,static/icon.png"               action="action_user_manual"
+/>
+<!--    <menuitem id="menu_user_manual_main"-->
+<!--              name="Manuals"-->
+<!--              parent="menu_user_manual_root"-->
+<!--              sequence="10"/>-->
 
 </odoo>

@@ -59,7 +59,7 @@ class PowerBank(models.Model):
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", check_company=True)
     bom_id = fields.Many2one(
         'manufacturing.bom', 'Bill of Material')
-    type = fields.Selection([('powerbank', 'Power Bank')], default='powerbank', string="Type")
+    type = fields.Selection([('powerbank', 'Power Bank')], default='powerbank', string="Operation Type")
     company_id = fields.Many2one('res.company', 'Company', index=True, default=lambda self: self.env.company)
     location_src_id = fields.Many2one('stock.location')
     location_dest_id = fields.Many2one('stock.location')
@@ -324,7 +324,7 @@ class PowerBank(models.Model):
             for serial in self.lot_ids:
                 lot_id = serial.lot_id
                 if not serial.lot_id:
-                    if not self.operation_id.allow_lot_create:
+                    if not self.allow_lot_create:
                         raise UserError(
                             _("The lot %s is not available and The current operation is not allowed to create new lot number.\n Please enable lot creation or check the inventory." % serial.name))
                     lot_id = self.env['stock.lot'].create({

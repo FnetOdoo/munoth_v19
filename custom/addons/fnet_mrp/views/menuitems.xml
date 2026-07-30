@@ -40,9 +40,9 @@
         <!-- Configuration -->
         <menuitem id="menu_manufacturing_configuration" name="Configuration" parent="fnet_mrp.menu_manufacturing_root" sequence="7" groups="fnet_mrp.group_manufacturing_manager"/>
 
-        <menuitem id="menu_manufacturing_stages" name="Manufacturing Stages" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_stages" sequence="1"/>
+        <menuitem id="menu_manufacturing_stages" name="Manufacturing Process" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_stages" sequence="1"/>
 
-        <menuitem id="menu_manufacturing_process" name="Manufacturing Process" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_process" sequence="2"/>
+        <menuitem id="menu_manufacturing_process" name="Manufacturing Type" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_process" sequence="2"/>
 
         <menuitem id="menu_manufacturing_batch" name="Manufacturing Batch" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_batch" sequence="3"/>
 
@@ -50,7 +50,7 @@
 
         <menuitem id="menu_manufacturing_machine" name="Machine" action="action_mrp_machine_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="5"/>
 
-        <menuitem id="menu_manufacturing_operation" name="Operation" action="manufacturing_operation_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="6"/>
+<!--        <menuitem id="menu_manufacturing_operation" name="Operation" action="manufacturing_operation_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="6"/>-->
 
         <menuitem id="menu_inspection_team" name="Inspection Team" parent="fnet_mrp.menu_manufacturing_configuration" action="inspection_team_action" sequence="7"/>
 

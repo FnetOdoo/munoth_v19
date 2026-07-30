@@ -14,7 +14,6 @@ class ProductModel(models.Model):
     company_id = fields.Many2one(
         'res.company', 'Company', index=True,
         default=lambda self: self.env.company)
-    operation_ids = fields.One2many('manufacturing.operation', 'product_model_id', copy=True)
     machine_ids = fields.One2many('machine.allocation', 'product_model_id')
 
     product_template_id = fields.Many2one('product.template', string="Product")
@@ -29,6 +28,34 @@ class ProductModel(models.Model):
     fai_cutoff_voltage = fields.Char('Cutoff Voltage')
     fai_ir = fields.Char('IR')
     fai_visual_check = fields.Char('Visual Check')
+    manufacturing_stages_ids = fields.Many2many(
+        'manufacturing.stages',
+        string='Process'
+    )
+
+    operation_ids = fields.One2many(
+        'manufacturing.operation',
+        'model_id',
+        string='Operations',
+    )
+
+    @api.onchange('manufacturing_stages_ids')
+    def _onchange_manufacturing_stages_ids(self):
+        self.operation_ids = [(5, 0, 0)]  # Clear existing lines
+        lines = []
+        for stage in self.manufacturing_stages_ids:
+            for template in stage.operation_ids.filtered(lambda o: not o.model_id and not o.bom_id):
+                vals = template.copy_data()[0]  # Copy all field values
+                # Remove fields that should not be copied
+                vals.pop('model_id', None)
+                # Set values for the new record
+                vals.update({
+                    'manufacturing_stages_id': stage.id,
+                    'bom_id': False,
+                    'manufacturing_operation_line_id': template.id,
+                })
+                lines.append((0, 0, vals))
+        self.operation_ids = lines
 
     def check_user(self):
         for rec in self:

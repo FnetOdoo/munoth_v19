@@ -56,8 +56,11 @@
                         <group>
                             <field name="model_id" required="1" readonly="state != 'draft'"/>
                             <field name="product_id" readonly="state != 'draft'"/>
-                            <field name="manufacturing_stages_id" string="Choose Stage" required="1"
-                                   readonly="state != 'draft'"/>
+                           <field name="manufacturing_stages_ids" invisible="1"/>
+                            <field name="manufacturing_stages_id"
+                                   required="1"
+                                   readonly="state != 'draft'"
+                                   domain="[('id', 'in', manufacturing_stages_ids)]"/>
                             <field name="expected_production_qty" readonly="state != 'draft'"/>
 
                         </group>
@@ -69,7 +72,7 @@
                                    readonly="state != 'draft'"/>
                             <!--                            <field name="qty_remaining"/>-->
                             <field name="date" string="Create Date"/>
-                            <field name="end_date" invisible="state != 'close'"/>
+                            <field name="end_date" invisible="state != 'close'" readonly="1"/>
                             <field name="batch_id" readonly="state != 'draft'" options="{'no_create': True}"
                                    required="1"/>
                         </group>

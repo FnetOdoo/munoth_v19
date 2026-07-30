@@ -47,7 +47,11 @@ class ProductionPlan(models.Model):
     ], default='draft')
     line_number = fields.Char(default='1')
     date = fields.Datetime(default=fields.Datetime.now, readonly=True)
-    manufacturing_stages_id = fields.Many2one('manufacturing.stages')
+    manufacturing_stages_id = fields.Many2one('manufacturing.stages',string='Process')
+    manufacturing_stages_ids = fields.Many2many(
+        related='model_id.manufacturing_stages_ids',
+        string='Available Manufacturing Stages',
+    )
     # anode_slitting = fields.Many2one('anode.slitting')
     # cathode_slitting = fields.Many2one('cathode.slitting')
     # injection_id = fields.Many2one('cell.injection')
@@ -75,6 +79,7 @@ class ProductionPlan(models.Model):
         ('stage_5', 'Process Type 5'),
         ('stage_6', 'Process Type 6')], help='Choose stage of going to production')
     # diaphragm_required = fields.Boolean()
+
     update_operation = fields.Boolean()
     qty_produced = fields.Float("Produced Qty", compute='_compute_produced_qty')
     qty_remaining = fields.Float("Remaining Qty to Produce", compute='_compute_produced_qty')
@@ -120,12 +125,26 @@ class ProductionPlan(models.Model):
             'domain': [('production_plan_id', '=', self.id), ('is_first_process', '=', True)]
         }
 
+    @api.constrains('manufacturing_stages_id')
+    def _check_manufacturing_stage_approved(self):
+        for record in self:
+            stage = record.manufacturing_stages_id
+            if stage and stage.state != 'approved':
+                state_label = dict(
+                    stage._fields['state'].selection
+                ).get(stage.state, stage.state)
+                raise UserError(
+                    _("This process needs approval. Current state: %s") % state_label
+                )
+
+
     @api.onchange('manufacturing_stages_id', 'model_id')
     def _onchange_choose_stage(self):
         if self.manufacturing_stages_id and self.model_id:
             line_defaults = []
             self.operation_ids = False
             seq = 10
+
             for line in self.model_id.operation_ids.filtered(
                     lambda x: x.manufacturing_stages_id == self.manufacturing_stages_id
             ).sorted(key=lambda x: (x.sequence, x.id)):
@@ -320,6 +339,19 @@ class ProductionPlan(models.Model):
 
     def action_confirm(self):
         for rec in self:
+            missing = []
+            for line in rec.operation_ids:
+                get_bom = self.env['manufacturing.bom'].search([
+                    ('product_id', '=', rec.product_id.id),
+                    ('product_model_id', '=', rec.model_id.id),
+                    ('manufacturing_process_type_id', '=', line.manufacturing_process_type_id.id),
+                ], limit=1)
+                if not get_bom:
+                    missing.append(line.manufacturing_process_type_id.name or '?')
+            if missing:
+                raise UserError(_(
+                    "Please map the BOM for these lines:\n- %s"
+                ) % '\n- '.join(missing))
             if not rec.expected_production_qty > 0:
                 raise UserError('Expected Production Qty cannot be 0')
             if not rec.operation_ids:

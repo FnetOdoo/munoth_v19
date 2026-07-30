@@ -1,6 +1,9 @@
 from odoo import models, fields, api, _
 import datetime
+import json                    # <-- ADD THIS
 from lxml import etree
+
+
 class ManufacturingOperation(models.Model):
     _name = 'manufacturing.operation'
     _description = 'Manufacturing Operation'
@@ -9,8 +12,8 @@ class ManufacturingOperation(models.Model):
 
     next_operation_id             = fields.Many2one('manufacturing.operation')
     bom_id                        = fields.Many2one('manufacturing.bom')
-    manufacturing_stages_id       = fields.Many2one('manufacturing.stages',string='Stage')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Type")
+    manufacturing_stages_id       = fields.Many2one('manufacturing.stages',string='Process')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
     is_power_bank                 = fields.Boolean(related='manufacturing_process_type_id.is_power_bank')
     show_injection        = fields.Boolean(related='manufacturing_process_type_id.show_injection',        store=True)
     show_degas            = fields.Boolean(related='manufacturing_process_type_id.show_degas',            store=True)
@@ -36,12 +39,13 @@ class ManufacturingOperation(models.Model):
     production_location_id = fields.Many2one('stock.location')
     bom_ids = fields.One2many('operation.bom.line', 'operation_id')
     sequence = fields.Integer(index=True, default=1)
-
+    manufacturing_operation_line_id = fields.Many2one('manufacturing.operation')
     product_id = fields.Many2one('product.product', related='bom_id.product_id')
     vendor_id = fields.Many2one('res.partner')
 
     process_duration = fields.Float()
     product_model_id = fields.Many2one('product.model')
+    model_id = fields.Many2one('product.model')
     reference = fields.Char()
 
     machine_id = fields.Many2one('manufacturing.machine', string="Default Machine")
@@ -424,7 +428,32 @@ class ManufacturingOperation(models.Model):
 
     display_name = fields.Char(compute='_compute_display_name', store=False)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        if not self.env.context.get('skip_revision_html'):
+            stages = records.mapped('manufacturing_stages_id').filtered(
+                lambda s: s.state == 'in_revision' and s.current_revision_id)
+            for stage in stages:
+                old_values = json.loads(stage.last_revision_snapshot or "{}")
+                new_values = stage._get_revision_values()
+                html = stage._generate_revision_html(old_values, new_values)
+                stage.current_revision_id.with_context(
+                    skip_revision_html=True).html = html
+        return records
 
+    def write(self, vals):
+        res = super().write(vals)
+        if not self.env.context.get('skip_revision_html'):
+            stages = self.mapped('manufacturing_stages_id').filtered(
+                lambda s: s.state == 'in_revision' and s.current_revision_id)
+            for stage in stages:
+                old_values = json.loads(stage.last_revision_snapshot or "{}")
+                new_values = stage._get_revision_values()
+                html = stage._generate_revision_html(old_values, new_values)
+                stage.current_revision_id.with_context(
+                    skip_revision_html=True).html = html
+        return res
     @api.model
     def fields_view_get(
             self,

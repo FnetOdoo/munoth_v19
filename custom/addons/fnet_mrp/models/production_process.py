@@ -1,5 +1,4 @@
 from odoo import models, fields, api, _
-from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import timedelta, datetime
 import base64
@@ -9,19 +8,573 @@ from openpyxl import load_workbook
 import logging
 import re
 from collections import Counter
-
+from odoo import models, fields
 _logger = logging.getLogger(__name__)
+import json
+
+from markupsafe import Markup
+from odoo.exceptions import ValidationError
+
+
+class ManufacturingStagesRevision(models.Model):
+    _name = "manufacturing.stages.revision"
+    _description = "Manufacturing Stage Revision"
+
+    stage_id = fields.Many2one("manufacturing.stages", required=True)
+    revision_number = fields.Integer()
+    revision_type = fields.Selection([
+        ('create', 'Created'),
+        ('revision', 'Revision')
+    ], default='revision')
+    revision_date = fields.Datetime(default=fields.Datetime.now)
+    user_id = fields.Many2one(
+        'res.users',
+        default=lambda self: self.env.user
+    )
+    html = fields.Html(
+        string="Revision Details",
+        sanitize=False
+    )
+
+
+class ManufacturingStagesRevisionLine(models.Model):
+    _name = 'manufacturing.stages.revision.line'
+    _description = 'Manufacturing Stage Revision Change'
+
+    revision_id = fields.Many2one(
+        'manufacturing.stages.revision', required=True, ondelete='cascade')
+    field_label = fields.Char(string='Field')
+    old_value = fields.Char()
+    new_value = fields.Char()
+
+
 
 
 class ProductionStages(models.Model):
     _name = 'manufacturing.stages'
     _description = 'Production Stages'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'sequence, id'
 
-    name = fields.Char(string='Name', required=True)
+    sequence = fields.Integer(string='Sequence', default=10)
+    name = fields.Char(string='Name', required=True ,tracking=True)
+    operation_ids = fields.One2many(
+        'manufacturing.operation', 'manufacturing_stages_id', copy=True,domain=[('model_id', '=', False)],)
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('in_revision', 'In Revision'),
+        ('request', 'Requested'),
+        ('approved', 'Approved'),
+        ('cancel', 'Cancelled')], string='State',
+        copy=False, index=True, default='draft',
+        store=True, tracking=True)
+
+    # ---- revision history ----
+    revision_ids = fields.One2many(
+        'manufacturing.stages.revision', 'stage_id')
+    revision_count = fields.Integer(compute='_compute_revision_count')
+    last_revision_snapshot = fields.Text(default='{}')
+    current_revision_id = fields.Many2one(
+        'manufacturing.stages.revision', copy=False)
+    # scalar fields on this model to track
+    REVISION_TRACKED_FIELDS = ['name']
+
+    # operation fields we never snapshot
+    OPERATION_SKIP_FIELDS = {
+        'id', 'create_uid', 'create_date', 'write_uid', 'write_date',
+        '__last_update', 'display_name',
+        'manufacturing_stages_id',
+        'bom_ids',
+        'message_ids', 'message_follower_ids', 'activity_ids',
+        'company_id',
+    }
+
+    def _generate_revision_html(self, old_values, new_values):
+        self.ensure_one()
+
+        html = """
+        <style>
+            table{
+                width:100%;
+                border-collapse:collapse;
+                margin-top:15px;
+                font-size:13px;
+            }
+            th{
+                background:#0d6efd;
+                color:#FFF;
+                padding:8px;
+                border:1px solid #DDD;
+            }
+            td{
+                padding:8px;
+                border:1px solid #DDD;
+            }
+            .section{
+                background:#F2F2F2;
+                font-weight:bold;
+            }
+        </style>
+
+        <h2>Manufacturing Stage Revision</h2>
+
+        <table>
+            <tr>
+                <th>Section</th>
+                <th>Field</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+            </tr>
+        """
+
+        # ---------------------------
+        # Manufacturing Stage Changes
+        # ---------------------------
+
+        for field in self.REVISION_TRACKED_FIELDS:
+            old = old_values.get(field)
+            new = new_values.get(field)
+
+            if old != new:
+                html += f"""
+                <tr>
+                    <td>Manufacturing Stage</td>
+                    <td>{self._fields[field].string}</td>
+                    <td>{self._format_revision_value(field, old)}</td>
+                    <td>{self._format_revision_value(field, new)}</td>
+                </tr>
+                """
+
+        # ---------------------------
+        # Operation Changes
+        # ---------------------------
+
+        old_ops = old_values.get('_operations', {})
+        new_ops = new_values.get('_operations', {})
+
+        # --- NEW or EDITED operations ---
+        for op_id, values in new_ops.items():
+            op = self.env['manufacturing.operation'].browse(int(op_id)).exists()
+            op_label = op.display_name if op else "Operation %s" % op_id
+
+            is_new = op_id not in old_ops
+            old_op = old_ops.get(op_id, {})
+
+            if is_new:
+                # just the header row — no field-level detail for new operations
+                html += f"""
+                <tr class="section">
+                    <td colspan="4">🆕 New Process Created: {op_label}</td>
+                </tr>
+                """
+            else:
+                # existing operation: only changed fields
+                changed_rows = ""
+                for field_name, new_val in values.items():
+                    if field_name == '_name':
+                        continue
+                    old_val = old_op.get(field_name)
+                    if (old_val or False) == (new_val or False):
+                        continue
+                    changed_rows += f"""
+                                    <tr>
+                                        <td>{op_label}</td>
+                                        <td>{op._fields[field_name].string}</td>
+                                        <td>{self._format_op_value(field_name, old_val)}</td>
+                                        <td>{self._format_op_value(field_name, new_val)}</td>
+                                    </tr>
+                                    """
+                    if changed_rows:
+                        html += f"""
+                                        <tr class="section">
+                                            <td colspan="4">✏️ Edited Process: {op_label}</td>
+                                        </tr>
+                                        """
+                        html += changed_rows
+
+        # --- DELETED operations ---
+        for op_id, old_op in old_ops.items():
+            if op_id not in new_ops:
+                op_name = old_op.get('_name') or ("Operation %s" % op_id)
+                html += f"""
+                <tr class="section">
+                    <td colspan="4">🗑️ This Process Deleted: {op_name}</td>
+                </tr>
+                """
+
+        html += "</table>"
+
+        return html
+
+
+    def _compute_revision_count(self):
+        for rec in self:
+            rec.revision_count = len(rec.revision_ids)
+
+    # ---- snapshot helpers ----
+    def _get_operation_tracked_fields(self):
+        Operation = self.env['manufacturing.operation']
+        tracked = []
+        for fname, field in Operation._fields.items():
+            if fname in self.OPERATION_SKIP_FIELDS:
+                continue
+            if field.related or (field.compute and not field.store):
+                continue
+            if field.type in ('one2many', 'many2many'):
+                continue
+            tracked.append(fname)
+        return tracked
+
+    def _get_revision_values(self):
+        self.ensure_one()
+        vals = {}
+
+        for fname in self.REVISION_TRACKED_FIELDS:
+            field = self._fields[fname]
+            value = self[fname]
+            if field.type == 'many2one':
+                vals[fname] = value.id or False
+            elif field.type in ('one2many', 'many2many'):
+                vals[fname] = value.ids
+            else:
+                vals[fname] = value or False
+
+        op_snapshot = {}
+        tracked_fields = self._get_operation_tracked_fields()
+        for op in self.operation_ids:
+            op_vals = {}
+            for f in tracked_fields:
+                fld = op._fields[f]
+                v = op[f]
+                op_vals[f] = v.id if fld.type == 'many2one' else (v or False)
+            op_vals['_name'] = op.display_name          # store label for delete rows
+            op_snapshot[str(op.id)] = op_vals
+        vals['_operations'] = op_snapshot
+        return vals
+
+    def _format_revision_value(self, fname, value):
+        if not value:
+            return ''
+        field = self._fields[fname]
+        if field.type == 'many2one' and isinstance(value, int):
+            rec = self.env[field.comodel_name].browse(value).exists()
+            return rec.display_name if rec else str(value)
+        return str(value)
+
+    def _format_op_value(self, fname, value):
+        if not value:
+            return ''
+        fld = self.env['manufacturing.operation']._fields[fname]
+        if fld.type == 'many2one' and isinstance(value, int):
+            rec = self.env[fld.comodel_name].browse(value).exists()
+            return rec.display_name if rec else str(value)
+        return str(value)
+
+
+
+    def action_submit(self):
+        for rec in self:
+            rec.write({'state': 'request'})
+            rec._notify_manufacturing_managers()
+
+    def _notify_manufacturing_managers(self):
+        self.ensure_one()
+        group = self.env.ref('fnet_mrp.group_manufacturing_manager',
+                             raise_if_not_found=False)
+        if not group:
+            raise ValidationError(_("Manufacturing Manager group is not configured."))
+
+        recipient_emails = group.user_ids.filtered(lambda u: u.email).mapped('email')
+        if not recipient_emails:
+            raise ValidationError(_("No Manufacturing Manager has an email address configured."))
+
+        requester = self.env.user
+        stage_name = self.name or 'N/A'
+        op_count = len(self.operation_ids)
+
+        mail_body = f"""
+            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                   style="background-color:#ffffff; font-family: Helvetica, Arial, sans-serif; font-size:14px; color:#2d2d2d;">
+
+                <!-- Header Banner -->
+                <tr>
+                    <td style="background-color:#1e7e34; padding:24px 32px;">
+                        <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600; letter-spacing:0.5px;">
+                            Manufacturing Process Approval
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding:32px;">
+
+                        <p style="margin:0 0 16px 0;">Dear Manager,</p>
+
+                        <p style="margin:0 0 16px 0; line-height:1.6;">
+                            A manufacturing process has been submitted and is awaiting your approval.
+                            Please review the details below and approve.
+                        </p>
+
+                        <!-- Info Box -->
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                               style="background-color:#eef9f0; border-left:4px solid #1e7e34;
+                                      border-radius:4px; margin:24px 0;">
+                            <tr>
+                                <td style="padding:16px 20px;">
+                                    <table border="0" cellpadding="6" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px; width:160px;">Process Name</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{stage_name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Number of Operations</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{op_count}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Submitted By</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{requester.name or ''}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- View Button -->
+                        <p style="margin:24px 0;">
+                            <a href="{self.get_base_url()}/web#id={self.id}&model=manufacturing.stages&view_type=form"
+                               style="display: inline-block; background-color: #1e7e34; color: #ffffff;
+                                      text-decoration: none; font-size: 13px; font-weight: 600;
+                                      padding: 10px 24px; border-radius: 6px;">
+                                Review &amp; Approve →
+                            </a>
+                        </p>
+
+                        <p style="margin:24px 0 4px 0; line-height:1.6;">Thanks &amp; regards,</p>
+                        <p style="margin:0; font-weight:600;">{requester.name or ''}</p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f0f0f0; padding:16px 32px; border-top:1px solid #dddddd;">
+                        <p style="margin:0; font-size:12px; color:#999999; text-align:center;">
+                            This is an automated notification.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            """
+
+        mail_values = {
+            'subject': f'Manufacturing Process Approval - {stage_name}',
+            'email_to': ','.join(recipient_emails),
+            'email_from': (requester.email or self.env.company.email or ''),
+            'body_html': mail_body,
+        }
+
+        mail = self.env['mail.mail'].sudo().create(mail_values)
+        mail.sudo().send()
+
+    def check_operation_line(self):
+        # self = manufacturing.stages record(s)
+        # find every product.model that uses these stages
+        models = self.env['product.model'].search([
+            ('manufacturing_stages_ids', 'in', self.ids)
+        ])
+        for model in models:  # loop product.models, NOT self
+            existing_lines = {
+                line.manufacturing_operation_line_id.id: line
+                for line in model.operation_ids
+                if line.manufacturing_operation_line_id
+            }
+            desired_templates = self.env['manufacturing.operation']
+            template_to_stage = {}
+            for stage in model.manufacturing_stages_ids:
+                for template in stage.operation_ids.filtered(
+                        lambda o: not o.model_id and not o.bom_id):
+                    desired_templates |= template
+                    template_to_stage[template.id] = stage.id
+            desired_ids = set(desired_templates.ids)
+            existing_ids = set(existing_lines.keys())
+
+            # DELETE — template no longer selected
+            for tmpl_id in (existing_ids - desired_ids):
+                existing_lines[tmpl_id].unlink()
+
+            # DELETE — orphan lines
+            model.operation_ids.filtered(
+                lambda l: not l.manufacturing_operation_line_id).unlink()
+
+            # CREATE — new templates (new record -> pass model_id + template link)
+            for template in desired_templates.filtered(
+                    lambda t: t.id in (desired_ids - existing_ids)):
+                vals = template.copy_data()[0]
+                vals.update({
+                    'model_id': model.id,
+                    'manufacturing_stages_id': template_to_stage[template.id],
+                    'bom_id': False,
+                    'manufacturing_operation_line_id': template.id,
+                })
+                self.env['manufacturing.operation'].create(vals)
+
+            # UPDATE — kept lines (already have model_id + template link -> don't pass)
+            for tmpl_id in (desired_ids & existing_ids):
+                template = desired_templates.browse(tmpl_id)
+                vals = template.copy_data()[0]
+                vals.pop('model_id', None)  # already correct, don't touch
+                vals.pop('manufacturing_operation_line_id', None)  # already correct, don't touch
+                vals.update({
+                    'manufacturing_stages_id': template_to_stage[tmpl_id],
+                    'bom_id': False,
+                })
+                existing_lines[tmpl_id].write(vals)
+
+    def action_approve(self):
+        for rec in self:
+            rec.write({'state': 'approved'})
+            rec.check_operation_line()
+            rec._notify_creator_approved()
+
+    def _notify_creator_approved(self):
+        self.ensure_one()
+
+        creator = self.create_uid  # the user who created the record
+        if not creator.email:
+            # skip silently rather than blocking approval
+            return
+
+        approver = self.env.user
+        stage_name = self.name or 'N/A'
+
+        mail_body = f"""
+            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                   style="background-color:#ffffff; font-family: Helvetica, Arial, sans-serif; font-size:14px; color:#2d2d2d;">
+
+                <tr>
+                    <td style="background-color:#1e7e34; padding:24px 32px;">
+                        <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600; letter-spacing:0.5px;">
+                            Manufacturing Process Approved
+                        </h1>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:32px;">
+                        <p style="margin:0 0 16px 0;">Dear {creator.name or ''},</p>
+
+                        <p style="margin:0 0 16px 0; line-height:1.6;">
+                            Your manufacturing process has been reviewed and
+                            <strong style="color:#1e7e34;">approved</strong>.
+                        </p>
+
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                               style="background-color:#eef9f0; border-left:4px solid #1e7e34;
+                                      border-radius:4px; margin:24px 0;">
+                            <tr>
+                                <td style="padding:16px 20px;">
+                                    <table border="0" cellpadding="6" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px; width:160px;">Process Name</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{stage_name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Status</td>
+                                            <td style="color:#1e7e34; font-weight:600;">Approved</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Approved By</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{approver.name or ''}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin:24px 0;">
+                            <a href="{self.get_base_url()}/web#id={self.id}&model=manufacturing.stages&view_type=form"
+                               style="display: inline-block; background-color: #1e7e34; color: #ffffff;
+                                      text-decoration: none; font-size: 13px; font-weight: 600;
+                                      padding: 10px 24px; border-radius: 6px;">
+                                View Process →
+                            </a>
+                        </p>
+
+                        <p style="margin:24px 0 4px 0; line-height:1.6;">Thanks &amp; regards,</p>
+                        <p style="margin:0; font-weight:600;">{approver.name or ''}</p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="background-color:#f0f0f0; padding:16px 32px; border-top:1px solid #dddddd;">
+                        <p style="margin:0; font-size:12px; color:#999999; text-align:center;">
+                            This is an automated notification.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            """
+
+        mail_values = {
+            'subject': f'Manufacturing Process Approved - {stage_name}',
+            'email_to': creator.email,
+            'email_from': (approver.email or self.env.company.email or ''),
+            'body_html': mail_body,
+        }
+
+        mail = self.env['mail.mail'].sudo().create(mail_values)
+        mail.sudo().send()
+
+    def action_open_revision(self):
+        # take baseline + create the (empty) revision record
+        for rec in self:
+            rec.last_revision_snapshot = json.dumps(rec._get_revision_values())
+            revision = self.env['manufacturing.stages.revision'].create({
+                'stage_id': rec.id,
+                'revision_number': len(rec.revision_ids) + 1,
+                'revision_type': 'revision',
+                'html': '',
+            })
+            rec.current_revision_id = revision.id
+            rec.state = 'in_revision'
+        return True
+
+    def write(self, vals):
+        res = super().write(vals)
+        # regenerate the live revision html whenever something is edited
+        # while we are inside a revision cycle
+        for rec in self:
+            if rec.state == 'in_revision' and rec.current_revision_id \
+                    and not self.env.context.get('skip_revision_html'):
+                old_values = json.loads(rec.last_revision_snapshot or "{}")
+                new_values = rec._get_revision_values()
+                html = rec._generate_revision_html(old_values, new_values)
+                rec.current_revision_id.with_context(
+                    skip_revision_html=True).html = html
+        return res
+
+    def action_save_revision(self):
+        for rec in self:
+            rec.last_revision_snapshot = json.dumps(rec._get_revision_values())
+            rec.current_revision_id = False
+            rec.state = 'request'
+        return True
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            rec.last_revision_snapshot = json.dumps(rec._get_revision_values())
+        return records
+
+
 
 class ProductionProcessType(models.Model):
     _name = 'manufacturing.process.type'
     _description = 'Production Process'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name                     = fields.Char(required=True)
     is_power_bank            = fields.Boolean()
@@ -52,6 +605,8 @@ class ProductionProcessType(models.Model):
     is_next_packing_process = fields.Boolean(copy=False)
     process_type1_id = fields.Many2one('manufacturing.process.type',domain="[('id', '!=', id)]",)
     process_type2_id = fields.Many2one( 'manufacturing.process.type',domain="[('id', '!=', id)]",)
+
+
     # @api.model_create_multi
     # def create(self, vals_list):
     #     for vals in vals_list:
@@ -486,7 +1041,8 @@ class ProductionProcess(models.Model):
     @api.depends('operation_id')
     def _compute_allow_lot_create(self):
         for rec in self:
-            rec.allow_lot_create = rec.operation_id.allow_lot_create
+            get_lot_create = self.env['manufacturing.process'].search([('is_first_process','=',True),('production_plan_id','=',self.production_plan_id.id)])
+            rec.allow_lot_create = get_lot_create.operation_id.allow_lot_create
 
 
     @api.depends('manufacturing_process_type_id', 'is_capacity_created', 'is_voltage_created','state',
@@ -824,7 +1380,7 @@ class ProductionProcess(models.Model):
         if self.product_id.tracking != 'none':
             for serial in self.lot_ids:
                 if not serial.lot_id:
-                    if not self.operation_id.allow_lot_create:
+                    if not self.allow_lot_create:
                         _logger.error(
                             _("The lot %s is not available and The current operation is not allowed to create new lot number.\n Please enable lot creation or check the inventory." % serial.name))
 
@@ -1117,6 +1673,7 @@ class ProductionProcess(models.Model):
     def _onchange_of_product_plan_id(self):
         if self.production_plan_id:
             if self.is_first_process:
+                self.product_id = self.production_plan_id.product_id
                 existing_qty = sum(
                     self.search([
                         ('production_plan_id', '=', self.production_plan_id.id),
@@ -1126,16 +1683,26 @@ class ProductionProcess(models.Model):
                 )
                 self.sequence = 1
                 self.manufacturing_process_type_id = self.production_plan_id.first_process_type_id  # fix 1: removed .id
+
                 production_operation = self.env['production.operation'].search(
                     [('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
                      ('production_plan_id', '=', self.production_plan_id.id)], limit=1)
-                self.operation_id = production_operation.operation_id  # fix 3: removed .id
-                self.product_model_id = self.production_plan_id.model_id  # fix 4: removed .id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 5: use production_operation directly, not self.operation_id
+                self.operation_id = production_operation.operation_id
+                self.product_model_id = self.production_plan_id.model_id
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = self.production_plan_id.expected_production_qty - existing_qty
                 if not self.bom_id:
                     self.component_ids = False
             elif self.is_sub_process:
+                self.product_id = self.production_plan_id.product_id
                 production_operation = self.env['production.operation'].search(
                     [
                         ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1149,9 +1716,18 @@ class ProductionProcess(models.Model):
                 self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
                 self.operation_id = production_operation.operation_id
                 self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 2: removed .id, use next_line directly
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = len(self.main_manufacturing_process_id.sub_process_lot_ids)
             elif self.before_manufacturing_process_id.is_split_process and self.is_voltage_process:
+                self.product_id = self.production_plan_id.product_id
                 production_operation = self.env['production.operation'].search(
                     [
                         ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1165,10 +1741,19 @@ class ProductionProcess(models.Model):
                 self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
                 self.operation_id = production_operation.operation_id
                 self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 2: removed .id, use next_line directly
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = len(self.before_manufacturing_process_id.voltage_lot_ids)
 
             elif self.before_manufacturing_process_id.is_split_process and self.is_capacity_process:
+                self.product_id = self.production_plan_id.product_id
                 production_operation = self.env['production.operation'].search(
                     [
                         ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1182,9 +1767,18 @@ class ProductionProcess(models.Model):
                 self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
                 self.operation_id = production_operation.operation_id
                 self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 2: removed .id, use next_line directly
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = len(self.before_manufacturing_process_id.capacity_lot_ids)
             elif self.before_manufacturing_process_id.is_split_process and self.is_packing_process:
+                self.product_id = self.production_plan_id.product_id
                 production_operation = self.env['production.operation'].search(
                     [
                         ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1198,9 +1792,18 @@ class ProductionProcess(models.Model):
                 self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
                 self.operation_id = production_operation.operation_id
                 self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 2: removed .id, use next_line directly
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = len(self.before_manufacturing_process_id.packing_lot_ids)
             else:
+                self.product_id = self.production_plan_id.product_id
                 production_operation = self.env['production.operation'].search(
                     [
                         ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1214,7 +1817,15 @@ class ProductionProcess(models.Model):
                 self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
                 self.operation_id = production_operation.operation_id
                 self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = production_operation.operation_id.bom_id  # fix 2: removed .id, use next_line directly
+                self.bom_id = (
+                    production_operation.operation_id.bom_id
+                    if production_operation.operation_id.bom_id
+                    else self.env['manufacturing.bom'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('product_model_id', '=', self.product_model_id.id),
+                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                    ], limit=1)
+                )
                 self.product_qty = self.before_manufacturing_process_id.remaining_qty
             self._onchange_of_operation()
 
@@ -1245,11 +1856,11 @@ class ProductionProcess(models.Model):
 
         if self.operation_id and self.is_sub_process:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            self.product_id = self.operation_id.product_id.id
+            # self.product_id = self.operation_id.product_id.id
             self.location_src_id = self.before_manufacturing_process_id.location_src_id.id
             self.location_dest_id = self.operation_id.location_dest_id.id
             self.production_location_id = production_location.id
-            self.bom_id = self.operation_id.bom_id.id
+            # self.bom_id = self.operation_id.bom_id.id
             if self.allow_lot_create:
                 self.product_id.write({
                     'tracking': 'serial',
@@ -1275,11 +1886,11 @@ class ProductionProcess(models.Model):
         #         })
         elif self.operation_id:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            self.product_id = self.operation_id.product_id.id
+            # self.product_id = self.operation_id.product_id.id
             self.location_src_id = self.operation_id.location_src_id.id
             self.location_dest_id = self.operation_id.location_dest_id.id
             self.production_location_id = production_location.id
-            self.bom_id = self.operation_id.bom_id.id
+            # self.bom_id = self.operation_id.bom_id.id
             if self.allow_lot_create:
                 self.product_id.write({
                     'tracking': 'serial',
@@ -1295,7 +1906,7 @@ class ProductionProcess(models.Model):
             for line in self.component_ids:
                 line.location_src_id = self.location_src_id.id
                 line.location_dest_id = self.production_location_id.id
-        self.bom_id = self.operation_id.bom_id.id
+        # self.bom_id = self.operation_id.bom_id.id
         self._onchange_bom_id()
         self._onchange_of_operation_type()
 
@@ -1557,7 +2168,7 @@ class ProductionProcess(models.Model):
                     lot_id = existing_lot
                     serial.write({'lot_id': lot_id.id})
                 else:
-                    if not self.operation_id.allow_lot_create:
+                    if not self.allow_lot_create:
                         _logger.error(_(
                             "The lot %s is not available and The current operation "
                             "is not allowed to create new lot number.\n "
@@ -1666,12 +2277,10 @@ class ProductionProcess(models.Model):
 
     def action_done_production(self):
         for rec in self:
-            rec.action_upload_serial()
+
+            if self.allow_lot_create and not self.lot_ids:
+                raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
             rec.lot_creation()
-        if self.operation_id.allow_lot_create and not self.lot_ids:
-            raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
-
-
         # NEW: if this is a split process, trigger Capacity/Voltage lot creation first.
         # These already call action_create_packing_lot() internally, so packing_lot_ids
         # gets populated too as the "remaining" serials.

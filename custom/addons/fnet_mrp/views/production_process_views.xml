@@ -1,16 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ===================================================== -->
-    <!-- Manufacturing Stages -->
-    <!-- ===================================================== -->
+    <record id="view_manufacturing_stages_form" model="ir.ui.view">
+        <field name="name">manufacturing.stages.form</field>
+        <field name="model">manufacturing.stages</field>
+        <field name="arch" type="xml">
+            <form string="Production Process">
+                <header>
+                    <button name="action_submit" string="Submit" type="object"
+                            invisible="state not in ['draft']"
+                            class="oe_highlight"/>
+                    <button name="action_approve" string="Approve" type="object"
+                            invisible="state not in ['request']"
+                            groups="fnet_mrp.group_manufacturing_manager"
+                            class="oe_highlight"/>
+                    <button name="action_open_revision" string="Revision" type="object"
+                            invisible="state not in ['approved']"
+                            class="btn-success"/>
 
+                    <button name="action_save_revision" string="Submit" type="object"
+                            invisible="state not in ['in_revision']"
+                            class="oe_highlight"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,request,approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="state not in ['draft','in_revision']"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Operation">
+                            <field name="operation_ids" readonly="state not in ['draft','in_revision']">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+<!--                                    <field name="manufacturing_stages_id" string="Stage"/>-->
+                                    <field name="manufacturing_process_type_id" string="Operation Type"/>
+                                    <!--                                <field name="bom_id"/>-->
+                                    <field name="machine_id"
+                                           domain="[('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                                    <field name="allow_lot_create"/>
+                                    <field name="location_src_id"/>
+                                    <field name="location_dest_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Revision History">
+                            <field name="revision_ids" readonly="1">
+                                <list>
+                                    <field name="revision_number"/>
+                                    <field name="revision_type"/>
+                                    <field name="revision_date"/>
+                                    <field name="user_id"/>
+                                </list>
+
+                                <form string="Revision History">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="revision_number" readonly="1"/>
+                                                <field name="revision_type" readonly="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="revision_date" readonly="1"/>
+                                                <field name="user_id" readonly="1"/>
+                                            </group>
+                                        </group>
+
+                                        <separator string="Revision Details"/>
+
+                                        <field name="html"
+                                               readonly="1"
+                                               nolabel="1"
+                                               widget="html"/>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
     <!-- List View -->
     <record id="view_manufacturing_stages_list" model="ir.ui.view">
         <field name="name">manufacturing.stages.list</field>
         <field name="model">manufacturing.stages</field>
         <field name="arch" type="xml">
-            <list editable="top" string="Manufacturing Stages">
+            <list string="Manufacturing Process">
                 <field name="name"/>
             </list>
         </field>
@@ -18,9 +97,9 @@
 
     <!-- Action -->
     <record id="action_manufacturing_stages" model="ir.actions.act_window">
-        <field name="name">Manufacturing Stages</field>
+        <field name="name">Manufacturing Process</field>
         <field name="res_model">manufacturing.stages</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!-- Menu -->
@@ -35,17 +114,9 @@
         <field name="name">manufacturing.process.list</field>
         <field name="model">manufacturing.process.type</field>
         <field name="arch" type="xml">
-            <list string="Manufacturing Process Type">
+            <list string="Manufacturing Type">
                 <field name="name"/>
                 <field name="prefix"/>
-<!--                <field name="is_split_process" string="Enable Split" widget="boolean_toggle" readonly="1"/>-->
-<!--                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle" readonly="1"/>-->
-<!--                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle" readonly="1"/>-->
-<!--                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle" readonly="1"/>-->
-<!--                <field name="is_next_packing_process" string="Next Packing Process ?"-->
-<!--                       widget="boolean_toggle" readonly="1"/>-->
-<!--                <field name="is_power_bank" widget="boolean_toggle" readonly="1"/>-->
-
             </list>
         </field>
     </record>
@@ -128,6 +199,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -310,7 +382,7 @@
                         </group>
                         <group>
                             <field name="bom_id" readonly="state not in ['draft'] or production_plan_id " force_save="1"
-                                   domain="[('product_tmpl_id', '=', product_id), ('product_model_id', '=', product_model_id)]"/>
+                                  />
                             <field name="qty_producing" invisible="1"/>
                             <field name="product_uom_category_id" invisible="1"/>
                             <field name="product_uom_qty" invisible="1"/>
@@ -389,7 +461,7 @@
                                 <group string="From Material Tab">
                                     <div>
                                         <button name="get_serial_numbers" type="object"
-                                                 invisible="state not in ['draft','progress']" string="Get All Serial"/>
+                                                invisible="state not in ['draft','progress']" string="Get All Serial"/>
                                         <button name="clear_serial_numbers" type="object" string="Clear All Serial"
                                                 invisible="state not in ['draft','progress']"/>
                                     </div>
@@ -633,7 +705,7 @@
         </field>
     </record>
     <record id="action_manufacturing_process" model="ir.actions.act_window">
-        <field name="name">Manufacturing Process Type</field>
+        <field name="name">Manufacturing Type</field>
         <field name="res_model">manufacturing.process.type</field>
         <field name="view_mode">list,form</field>
     </record>

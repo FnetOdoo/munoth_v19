@@ -167,7 +167,7 @@ class MaterialLine(models.Model):
 
     def action_show_details(self):
 
-        if self.manufacturing_process_id.operation_id.allow_lot_create and self.manufacturing_process_id.lot_ids:
+        if self.manufacturing_process_id.allow_lot_create and self.manufacturing_process_id.lot_ids:
             for lot in self.manufacturing_process_id.lot_ids:
                if not lot.lot_id and not lot.is_available:
                    raise UserError("This is lot enabled product. Please Create a Lot")
@@ -714,7 +714,7 @@ class TypeChangeDuration(models.Model):
         ('voltage_test_2', 'Voltage Test 2'),
         ('packing', 'Packing')
     ])
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Type")
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
     duration = fields.Float()
 
 

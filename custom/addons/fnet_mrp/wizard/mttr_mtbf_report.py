@@ -17,7 +17,7 @@ class MttrMtbf(models.TransientModel):
     quality_id = fields.Many2one('mrp.quality')
 
     plan = fields.Many2one('production.plan')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
 
     def action_mttr_mtbf_report(self):
         url = '/tmp/'

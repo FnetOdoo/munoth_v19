@@ -14,7 +14,7 @@ WO_CANCEL_STATES = ('cancel', 'cancelled')
 # ----------------------------------------------------------------------
 # Date filter configuration
 # ----------------------------------------------------------------------
-OPEN_DATE_FIELD = 'create_date'
+OPEN_DATE_FIELD = 'schedule_date'
 DONE_DATE_START_FIELD = 'actual_start_date'
 DONE_DATE_END_FIELD = 'actual_end_date'
 
@@ -147,7 +147,7 @@ class MaintenanceRequest(models.Model):
             'bars': [
                 {
                     'key': 'open',
-                    'label': 'Pending Maintenance Requests',
+                    'label': 'Preventive Maintenance Requests',
                     'request_count': open_count,
                     'request_domain': open_domain,
                     'workorder_label': 'Pending Work Orders',
@@ -155,7 +155,7 @@ class MaintenanceRequest(models.Model):
                     'workorder_ids': open_wo_ids,
                 },
                 {
-                    'key': 'progress',                               # NEW
+                    'key': 'progress',
                     'label': 'In Progress',
                     'request_count': progress_count,
                     'request_domain': progress_domain,
@@ -165,7 +165,7 @@ class MaintenanceRequest(models.Model):
                 },
                 {
                     'key': 'done',
-                    'label': 'PM Completed',
+                    'label': 'Completed Preventive Maintenance',
                     'request_count': done_count,
                     'request_domain': done_domain,
                     'workorder_label': 'Done Work Orders',

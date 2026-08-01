@@ -339,19 +339,52 @@ class ProductionPlan(models.Model):
 
     def action_confirm(self):
         for rec in self:
-            missing = []
+            missing_bom = []
+            duplicate_bom = []
+            missing_bom_components = []
+            failed_process_types = self.env['manufacturing.process.type']
+
             for line in rec.operation_ids:
-                get_bom = self.env['manufacturing.bom'].search([
+                boms = self.env['manufacturing.bom'].search([
                     ('product_id', '=', rec.product_id.id),
                     ('product_model_id', '=', rec.model_id.id),
                     ('manufacturing_process_type_id', '=', line.manufacturing_process_type_id.id),
-                ], limit=1)
-                if not get_bom:
-                    missing.append(line.manufacturing_process_type_id.name or '?')
-            if missing:
+                ], limit=2)
+
+                if not boms:
+                    missing_bom.append(line.manufacturing_process_type_id.name or '?')
+                    failed_process_types |= line.manufacturing_process_type_id
+                elif len(boms) > 1:
+                    duplicate_bom.append(line.manufacturing_process_type_id.name or '?')
+
+            # only check model operation lines for the process types that
+            # actually failed the BOM match above
+            for process in rec.model_id.operation_ids:
+                if process.manufacturing_process_type_id not in failed_process_types:
+                    continue
+
+                if not process.bom_id:
+                    missing_bom_components.append(process.manufacturing_process_type_id.name or '?')
+                elif not process.bom_id.bom_line_ids:
+                    missing_bom_components.append(process.manufacturing_process_type_id.name or '?')
+
+            if missing_bom:
                 raise UserError(_(
                     "Please map the BOM for these lines:\n- %s"
-                ) % '\n- '.join(missing))
+                ) % '\n- '.join(missing_bom))
+
+            if duplicate_bom:
+                raise UserError(_(
+                    "Please map the BOM correctly in the Product Model's "
+                    "Operation lines — multiple BOMs found for:\n- %s"
+                ) % '\n- '.join(duplicate_bom))
+
+            if missing_bom_components:
+                raise UserError(_(
+                    "Please add the product in the BOM Component lines for "
+                    "these process types:\n- %s"
+                ) % '\n- '.join(missing_bom_components))
+
             if not rec.expected_production_qty > 0:
                 raise UserError('Expected Production Qty cannot be 0')
             if not rec.operation_ids:
@@ -458,7 +491,7 @@ class Operation(models.Model):
     _name = 'production.operation'
     _description = 'Production Plan Operation'
 
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
     # operation_type = fields.Selection([
     #     ('anode_slitting', 'Anode Slitting '),
     #     ('cathode_slitting', 'Cathode Slitting '),

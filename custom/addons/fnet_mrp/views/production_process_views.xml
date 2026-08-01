@@ -35,8 +35,8 @@
                             <field name="operation_ids" readonly="state not in ['draft','in_revision']">
                                 <list>
                                     <field name="sequence" widget="handle"/>
-<!--                                    <field name="manufacturing_stages_id" string="Stage"/>-->
-                                    <field name="manufacturing_process_type_id" string="Operation Type"/>
+                                    <!--                                    <field name="manufacturing_stages_id" string="Stage"/>-->
+                                    <field name="manufacturing_process_type_id"/>
                                     <!--                                <field name="bom_id"/>-->
                                     <field name="machine_id"
                                            domain="[('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
@@ -91,6 +91,12 @@
         <field name="arch" type="xml">
             <list string="Manufacturing Process">
                 <field name="name"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-warning="state == 'in_revision'"
+                       decoration-info="state == 'request'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'cancel'"/>
             </list>
         </field>
     </record>
@@ -136,27 +142,26 @@
                             <group>
                                 <field name="is_power_bank" widget="boolean_toggle"/>
                                 <field name="is_split_process" string="Enable Split" widget="boolean_toggle"/>
-                                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle"/>
-                                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle"/>
-                                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle"/>
-                                <field name="is_next_packing_process" string="Next Packing Process ?"
-                                       widget="boolean_toggle"/>
+<!--                                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle"/>-->
+                                <!--                                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle"/>-->
+                                <!--                                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle"/>-->
+<!--                                <field name="is_next_packing_process" string="Next Last Process ?"-->
+<!--                                       widget="boolean_toggle"/>-->
                             </group>
 
                             <group invisible="not is_split_process">
-                                <div class="text-muted" style="font-size: 12px; margin-top: -8px; margin-bottom: 12px;"
-                                     invisible="not is_split_process">
-                                    <i class="fa fa-info-circle" style="margin-right: 4px;"/>
-                                    <b>Example:</b>
-                                    In the Pad Printing process, 90% of the output goes to Packing, 5% to OCV/IR, and 5%
-                                    to
-                                    Capacity Testing. Based on this field enable OCV/IR, Capacity Testing
-                                </div>
+<!--                                <div class="text-muted" style="font-size: 12px; margin-top: -8px; margin-bottom: 12px;"-->
+<!--                                     invisible="not is_split_process">-->
+<!--                                    <i class="fa fa-info-circle" style="margin-right: 4px;"/>-->
+<!--                                    <b>Example:</b>-->
+<!--                                    In the Pad Printing process, 90% of the output goes to Packing, 5% to OCV/IR, and 5%-->
+<!--                                    to-->
+<!--                                    Capacity Testing. Based on this field enable OCV/IR, Capacity Testing-->
+<!--                                </div>-->
 
                                 <group>
-                                    <field name="enable_ocv_ir" string="Enable OCV/IR" widget="boolean_toggle"/>
-                                    <field name="enable_capacity_test" string="Enable Capacity Testing"
-                                           widget="boolean_toggle"/>
+                                    <field name="process_type1_id"/>
+                                    <field name="process_type2_id"/>
                                 </group>
                             </group>
                         </page>
@@ -243,11 +248,19 @@
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" string="Production Plan" name="action_open_production_plan"
                                 type="object" icon="fa-industry" invisible="not production_plan_id"/>
-                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"
-                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']"/>
+<!--                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"-->
+<!--                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']">-->
+<!--                            -->
+<!--                        </button>-->
                         <button class="oe_stat_button" string="Quality" name="action_view_quality" type="object"
                                 icon="fa-thermometer-half"
-                                invisible="state in ['draft','confirmed','progress'] or is_sub_process or not get_rejection"/>
+                                invisible="state in ['draft','confirmed','progress'] or is_sub_process or quality_count == 0">
+                             <div class="o_stat_info">
+                                <span class="o_stat_text">
+                                    <field name="quality_count" readonly="1"/>
+                                </span>
+                            </div>
+                        </button>
                         <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object"
                                 icon="fa-exchange" invisible="state == 'draft'"/>
                         <button class="oe_stat_button" string="Open Sub Process" name="action_open_sub_process"
@@ -267,7 +280,7 @@
                         </button>
 
 
-                        <button name="action_voltage_process"
+                        <button name="action_create_split_process_type_1"
                                 invisible="state not in ['close'] or is_voltage_created or not is_split_process or not voltage_lot_ids"
                                 icon="fa-bolt" type="object">
                             <field name="name_1"/>
@@ -278,7 +291,7 @@
                             <field name="name_1"/>
                         </button>
 
-                        <button name="action_capacity_process"
+                        <button name="action_create_split_process_type_2"
                                 invisible="state not in ['close'] or is_capacity_created or not is_split_process or not capacity_lot_ids"
                                 icon="fa-battery-full" type="object">
                             <field name="name_2"/>
@@ -289,38 +302,47 @@
                             <field name="name_2"/>
                         </button>
 
-                        <button name="action_packing_process"
-                                invisible="state not in ['close'] or is_packing_created or not is_split_process or not packing_lot_ids"
-                                icon="fa-cube" type="object">
-                            <field name="name_3"/>
-                        </button>
-                        <button name="action_open_packing_process"
-                                invisible="state not in ['close'] or not is_packing_created or not is_split_process"
-                                icon="fa-cube" type="object">
-                            <field name="name_3"/>
+                        <!--                        <button name="action_remain_qty_process"-->
+                        <!--                                invisible="state not in ['close'] or remaining_qty_process_created or not is_split_process or not packing_lot_ids"-->
+                        <!--                                icon="fa-cube" type="object">-->
+                        <!--                            <field name="name_3"/>-->
+                        <!--                        </button>-->
+                        <!--                        <button name="action_open_remain_qty_process"-->
+                        <!--                                invisible="state not in ['close'] or not remaining_qty_process_created or not is_split_process"-->
+                        <!--                                icon="fa-cube" type="object">-->
+                        <!--                            <field name="name_3"/>-->
+                        <!--                        </button>-->
+                         <button name="action_open_next_cell_process"
+                                invisible="state not in ['close'] or not next_manufacturing_process_id or not is_split_process or  not is_next_process_created or is_sub_process"
+                                type="object">
+
+                            <i class="fa fa-arrow-right"/>
+                            <field name="next_manufacturing_process_type_name_2"/>
                         </button>
 
-                        <button name="action_open_next_cell_process"
-                                invisible="state not in ['close'] or not next_manufacturing_process_id or not is_next_process_created or is_sub_process or is_split_process"
+                        <button name="action_create_remain_process"
+                                invisible="state not in ['close'] or not next_manufacturing_process_type_id or not is_split_process or is_next_process_created or is_sub_process"
                                 type="object">
-                            <i class="fa fa-cube" invisible="not is_next_packing_process"/>
-                            <i class="fa fa-bolt" invisible="not is_next_voltage_process"/>
-                            <i class="fa fa-battery-full" invisible="not is_next_capacity_process"/>
-                            <i class="fa fa-arrow-right" invisible="is_next_packing_process"/>
+                            <i class="fa fa-arrow-right"/>
+                            <field name="next_manufacturing_process_type_name"/>
+                        </button>
+
+
+
+
+
+                        <button name="action_open_next_cell_process"
+                                invisible="state not in ['close'] or not next_manufacturing_process_id or is_split_process or not is_next_process_created or is_sub_process"
+                                type="object">
+
+                            <i class="fa fa-arrow-right"/>
                             <field name="next_manufacturing_process_type_name_2"/>
-                            -
-                            (
-                            <field name="next_process_count" nolabel="1"/>
-                            )
                         </button>
 
                         <button name="action_create_next_cell_process"
-                                invisible="state not in ['close'] or not next_manufacturing_process_id or is_next_process_created or is_sub_process or is_split_process"
+                                invisible="state not in ['close'] or not next_manufacturing_process_type_id or is_split_process or is_next_process_created or is_sub_process"
                                 type="object">
-                            <i class="fa fa-cube" invisible="not is_next_packing_process"/>
-                            <i class="fa fa-bolt" invisible="not is_next_voltage_process"/>
-                            <i class="fa fa-battery-full" invisible="not is_next_capacity_process"/>
-                            <i class="fa fa-arrow-right" invisible="is_next_packing_process"/>
+                            <i class="fa fa-arrow-right"/>
                             <field name="next_manufacturing_process_type_name"/>
                         </button>
                         <button name="action_view_lots" type="object" string="Show Lots" icon="fa-list"
@@ -342,19 +364,17 @@
 
                             <field name="is_capacity_created" invisible="1"/>
                             <field name="is_voltage_created" invisible="1"/>
-                            <field name="is_packing_created" invisible="1"/>
+                            <field name="remaining_qty_process_created" invisible="1"/>
 
-                            <field name="is_voltage_process" invisible="1"/>
-                            <field name="is_capacity_process" invisible="1"/>
-                            <field name="is_packing_process" invisible="1"/>
 
-                            <field name="is_next_capacity_process" invisible="1"/>
-                            <field name="is_next_voltage_process" invisible="1"/>
-                            <field name="is_next_packing_process" invisible="1"/>
+                            <field name="process_type1_id" invisible="1"/>
+                            <field name="process_type2_id" invisible="1"/>
+                            <field name="manufacturing_split_process1_id" invisible="1"/>
+                            <field name="manufacturing_split_process2_id" invisible="1"/>
 
 
                             <field name="is_power_bank" invisible="1"/>
-                            <field name="get_rejection" invisible="1"/>
+                            <field name="quality_count" invisible="1"/>
                         </h1>
                     </div>
                     <group>
@@ -363,7 +383,7 @@
                                    force_save="1"/>
                             <field name="operation_id" readonly="state not in ['draft']" invisible="not is_power_bank"
                                    force_save="1"/>
-                            <field name="manufacturing_process_type_id" string="Type"
+                            <field name="manufacturing_process_type_id"
                                    readonly="state not in ['draft'] or production_plan_id"
                                    force_save="1"/>
                             <field name="product_model_id" force_save="1" string="Model"
@@ -382,7 +402,7 @@
                         </group>
                         <group>
                             <field name="bom_id" readonly="state not in ['draft'] or production_plan_id " force_save="1"
-                                  />
+                            />
                             <field name="qty_producing" invisible="1"/>
                             <field name="product_uom_category_id" invisible="1"/>
                             <field name="product_uom_qty" invisible="1"/>
@@ -407,24 +427,10 @@
                             <field name="is_split_process" invisible="1"/>
                             <field name="is_packing_process" invisible="1"/>
                             <!--                            <field name="capacity_from_lot" invisible="1"/>-->
-                            <field name="enable_capacity_test" invisible="1"/>
-                            <field name="enable_ocv_ir" invisible="1"/>
+
                         </group>
                     </group>
-                    <group invisible="not is_split_process or state != 'progress'">
-                        <group string="Capacity Test" invisible="not enable_capacity_test" class="o_range_group">
-                            <field name="capacity_lots" nolabel="1"
-                                   widget="many2many_tags"
-                                   domain="[('id', 'in', lot_ids), ('id', 'not in', voltage_lots)]"
-                                   readonly="is_capacity_created"/>
-                        </group>
-                        <group string="Voltage Test" invisible="not enable_ocv_ir" class="o_range_group">
-                            <field name="voltage_lots" nolabel="1"
-                                   widget="many2many_tags"
-                                   domain="[('id', 'in', lot_ids), ('id', 'not in', capacity_lots)]"
-                                   readonly="is_voltage_created"/>
-                        </group>
-                    </group>
+
                     <notebook>
                         <page string="Materials">
                             <field name="input_material_lines" readonly="state not in ['draft']">
@@ -451,6 +457,47 @@
                                 </div>
                             </group>
                             <field name="component_ids" readonly="state not in ['draft']"/>
+                        </page>
+
+                        <page string="Process 1 Lots"
+                              invisible="not is_split_process or state not in ['progress','done','close'] or not process_type1_id">
+                            <div class="oe_title">
+                                <h2>
+                                    <field name="process_type1_id" readonly="1" nolabel="1"
+                                           options="{'no_open': True}"/>
+                                    Lots Selection
+                                </h2>
+                            </div>
+                            <field name="voltage_lots" nolabel="1"
+                                   class="w-100"
+                                   style="min-height:400px;"
+                                   domain="[('id', 'in', lot_ids), ('id', 'not in', capacity_lots)]"
+                                   readonly="is_voltage_created"
+                                  >
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Process 2 Lots"
+                              invisible="not is_split_process or state not in ['progress','done','close'] or not process_type2_id">
+                            <div class="oe_title">
+                                <h2>
+                                    <field name="process_type2_id" readonly="1" nolabel="1"
+                                           options="{'no_open': True}"/>
+                                    Lots Selection
+                                </h2>
+                            </div>
+                            <field name="capacity_lots" nolabel="1"
+                                   class="w-100"
+                                   style="min-height:400px;"
+                                   domain="[('id', 'in', lot_ids), ('id', 'not in', voltage_lots)]"
+                                   readonly="is_capacity_created"
+                                   invisible="state != 'progress'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Serial Number"
                               invisible="is_sub_process
@@ -650,7 +697,7 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Rejected Reason" invisible="not get_rejection">
+                        <page string="Rejected Reason" invisible="quality_count == 0">
                             <group>
                                 <field name="rejection_reason_html" nolabel="1" widget="html" readonly="1"/>
                             </group>

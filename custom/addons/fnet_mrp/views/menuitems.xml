@@ -42,7 +42,7 @@
 
         <menuitem id="menu_manufacturing_stages" name="Manufacturing Process" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_stages" sequence="1"/>
 
-        <menuitem id="menu_manufacturing_process" name="Manufacturing Type" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_process" sequence="2"/>
+        <menuitem id="menu_manufacturing_process" name="Manufacturing Operation Type" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_process" sequence="2"/>
 
         <menuitem id="menu_manufacturing_batch" name="Manufacturing Batch" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_batch" sequence="3"/>
 

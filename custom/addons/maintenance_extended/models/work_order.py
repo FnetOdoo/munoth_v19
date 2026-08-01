@@ -89,14 +89,12 @@ class WorkOrder(models.Model):
         - if ALL work orders are cancelled -> flag the request as cancel-done."""
         all_work_orders = self.search([('maintenance_id', '=', self.maintenance_id.id)])
         active_work_orders = all_work_orders.filtered(lambda wo: wo.state != 'cancel')
-
         # Case 1: every work order is cancelled (no active ones left)
         if all_work_orders and not active_work_orders:
             self.maintenance_id.write({
                 'is_cancel_done': True,
             })
             return
-
         # Case 2: all remaining (non-cancelled) work orders are done
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
             done_stage = self.env['maintenance.stage'].search(
@@ -104,9 +102,12 @@ class WorkOrder(models.Model):
             if done_stage:
                 end_dates = active_work_orders.filtered(lambda wo: wo.date_end).mapped('date_end')
                 last_end_date = max(end_dates) if end_dates else fields.Datetime.now()
+                # Map EVERY work order's user into user_ids, not just one.
+                done_user_ids = active_work_orders.mapped('user_id').ids
                 self.maintenance_id.write({
                     'stage_id': done_stage.id,
                     'actual_end_date': last_end_date,
+                    'user_ids': [(6, 0, done_user_ids)],
                 })
 
     def action_material_request(self):

@@ -11,6 +11,10 @@
         'maintenance_extended/static/src/js/maintenance_dashboard.js',
         'maintenance_extended/static/src/xml/maintenance_dashboard.xml',
         'maintenance_extended/static/src/scss/maintenance_dashboard.scss',
+
+        'maintenance_extended/static/src/js/breakdown_dashboard.js',
+        'maintenance_extended/static/src/xml/breakdown_dashboard.xml',
+        'maintenance_extended/static/src/scss/breakdown_dashboard.css',
     ],
 },
     'data': [

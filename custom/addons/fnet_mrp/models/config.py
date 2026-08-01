@@ -167,10 +167,10 @@ class MaterialLine(models.Model):
 
     def action_show_details(self):
 
-        if self.manufacturing_process_id.allow_lot_create and self.manufacturing_process_id.lot_ids:
-            for lot in self.manufacturing_process_id.lot_ids:
-               if not lot.lot_id and not lot.is_available:
-                   raise UserError("This is lot enabled product. Please Create a Lot")
+        # if self.manufacturing_process_id.allow_lot_create and self.manufacturing_process_id.lot_ids:
+        #     for lot in self.manufacturing_process_id.lot_ids:
+        #        if not lot.lot_id and not lot.is_available:
+        #            raise UserError("This is lot enabled product. Please Create a Lot")
         view_id = self.env.ref('fnet_mrp.view_material_line_form', False)
         return {
             'name': _('Import Material'),

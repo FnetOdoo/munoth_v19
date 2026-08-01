@@ -56,7 +56,7 @@
                         <group>
                             <field name="model_id" required="1" readonly="state != 'draft'"/>
                             <field name="product_id" readonly="state != 'draft'"/>
-                           <field name="manufacturing_stages_ids" invisible="1"/>
+                            <field name="manufacturing_stages_ids" invisible="1"/>
                             <field name="manufacturing_stages_id"
                                    required="1"
                                    readonly="state != 'draft'"
@@ -135,12 +135,18 @@
             <list string="Manufacturing" sample="1">
                 <field name="name"/>
                 <field name="model_id"/>
-                <field name="model_number" column_invisible="1"/>
-                <field name="line_number"/>
+                <field name="manufacturing_stages_id"/>
+                <field name="product_id"/>
+                <field name="date_start"/>
+                <field name="end_date"/>
+                <field name="batch_id"/>
                 <field name="expected_production_qty"/>
-                <!--                    <field name="qty_produced"/>-->
-<!--                <field name="qty_remaining"/>-->
-                <field name="state"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'confirm'"
+                       decoration-warning="state == 'in_production'"
+                       decoration-success="state == 'close'"
+                       decoration-danger="state == 'cancel'"/>
             </list>
         </field>
     </record>

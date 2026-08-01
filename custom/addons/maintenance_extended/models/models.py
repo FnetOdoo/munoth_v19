@@ -84,7 +84,17 @@ class MaintenanceEquipment(models.Model):
     problem_category = fields.Selection([('breakdown', 'Breakdown')], string='Problem Category', default="breakdown")
     nature_of_problem = fields.Char()
     requested_time = fields.Datetime()
+    user_ids = fields.Many2many('res.users',string="Done By")
+    sequence = fields.Char()
 
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('sequence') or vals['sequence'] == _('New'):
+                vals['sequence'] = self.env['ir.sequence'].next_by_code(
+                    'maintenance.request') or _('New')
+        return super().create(vals_list)
 
     def action_complete_calibration(self):
         self.ensure_one()

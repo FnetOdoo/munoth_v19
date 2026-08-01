@@ -147,7 +147,7 @@
     </span>
                     <span class="o_cmd_legend_item">
         <span class="o_cmd_swatch o_cmd_swatch_wo_open"/>
-                        Pending Work Orders
+                        Generated Work Orders
     </span>
                     <span class="o_cmd_legend_item">
         <span class="o_cmd_swatch o_cmd_swatch_progress"/>
@@ -159,11 +159,11 @@
     </span>
                     <span class="o_cmd_legend_item">
         <span class="o_cmd_swatch o_cmd_swatch_done"/>
-                        PM Completed
+                        Completed Preventive Maintenance
     </span>
                     <span class="o_cmd_legend_item">
         <span class="o_cmd_swatch o_cmd_swatch_wo_done"/>
-                        Done Work Orders
+                  Completed Work Orders
     </span>
 </div>
             </div>

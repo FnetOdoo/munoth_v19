@@ -73,7 +73,7 @@ class MrpQuality(models.Model):
 
 
     manufacturing_process_id = fields.Many2one('manufacturing.process', string="Manufacturing Process")
-    manufacturing_process_type_id = fields.Many2one(related='manufacturing_process_id.manufacturing_process_type_id', string="Manufacturing Process")
+    manufacturing_process_type_id = fields.Many2one(related='manufacturing_process_id.manufacturing_process_type_id' ,string="Operation Type")
 
     def action_open_manufacturing_process(self):
         return {

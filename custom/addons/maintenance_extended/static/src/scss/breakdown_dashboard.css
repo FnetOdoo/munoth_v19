@@ -1,0 +1,389 @@
+/* =====================================================================
+   Breakdown Request Reporting Dashboard - plain CSS
+   ===================================================================== */
+
+.o_brd_dashboard {
+    --brd-request: #f57c00;   /* Requested (orange) */
+    --brd-done: #28a745;      /* Closed    (green)  */
+    --brd-ink: #37474f;
+    --brd-muted: #78909c;
+    --brd-grid: #cfd8dc;
+    --brd-axis: #37474f;
+    --brd-guide: #e53935;
+
+    padding: 14px 18px;
+    background: #f4f6f9;
+    min-height: 100%;
+    overflow: auto;
+}
+
+/* ------------------------------------------------ Header */
+.o_brd_dashboard .o_brd_header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.o_brd_dashboard .o_brd_title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brd-ink);
+}
+
+.o_brd_dashboard .o_brd_subtitle {
+    margin: 2px 0 0;
+    color: var(--brd-muted);
+    font-size: 0.875rem;
+}
+
+.o_brd_dashboard .o_brd_header_right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.o_brd_dashboard .o_brd_updated {
+    color: var(--brd-muted);
+    font-size: 0.8125rem;
+}
+
+.o_brd_dashboard .o_brd_refresh {
+    border-radius: 8px;
+}
+
+/* ------------------------------------------------ Filters */
+.o_brd_dashboard .o_brd_filters {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: #fff;
+    border: 2px solid var(--brd-grid);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(38, 50, 56, 0.06);
+    padding: 10px 16px;
+    margin-bottom: 12px;
+}
+
+.o_brd_dashboard .o_brd_filters_title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brd-ink);
+    letter-spacing: 0.03em;
+    padding-bottom: 6px;
+    border-bottom: 3px solid var(--brd-guide);
+    align-self: center;
+}
+
+.o_brd_dashboard .o_brd_filter_group {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding-left: 20px;
+    border-left: 1px solid var(--brd-grid);
+}
+
+.o_brd_dashboard .o_brd_filter_label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--brd-ink);
+    padding-bottom: 8px;
+    white-space: nowrap;
+    border-bottom: 3px solid var(--brd-request);
+}
+
+.o_brd_dashboard .o_brd_filter_label small {
+    display: block;
+    font-weight: 500;
+    color: var(--brd-muted);
+}
+
+.o_brd_dashboard .o_brd_filter_field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brd-muted);
+    margin-bottom: 0;
+}
+
+.o_brd_dashboard .o_brd_filter_field input[type="date"] {
+    border: 1.5px solid var(--brd-grid);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.8125rem;
+    color: var(--brd-ink);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.o_brd_dashboard .o_brd_filter_field input[type="date"]:focus {
+    border-color: var(--brd-request);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.15);
+}
+
+.o_brd_dashboard .o_brd_filter_reset {
+    border-radius: 8px;
+    margin-left: auto;
+}
+
+/* ------------------------------------------------ Loading */
+.o_brd_dashboard .o_brd_loading {
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+    color: var(--brd-muted);
+}
+
+/* ------------------------------------------------ Card */
+.o_brd_dashboard .o_brd_card {
+    background: #fff;
+    width: 100%;
+    border: 2px solid var(--brd-grid);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(38, 50, 56, 0.10);
+    padding: 26px 26px 14px;
+}
+
+/* ------------------------------------------------ Chart */
+.o_brd_dashboard .o_brd_chart {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    height: calc(100vh - 360px);
+    min-height: 240px;
+    max-height: 460px;
+}
+
+.o_brd_dashboard .o_brd_yaxis {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.o_brd_dashboard .o_brd_yaxis_title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    align-self: center;
+    color: var(--brd-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.o_brd_dashboard .o_brd_axis_arrow {
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+.o_brd_dashboard .o_brd_yaxis_ticks {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: right;
+    color: var(--brd-ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding-bottom: 26px;
+    min-width: 34px;
+}
+
+.o_brd_dashboard .o_brd_yaxis_ticks span {
+    transform: translateY(50%);
+}
+
+.o_brd_dashboard .o_brd_yaxis_ticks span:last-child {
+    transform: translateY(30%);
+}
+
+.o_brd_dashboard .o_brd_plot {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    border-left: 3px solid var(--brd-axis);
+    border-bottom: 3px solid var(--brd-axis);
+    background-color: #fff;
+    background-image:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent calc(20% - 1px),
+            #cfd8dc calc(20% - 1px),
+            #cfd8dc 20%
+        ),
+        repeating-linear-gradient(
+            to right,
+            transparent 0,
+            transparent 79px,
+            #e1e7ea 79px,
+            #e1e7ea 80px
+        );
+    padding: 0 5%;
+}
+
+.o_brd_dashboard .o_brd_group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    width: 40%;
+    min-width: 140px;
+}
+
+.o_brd_dashboard .o_brd_bars {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* ------------------------------------------------ Bars */
+.o_brd_dashboard .o_brd_bar {
+    position: relative;
+    cursor: pointer;
+    min-height: 4px;
+    width: 90px;
+    border: 1.5px solid rgba(0, 0, 0, 0.18);
+    border-bottom: none;
+    border-top: 3px dotted var(--brd-guide);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    transition: transform 0.18s ease, filter 0.18s ease,
+                height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.o_brd_dashboard .o_brd_bar:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.08);
+}
+
+.o_brd_dashboard .o_brd_bar:focus-visible {
+    outline: 2px solid var(--brd-ink);
+    outline-offset: 2px;
+}
+
+.o_brd_dashboard .o_brd_bar_request { background: var(--brd-request); }
+.o_brd_dashboard .o_brd_bar_done    { background: var(--brd-done); }
+
+.o_brd_dashboard .o_brd_count {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--brd-ink);
+    white-space: nowrap;
+}
+
+.o_brd_dashboard .o_brd_xlabel {
+    margin-top: 10px;
+    height: 20px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--brd-ink);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.o_brd_dashboard .o_brd_xaxis_title {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--brd-ink);
+    letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------ Tooltip */
+.o_brd_dashboard .o_brd_tooltip {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    background: #263238;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.o_brd_dashboard .o_brd_tooltip strong { font-weight: 600; }
+.o_brd_dashboard .o_brd_tooltip span   { font-weight: 700; }
+
+/* ------------------------------------------------ Legend */
+.o_brd_dashboard .o_brd_legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--brd-grid);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--brd-ink);
+}
+
+.o_brd_dashboard .o_brd_legend_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.o_brd_dashboard .o_brd_swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: inline-block;
+}
+
+.o_brd_dashboard .o_brd_swatch_request { background: var(--brd-request); }
+.o_brd_dashboard .o_brd_swatch_done    { background: var(--brd-done); }
+
+/* ------------------------------------------------ Responsive */
+@media (max-width: 768px) {
+    .o_brd_dashboard { padding: 12px; }
+
+    .o_brd_dashboard .o_brd_filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .o_brd_dashboard .o_brd_filter_group {
+        border-left: none;
+        padding-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .o_brd_dashboard .o_brd_filter_reset { margin-left: 0; }
+
+    .o_brd_dashboard .o_brd_card {
+        padding: 18px 14px 14px;
+        border-radius: 12px;
+    }
+
+    .o_brd_dashboard .o_brd_chart { height: 320px; }
+
+    .o_brd_dashboard .o_brd_group { min-width: 0; width: 45%; }
+
+    .o_brd_dashboard .o_brd_bar { width: 60px; }
+
+    .o_brd_dashboard .o_brd_yaxis_title { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_brd_dashboard .o_brd_bar { transition: none; }
+}

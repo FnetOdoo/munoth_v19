@@ -89,6 +89,128 @@ class ProductionStages(models.Model):
         'company_id',
     }
 
+    @api.constrains('operation_ids')
+    def constrains_operation_ids(self):
+        for rec in self:
+            operations = rec.operation_ids.sorted('sequence')
+            if not operations:
+                continue
+
+            all_src_locations = operations.mapped('location_src_id')
+            all_dest_locations = operations.mapped('location_dest_id')
+
+            dest_counts = {}
+            for op in operations:
+                dest_counts[op.location_dest_id.id] = dest_counts.get(op.location_dest_id.id, 0) + 1
+
+            # Collect all branch process types coming from any split operation
+            branch_type_ids = self.env['manufacturing.process.type']
+            for op in operations:
+                if op.manufacturing_process_type_id.is_split_process:
+                    branch_type_ids |= op.manufacturing_process_type_id.process_type1_id
+                    branch_type_ids |= op.manufacturing_process_type_id.process_type2_id
+
+            for index, line in enumerate(operations):
+                is_first = index == 0
+                is_last = index == len(operations) - 1
+                is_branch = line.manufacturing_process_type_id in branch_type_ids
+
+                if is_first and line.manufacturing_process_type_id.is_split_process:
+                    raise UserError(_(
+                        "Operation '%s' is a split process and cannot be the "
+                        "first operation in the sequence."
+                    ) % line.display_name)
+
+                # if is_first and not line.allow_lot_create:
+                #     raise UserError(_(
+                #         "Operation '%s' must have 'Allow Lot Creation' enabled "
+                #         "since it is the first operation in the sequence."
+                #     ) % line.display_name)
+
+                    # >>> PLACE IT HERE <
+                    # Only the first operation may create lots
+                if not is_first and line.allow_lot_create:
+                    raise UserError(_(
+                        "Operation '%s' has 'Allow Lot Creation' enabled, but "
+                        "only the first operation in the sequence is allowed "
+                        "to create lots."
+                    ) % line.display_name)
+
+                # Branch operations must come AFTER their split operation.
+                # This runs at top level so it actually fires for split ops.
+                if line.manufacturing_process_type_id.is_split_process:
+                    split_index = index
+                    branch_types = (
+                            line.manufacturing_process_type_id.process_type1_id
+                            | line.manufacturing_process_type_id.process_type2_id
+                    )
+                    for b_index, b_line in enumerate(operations):
+                        if (b_line.manufacturing_process_type_id in branch_types
+                                and b_index <= split_index):
+                            raise UserError(_(
+                                "Operation '%s' is a branch of split process "
+                                "'%s' and must be placed after it in the "
+                                "sequence."
+                            ) % (b_line.display_name, line.display_name))
+
+                # Middle operations (non-split, non-branch) must chain into the stage
+                if (not is_first and not is_last
+                        and not line.manufacturing_process_type_id.is_split_process
+                        and not is_branch):
+                    if line.location_src_id not in all_dest_locations:
+                        raise UserError(_(
+                            "Source location of operation '%s' must match the "
+                            "destination location of some operation in this "
+                            "stage."
+                        ) % line.display_name)
+
+                if is_last:
+                    continue
+
+                # A non-last operation's destination must be picked up by some
+                # later operation. If nothing consumes it (e.g. it goes into
+                # 'Consumed location'), the stock has nowhere to go -> invalid.
+                if line.location_dest_id not in all_src_locations:
+                    raise UserError(_(
+                        "Operation '%s' sends stock to '%s', but no other "
+                        "operation uses '%s' as its source location. Stock "
+                        "sent there has nowhere to go."
+                    ) % (
+                                        line.display_name,
+                                        line.location_dest_id.display_name,
+                                        line.location_dest_id.display_name,
+                                    ))
+
+                # Convergence: multiple operations feed the same destination
+                is_convergence = dest_counts.get(line.location_dest_id.id, 0) > 1
+                if is_convergence:
+                    if line.location_dest_id not in all_src_locations:
+                        raise UserError(_(
+                            "Destination location of operation '%s' must match "
+                            "the source location of some operation in this "
+                            "stage."
+                        ) % line.display_name)
+                    continue
+
+                next_line = operations[index + 1]
+                next_is_branch = next_line.manufacturing_process_type_id in branch_type_ids
+
+                # A split operation fans out into its process_type1_id /
+                # process_type2_id branches, each with its own src/dest, so the
+                # plain "dest must equal next src" rule does not apply when either
+                # side of the pair is a split or a branch of a split.
+                if (line.manufacturing_process_type_id.is_split_process
+                        or is_branch
+                        or next_line.manufacturing_process_type_id.is_split_process
+                        or next_is_branch):
+                    continue
+
+                if line.location_dest_id != next_line.location_src_id:
+                    raise UserError(_(
+                        "Operation '%s' destination location must match the "
+                        "source location of the next operation '%s'."
+                    ) % (line.display_name, next_line.display_name))
+
     def _generate_revision_html(self, old_values, new_values):
         self.ensure_one()
 
@@ -603,10 +725,21 @@ class ProductionProcessType(models.Model):
     enable_ocv_ir = fields.Boolean(copy=False)
     enable_capacity_test = fields.Boolean(copy=False)
     is_next_packing_process = fields.Boolean(copy=False)
-    process_type1_id = fields.Many2one('manufacturing.process.type',domain="[('id', '!=', id)]",)
-    process_type2_id = fields.Many2one( 'manufacturing.process.type',domain="[('id', '!=', id)]",)
-
-
+    process_type1_id = fields.Many2one(
+        'manufacturing.process.type',
+        string='Process 1',
+        domain="[('id', '!=', id), ('id', '!=', process_type2_id)]",
+    )
+    process_type2_id = fields.Many2one(
+        'manufacturing.process.type',
+        string='Process 2',
+        domain="[('id', '!=', id), ('id', '!=', process_type1_id)]",
+    )
+    process_type3_id = fields.Many2one(
+        'manufacturing.process.type',
+        string='Last Process',
+        domain="[('id', '!=', id), ('id', '!=', process_type1_id), ('id', '!=', process_type2_id)]",
+    )
     # @api.model_create_multi
     # def create(self, vals_list):
     #     for vals in vals_list:
@@ -628,12 +761,21 @@ class ProductionProcessType(models.Model):
     #     return super().write(vals)
 
 
-    @api.constrains('is_power_bank','is_packing_process','is_split_process')
+    @api.constrains('is_power_bank','is_packing_process','is_split_process','is_next_packing_process')
     def _check_power_bank(self):
         for rec in self:
-            if rec.is_split_process:
-                if not rec.enable_ocv_ir and not rec.enable_capacity_test:
-                    raise UserError("Please Select Any one Enable OCV/IR or Enable Capacity Testing")
+            if rec.is_next_packing_process:
+                if not rec.process_type3_id:
+                    raise UserError("Process type 3 is required.")
+            elif not rec.is_next_packing_process:
+                rec.process_type3_id = False
+
+            if rec.is_split_process and (not rec.process_type1_id or not rec.process_type2_id):
+                raise UserError(_("Please select both Process 1 and Process 2."))
+            elif not rec.is_split_process:
+                rec.process_type1_id = False
+                rec.process_type2_id = False
+
             if rec.is_power_bank:
                 existing_record = self.search([
                     ('is_power_bank', '=', True),
@@ -642,14 +784,14 @@ class ProductionProcessType(models.Model):
 
                 if existing_record:
                     raise UserError("Only one record can be marked as Power Bank.")
-            if rec.is_packing_process:
-                existing_record = self.search([
-                    ('is_packing_process', '=', True),
-                    ('id', '!=', rec.id)
-                ], limit=1)
+            # if rec.is_packing_process:
+            #     existing_record = self.search([
+            #         ('is_packing_process', '=', True),
+            #         ('id', '!=', rec.id)
+            #     ], limit=1)
 
-                if existing_record:
-                    raise UserError("Only one record can be marked as Packing Process.")
+                # if existing_record:
+                #     raise UserError("Only one record can be marked as Packing Process.")
 
 #
 
@@ -883,7 +1025,7 @@ class ProductionProcess(models.Model):
     process_status_check = fields.Boolean(compute='_compute_process_status_check')
 
     manufacturing_process_id = fields.Many2one('manufacturing.process')
-    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
 
     main_manufacturing_process_id = fields.Many2one('manufacturing.process')
 
@@ -899,18 +1041,18 @@ class ProductionProcess(models.Model):
 
     is_first_process = fields.Boolean(copy=False)
     is_sub_process = fields.Boolean(copy=False)
-    next_process_count = fields.Integer(compute='_compute_next_process_count')
+    quality_count = fields.Integer(compute='_compute_quality_count')
     next_manufacturing_process_type_name = fields.Char(string="Next Process Type",compute='_compute_next_process_type_name', store=True )
     next_manufacturing_process_type_name_2 = fields.Char(string="Next Process Type",compute='_compute_next_process_type_name', store=True )
     is_next_process_created = fields.Boolean(copy=False)
     done_lot = fields.Boolean('')
-    remaining_qty = fields.Integer(compute='_compute_remaining_qty')
+    remaining_qty = fields.Integer(compute='_compute_remaining_qty',store=True)
     batch_id = fields.Many2one('manufacturing.batch', related='production_plan_id.batch_id', string='Batch',store=True)
     check_available = fields.Boolean(copy=False)
 
     is_capacity_created = fields.Boolean(copy=False)
     is_voltage_created = fields.Boolean(copy=False)
-    is_packing_created = fields.Boolean(copy=False)
+    remaining_qty_process_created = fields.Boolean(copy=False)
     name_1 = fields.Char(compute='_compute_next_process_type_name' ,store=True)
     name_2 = fields.Char(compute='_compute_next_process_type_name',  store=True)
     name_3 = fields.Char(compute='_compute_next_process_type_name', store=True )
@@ -927,7 +1069,6 @@ class ProductionProcess(models.Model):
     is_next_capacity_process = fields.Boolean(compute='_compute_process_flags', store=True)
     is_power_bank = fields.Boolean(copy=False)
     is_sub_process_created = fields.Boolean(copy=False)
-    get_rejection = fields.Boolean(compute='_compute_rejection_summary')
     allow_lot_create = fields.Boolean(compute='_compute_allow_lot_create',store=True)
     capacity_lots = fields.Many2many(
         'product.serial.number',
@@ -951,6 +1092,17 @@ class ProductionProcess(models.Model):
     )
     capacity_dest_location_id = fields.Many2one('stock.location', string='Capacity Destination Location')
     voltage_dest_location_id = fields.Many2one('stock.location', string='Voltage Destination Location')
+
+    process_type1_id = fields.Many2one('manufacturing.process.type',compute='_compute_process_flags', store=True)
+    process_type2_id = fields.Many2one('manufacturing.process.type',compute='_compute_process_flags', store=True)
+    manufacturing_split_process1_id = fields.Many2one('manufacturing.process')
+    manufacturing_split_process2_id = fields.Many2one('manufacturing.process')
+
+    def _compute_quality_count(self):
+        for rec in self:
+            rec.quality_count = self.env['mrp.quality'].search([
+                ('manufacturing_process_id', '=', rec.id),
+            ])
 
     @api.onchange('capacity_lots')
     def _onchange_capacity_lots(self):
@@ -992,8 +1144,6 @@ class ProductionProcess(models.Model):
             get_quality = self.env['mrp.quality'].search([
                 ('manufacturing_process_id', '=', rec.id),
             ])
-            rec.get_rejection = bool(get_quality)
-
             if get_quality:
                 reason_count = Counter(get_quality.mapped('reason'))
 
@@ -1046,25 +1196,40 @@ class ProductionProcess(models.Model):
 
 
     @api.depends('manufacturing_process_type_id', 'is_capacity_created', 'is_voltage_created','state',
-                 'is_packing_created', 'next_manufacturing_process_type_id')
+                 'remaining_qty_process_created', 'next_manufacturing_process_type_id')
     def _compute_process_flags(self):
         for rec in self:
             rec.is_split_process = rec.manufacturing_process_type_id.is_split_process
-            rec.is_voltage_process = rec.manufacturing_process_type_id.is_voltage_process
-            rec.is_packing_process = rec.manufacturing_process_type_id.is_packing_process
-            rec.is_capacity_process = rec.manufacturing_process_type_id.is_capacity_process
-            rec.enable_ocv_ir = rec.manufacturing_process_type_id.enable_ocv_ir
-            rec.enable_capacity_test = rec.manufacturing_process_type_id.enable_capacity_test
-            rec.is_next_voltage_process = rec.next_manufacturing_process_type_id.is_voltage_process
-            rec.is_next_capacity_process = rec.next_manufacturing_process_type_id.is_capacity_process
-            rec.is_next_packing_process = rec.next_manufacturing_process_type_id.is_packing_process
-            rec.is_packing_process_next = rec.manufacturing_process_type_id.is_next_packing_process
+            # if self.manufacturing_process_type_id.is_split_process:
+            rec.process_type1_id = rec.manufacturing_process_type_id.process_type1_id.id
+            rec.process_type2_id = rec.manufacturing_process_type_id.process_type2_id.id
+            all_lines = self.production_plan_id.operation_ids
+            get_process_1 = all_lines.filtered(
+                lambda x: x.manufacturing_process_type_id.id == self.process_type1_id.id
+            )
+            get_process_2 = all_lines.filtered(
+                lambda x: x.manufacturing_process_type_id.id == self.process_type2_id.id
+            )
+            get_process_1_line = get_process_1[:1]
+            get_process_2_line = get_process_2[:1]
+
+            self.voltage_dest_location_id = get_process_1_line.operation_id.location_src_id.id
+            self.capacity_dest_location_id = get_process_2_line.operation_id.location_src_id.id
+            # rec.is_voltage_process = rec.manufacturing_process_type_id.is_voltage_process
+            # rec.is_packing_process = rec.manufacturing_process_type_id.is_packing_process
+            # rec.is_capacity_process = rec.manufacturing_process_type_id.is_capacity_process
+            # rec.enable_ocv_ir = rec.manufacturing_process_type_id.enable_ocv_ir
+            # rec.enable_capacity_test = rec.manufacturing_process_type_id.enable_capacity_test
+            # rec.is_next_voltage_process = rec.next_manufacturing_process_type_id.is_voltage_process
+            # rec.is_next_capacity_process = rec.next_manufacturing_process_type_id.is_capacity_process
+            # rec.is_next_packing_process = rec.next_manufacturing_process_type_id.is_packing_process
+            # rec.is_packing_process_next = rec.manufacturing_process_type_id.is_next_packing_process
 
     def action_open_voltage_process(self):
         self.ensure_one()
         process = self.env['manufacturing.process'].search([
             ('before_manufacturing_process_id', '=', self.id),
-            ('is_voltage_process', '=', True),
+            ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.process_type1_id.id),
         ], limit=1)
         return {
             'name': self.name_1,
@@ -1077,136 +1242,124 @@ class ProductionProcess(models.Model):
     def action_open_capacity_process(self):
         process = self.env['manufacturing.process'].search([
             ('before_manufacturing_process_id', '=', self.id),
-            ('is_capacity_process', '=', True),
+            ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.process_type2_id.id),
         ], limit=1)
         return {
-            'name': self.name_1,
+            'name': self.name_2,
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'manufacturing.process',
             'res_id': process.id,
-
         }
 
-    def action_open_packing_process(self):
-        process = self.env['manufacturing.process'].search([
-            ('before_manufacturing_process_id', '=', self.id),
-            ('is_packing_process', '=', True),
-        ], limit=1)
-        return {
-            'name': self.name_1,
-            'type': 'ir.actions.act_window',
-            'view_mode': 'form',
-            'res_model': 'manufacturing.process',
-            'res_id': process.id,
+    # def action_open_remain_qty_process(self):
+    #     process = self.env['manufacturing.process'].search([
+    #         ('before_manufacturing_process_id', '=', self.id),
+    #         ('is_packing_process', '=', True),
+    #     ], limit=1)
+    #     return {
+    #         'name': self.name_1,
+    #         'type': 'ir.actions.act_window',
+    #         'view_mode': 'form',
+    #         'res_model': 'manufacturing.process',
+    #         'res_id': process.id,
+    #
+    #     }
 
-        }
-
-    @api.depends('next_manufacturing_process_type_id','state','is_voltage_created','is_capacity_created','is_packing_created')
+    @api.depends('next_manufacturing_process_type_id', 'state','is_split_process',
+                 'is_voltage_created', 'is_capacity_created',
+                 'remaining_qty_process_created')
     def _compute_next_process_type_name(self):
         for rec in self:
-            all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-            packing = all_lines.filtered(lambda x: x.manufacturing_process_type_id.is_packing_process)
-            capacity = all_lines.filtered(lambda x: x.manufacturing_process_type_id.is_capacity_process)
-            voltage = all_lines.filtered(lambda x: x.manufacturing_process_type_id.is_voltage_process)
+            # defaults — guarantees every computed field is always set
+            rec.next_manufacturing_process_type_name = ''
+            rec.next_manufacturing_process_type_name_2 = ''
+            rec.name_1 = ''
+            rec.name_2 = ''
+            rec.name_3 = ''
+
             if rec.next_manufacturing_process_type_id:
                 rec.next_manufacturing_process_type_name = f"Create {rec.next_manufacturing_process_type_id.name}"
                 rec.next_manufacturing_process_type_name_2 = f"Open {rec.next_manufacturing_process_type_id.name}"
-            elif rec.is_split_process:
-                rec.next_manufacturing_process_type_name = ''
-                rec.next_manufacturing_process_type_name_2 = ''
 
-                if rec.is_voltage_created:
-                    rec.name_1 = f"Open {voltage.manufacturing_process_type_id.name}" if voltage else ''
-                else:
-                    rec.name_1 = f"Create {voltage.manufacturing_process_type_id.name}" if voltage else ''
+            if rec.is_split_process:
+                pt1 = rec.manufacturing_process_type_id.process_type1_id
+                pt2 = rec.manufacturing_process_type_id.process_type2_id
 
-                if rec.is_capacity_created:
-                    rec.name_2 = f"Open {capacity.manufacturing_process_type_id.name}" if capacity else ''
-                else:
-                    rec.name_2 = f"Create {capacity.manufacturing_process_type_id.name}" if capacity else ''
+                rec.name_1 = f"{'Open' if rec.is_voltage_created else 'Create'} {pt1.name}"
+                rec.name_2 = f"{'Open' if rec.is_capacity_created else 'Create'} {pt2.name}"
+                # If you re-enable the third branch later:
+                # pt3 = rec.manufacturing_process_type_id.process_type3_id
+                # rec.name_3 = f"{'Open' if rec.remaining_qty_process_created else 'Create'} {pt3.name}"
 
-                if rec.is_packing_created:
-                    rec.name_3 = f"Open {packing.manufacturing_process_type_id.name}" if packing else ''
-                else:
-                    rec.name_3 = f"Create {packing.manufacturing_process_type_id.name}" if packing else ''
-            else:
-                rec.next_manufacturing_process_type_name = ''
-                rec.next_manufacturing_process_type_name_2 = ''
-                rec.name_1 = ''
-                rec.name_2 = ''
-                rec.name_3 = ''
-
-    def action_voltage_process(self):
-        all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-        current_line = all_lines.filtered(
-            lambda x: x.manufacturing_process_type_id.is_voltage_process == True)
-        if not current_line:
-            raise UserError(_("No packing process found in this Production Plan."))
+    def action_create_split_process_type_1(self):
+        # all_lines = self.production_plan_id.operation_ids.sorted('sequence')
+        # current_line = all_lines.filtered(
+        #     lambda x: x.manufacturing_process_type_id.is_voltage_process == True)
+        # if not current_line:
+        #     raise UserError(_("No packing process found in this Production Plan."))
         next_process = self.env['manufacturing.process'].create({
             'before_manufacturing_process_id': self.id,
             'before_manufacturing_process_type_id': self.manufacturing_process_type_id.id,
-            'manufacturing_process_type_id': current_line.manufacturing_process_type_id.id,
+            'manufacturing_process_type_id': self.process_type1_id.id,
             'production_plan_id': self.production_plan_id.id,
             'product_model_id': self.product_model_id.id,
             'is_first_process': False,
             'done_lot': True,
-            'is_voltage_process': True,
         })
 
-        self.write({'next_manufacturing_process_id': next_process.id,'is_voltage_created':True})
+        self.write({'manufacturing_split_process1_id':next_process.id,'is_voltage_created':True})
         next_process._onchange_of_product_plan_id()
         next_process.write({
             'lot_ids': [(4, lot_id) for lot_id in self.voltage_lot_ids.ids],
         })
         return {
-            'name': current_line.manufacturing_process_type_id.name,
+            'name': self.process_type1_id.name,
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'manufacturing.process',
             'res_id': next_process.id,
         }
-    def action_capacity_process(self):
-        all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-        current_line = all_lines.filtered(
-            lambda x: x.manufacturing_process_type_id.is_capacity_process == True)
-        if not current_line:
-            raise UserError(_("No packing process found in this Production Plan."))
+    def action_create_split_process_type_2(self):
+        # all_lines = self.production_plan_id.operation_ids.sorted('sequence')
+        # current_line = all_lines.filtered(
+        #     lambda x: x.manufacturing_process_type_id.is_capacity_process == True)
+        # if not current_line:
+        #     raise UserError(_("No packing process found in this Production Plan."))
         # Step 1: create WITHOUT lot_ids
         next_process = self.env['manufacturing.process'].create({
             'before_manufacturing_process_id': self.id,
             'before_manufacturing_process_type_id': self.manufacturing_process_type_id.id,
-            'manufacturing_process_type_id': current_line.manufacturing_process_type_id.id,
+            'manufacturing_process_type_id': self.process_type2_id.id,
             'production_plan_id': self.production_plan_id.id,
             'product_model_id': self.product_model_id.id,
             'is_first_process': False,
             'done_lot': True,
-            'is_capacity_process': True,
 
         })
-        self.write({'is_capacity_created':True})
+        self.write({'manufacturing_split_process2_id':next_process.id,'is_capacity_created':True})
         next_process._onchange_of_product_plan_id()
         next_process.write({
             'lot_ids': [(4, lot_id) for lot_id in self.capacity_lot_ids.ids],
         })
         return {
-            'name': current_line.manufacturing_process_type_id.name,
+            'name': self.process_type2_id.name,
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'manufacturing.process',
             'res_id': next_process.id,
         }
-    def action_packing_process(self):
-        all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-        current_line = all_lines.filtered(
-            lambda x: x.manufacturing_process_type_id.is_packing_process == True)
-        if not current_line:
-            raise UserError(_("No packing process found in this Production Plan."))
+    def action_remain_qty_process(self):
+        # all_lines = self.production_plan_id.operation_ids.sorted('sequence')
+        # current_line = all_lines.filtered(
+        #     lambda x: x.manufacturing_process_type_id.is_packing_process == True)
+        # if not current_line:
+        #     raise UserError(_("No packing process found in this Production Plan."))
         # Step 1: create WITHOUT lot_ids
         next_process = self.env['manufacturing.process'].create({
             'before_manufacturing_process_id': self.id,
             'before_manufacturing_process_type_id': self.manufacturing_process_type_id.id,
-            'manufacturing_process_type_id': current_line.manufacturing_process_type_id.id,
+            'manufacturing_process_type_id': self.manufacturing_process_type_id.process_type3_id.id,
             'production_plan_id': self.production_plan_id.id,
             'product_model_id': self.product_model_id.id,
             'is_first_process': False,
@@ -1214,7 +1367,7 @@ class ProductionProcess(models.Model):
             'is_packing_process': True,
 
         })
-        self.write({'is_packing_created':True})
+        self.write({'remaining_qty_process_created':True})
         next_process._onchange_of_product_plan_id()
         next_process.write({
             'lot_ids': [(4, lot_id) for lot_id in self.packing_lot_ids.ids],
@@ -1278,13 +1431,13 @@ class ProductionProcess(models.Model):
         for rec in self:
             assigned_names = set()
 
-            if rec.enable_ocv_ir and rec.enable_capacity_test:
+            if rec.manufacturing_process_type_id.process_type1_id and rec.manufacturing_process_type_id.process_type2_id:
                 if not rec.voltage_lot_ids or not rec.capacity_lot_ids:
                     continue
                 assigned_names = set(rec.voltage_lot_ids.mapped('name')) | set(rec.capacity_lot_ids.mapped('name'))
-            elif rec.enable_ocv_ir:
+            elif rec.manufacturing_process_type_id.process_type1_id:
                 assigned_names = set(rec.voltage_lot_ids.mapped('name'))
-            elif rec.enable_capacity_test:
+            elif rec.manufacturing_process_type_id.process_type2_id:
                 assigned_names = set(rec.capacity_lot_ids.mapped('name'))
 
             all_serials = rec.lot_ids
@@ -1321,18 +1474,10 @@ class ProductionProcess(models.Model):
                 )
         self.state = 'close'
 
-
-
-    # @api.depends('state')
+    @api.depends('lot_ids', 'product_qty', 'state')
     def _compute_remaining_qty(self):
         for rec in self:
-
-            if rec.lot_ids and rec.state in ['done']:
-                rec.remaining_qty = len(rec.lot_ids)
-            elif rec.lot_ids:
-                rec.remaining_qty = len(rec.lot_ids)
-            else:
-                rec.remaining_qty = rec.product_qty
+            rec.remaining_qty = len(rec.lot_ids) if rec.lot_ids else rec.product_qty
 
     # def action_view_lots(self):
     #     lot_ids = []
@@ -1403,13 +1548,6 @@ class ProductionProcess(models.Model):
 
         self.done_lot = True
 
-
-
-    def _compute_next_process_count(self):
-        for rec in self:
-            rec.next_process_count = self.env['manufacturing.process'].search_count([
-                ('before_manufacturing_process_id', '=', rec.id),
-            ])
 
     # @api.depends('pa_count')
     def _compute_process_status_check(self):
@@ -1561,6 +1699,42 @@ class ProductionProcess(models.Model):
             'res_id': self.next_manufacturing_process_id.id,  # Assuming records is a single record
         }
 
+    def action_create_remain_process(self):
+        get_quality = self.env['mrp.quality'].search([
+            ('manufacturing_process_id', '=', self.id)
+        ])
+        for qc in get_quality:
+            if qc.state != 'done':
+                raise UserError(
+                    _("Please complete all Quality Checks before proceeding. Complete them as Rework or Scrap.")
+                )
+        next_process = self.env['manufacturing.process'].create({
+            'before_manufacturing_process_id': self.id,
+            'before_manufacturing_process_type_id': self.manufacturing_process_type_id.id,
+            'manufacturing_process_type_id': self.next_manufacturing_process_type_id.id,
+            'production_plan_id': self.production_plan_id.id,
+            'product_model_id': self.product_model_id.id,
+            'is_first_process': False,
+            'done_lot': False,
+        })
+        self.write({'next_manufacturing_process_id': next_process.id, 'is_next_process_created': True})
+        next_process._onchange_of_product_plan_id()
+        next_process.write({
+            'lot_ids': [(4, lot_id) for lot_id in self.packing_lot_ids.ids],
+        })
+
+        if self.allow_lot_create:
+            next_process.done_lot = True
+            next_process.lot_creation()
+
+        return {
+            'name': self.next_manufacturing_process_id.manufacturing_process_type_id.name,
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'manufacturing.process',
+            'res_id': next_process.id,
+
+        }
     def action_create_next_cell_process(self):
         get_quality = self.env['mrp.quality'].search([
             ('manufacturing_process_id', '=', self.id)
@@ -1571,29 +1745,16 @@ class ProductionProcess(models.Model):
                     _("Please complete all Quality Checks before proceeding. Complete them as Rework or Scrap.")
                 )
 
-        all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-        current_line = all_lines.filtered(
-            lambda x: x.manufacturing_process_type_id == self.manufacturing_process_type_id
-        )[:1]
-
-        if self.is_packing_process_next:
-            next_line = all_lines.filtered(lambda x: x.manufacturing_process_type_id.is_packing_process)[:1]
-        else:
-            next_line = all_lines.filtered(lambda x: x.sequence > current_line.sequence)[:1]
-
-        if not next_line:
-            raise UserError(_("No next process found in this Production Plan."))
-
         next_process = self.env['manufacturing.process'].create({
             'before_manufacturing_process_id': self.id,
             'before_manufacturing_process_type_id': self.manufacturing_process_type_id.id,
-            'manufacturing_process_type_id': next_line.manufacturing_process_type_id.id,
+            'manufacturing_process_type_id': self.next_manufacturing_process_type_id.id,
             'production_plan_id': self.production_plan_id.id,
             'product_model_id': self.product_model_id.id,
             'is_first_process': False,
             'done_lot': False,
         })
-        self.write({'next_manufacturing_process_id': next_process.id})
+        self.write({'next_manufacturing_process_id': next_process.id, 'is_next_process_created': True})
         next_process._onchange_of_product_plan_id()
         next_process.write({
             'lot_ids': [(4, lot_id) for lot_id in self.lot_ids.ids],
@@ -1603,13 +1764,12 @@ class ProductionProcess(models.Model):
             next_process.lot_creation()
 
         return {
-            'name': next_line.manufacturing_process_type_id.name,
+            'name': self.next_manufacturing_process_id.manufacturing_process_type_id.name,
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'manufacturing.process',
             'res_id': next_process.id,
         }
-
 
 
 
@@ -1669,165 +1829,92 @@ class ProductionProcess(models.Model):
             for line in self.component_ids:
                 line.state = self.state
 
+    def _resolve_bom(self):
+        """Common lookup shared by every process branch."""
+        production_operation = self.env['production.operation'].search(
+            [
+                ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                ('production_plan_id', '=', self.production_plan_id.id),
+            ],
+            order='sequence asc',
+            limit=1,
+        )
+        self.operation_id = production_operation.operation_id
+        self.product_model_id = self.production_plan_id.model_id
+        self.bom_id = (
+            production_operation.operation_id.bom_id
+            if production_operation.operation_id.bom_id
+            else self.env['manufacturing.bom'].search([
+                ('product_id', '=', self.product_id.id),
+                ('product_model_id', '=', self.product_model_id.id),
+                ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+            ], limit=1)
+        )
+        return production_operation
+
     @api.onchange('production_plan_id')
     def _onchange_of_product_plan_id(self):
-        if self.production_plan_id:
-            if self.is_first_process:
-                self.product_id = self.production_plan_id.product_id
-                existing_qty = sum(
-                    self.search([
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                        ('is_first_process', '=', True),  # only compare with other first processes
-                        ('id', '!=', self.id),
-                    ]).mapped('remaining_qty')
-                )
-                self.sequence = 1
-                self.manufacturing_process_type_id = self.production_plan_id.first_process_type_id  # fix 1: removed .id
+        if not self.production_plan_id:
+            return
 
-                production_operation = self.env['production.operation'].search(
-                    [('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                     ('production_plan_id', '=', self.production_plan_id.id)], limit=1)
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = self.production_plan_id.expected_production_qty - existing_qty
-                if not self.bom_id:
-                    self.component_ids = False
-            elif self.is_sub_process:
-                self.product_id = self.production_plan_id.product_id
-                production_operation = self.env['production.operation'].search(
-                    [
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                    ],
-                    order='sequence asc',
-                    limit=1
-                )
-                self.sequence = 1 + self.sequence
-                self.before_manufacturing_process_id.is_sub_process_created = True
-                self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = len(self.main_manufacturing_process_id.sub_process_lot_ids)
-            elif self.before_manufacturing_process_id.is_split_process and self.is_voltage_process:
-                self.product_id = self.production_plan_id.product_id
-                production_operation = self.env['production.operation'].search(
-                    [
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                    ],
-                    order='sequence asc',
-                    limit=1
-                )
-                self.sequence = 1 + self.sequence
-                self.before_manufacturing_process_id.is_next_process_created = True
-                self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = len(self.before_manufacturing_process_id.voltage_lot_ids)
+        self.product_id = self.production_plan_id.product_id
+        before = self.before_manufacturing_process_id
 
-            elif self.before_manufacturing_process_id.is_split_process and self.is_capacity_process:
-                self.product_id = self.production_plan_id.product_id
-                production_operation = self.env['production.operation'].search(
-                    [
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                    ],
-                    order='sequence asc',
-                    limit=1
-                )
-                self.sequence = 1 + self.sequence
-                self.before_manufacturing_process_id.is_next_process_created = True
-                self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = len(self.before_manufacturing_process_id.capacity_lot_ids)
-            elif self.before_manufacturing_process_id.is_split_process and self.is_packing_process:
-                self.product_id = self.production_plan_id.product_id
-                production_operation = self.env['production.operation'].search(
-                    [
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                    ],
-                    order='sequence asc',
-                    limit=1
-                )
-                self.sequence = 1 + self.sequence
-                self.before_manufacturing_process_id.is_next_process_created = True
-                self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = len(self.before_manufacturing_process_id.packing_lot_ids)
+        if self.is_first_process:
+            # first process compares only against other first processes
+            existing_qty = sum(
+                self.search([
+                    ('production_plan_id', '=', self.production_plan_id.id),
+                    ('is_first_process', '=', True),
+                    ('id', '!=', self.id),
+                ]).mapped('remaining_qty')
+            )
+            self.sequence = 1
+            self.manufacturing_process_type_id = self.production_plan_id.first_process_type_id
+
+            production_operation = self.env['production.operation'].search(
+                [('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                 ('production_plan_id', '=', self.production_plan_id.id)], limit=1)
+            self.operation_id = production_operation.operation_id
+            self.product_model_id = self.production_plan_id.model_id
+            self.bom_id = (
+                production_operation.operation_id.bom_id
+                if production_operation.operation_id.bom_id
+                else self.env['manufacturing.bom'].search([
+                    ('product_id', '=', self.product_id.id),
+                    ('product_model_id', '=', self.product_model_id.id),
+                    ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
+                ], limit=1)
+            )
+            self.product_qty = self.production_plan_id.expected_production_qty - existing_qty
+            if not self.bom_id:
+                self.component_ids = False
+
+        elif self.is_sub_process:
+            production_operation = self._resolve_bom()
+            self.sequence = 1 + self.sequence
+            before.is_sub_process_created = True
+            self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id
+            self.operation_id = production_operation.operation_id  # kept: refreshed after type change
+            self.product_qty = len(self.main_manufacturing_process_id.sub_process_lot_ids)
+
+        else:
+            # every remaining branch shares the same skeleton; only product_qty differs
+            production_operation = self._resolve_bom()
+            self.sequence = 1 + self.sequence
+            self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id
+            self.operation_id = production_operation.operation_id
+
+            if before.is_split_process and before.manufacturing_split_process1_id.id == self._origin.id:
+                self.product_qty = len(before.voltage_lot_ids)
+            elif before.is_split_process and before.manufacturing_split_process2_id.id == self._origin.id:
+                self.product_qty = len(before.capacity_lot_ids)
+            elif before.is_split_process and before.next_manufacturing_process_type_id == self.manufacturing_process_type_id:
+                self.product_qty = len(before.packing_lot_ids)
             else:
-                self.product_id = self.production_plan_id.product_id
-                production_operation = self.env['production.operation'].search(
-                    [
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                        ('production_plan_id', '=', self.production_plan_id.id),
-                    ],
-                    order='sequence asc',
-                    limit=1
-                )
-                self.sequence = 1 + self.sequence
-                self.before_manufacturing_process_id.is_next_process_created = True
-                self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id  # fix 1: was self.next_manufacturing_process_id
-                self.operation_id = production_operation.operation_id
-                self.product_model_id = self.production_plan_id.model_id
-                self.bom_id = (
-                    production_operation.operation_id.bom_id
-                    if production_operation.operation_id.bom_id
-                    else self.env['manufacturing.bom'].search([
-                        ('product_id', '=', self.product_id.id),
-                        ('product_model_id', '=', self.product_model_id.id),
-                        ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                    ], limit=1)
-                )
-                self.product_qty = self.before_manufacturing_process_id.remaining_qty
-            self._onchange_of_operation()
+                self.product_qty = before.remaining_qty
+
+        self._onchange_of_operation()
 
     @api.onchange('manufacturing_process_type_id')
     def _onchange_of_operation_type(self):
@@ -1838,22 +1925,6 @@ class ProductionProcess(models.Model):
 
     @api.onchange('operation_id')
     def _onchange_of_operation(self):
-        # if self.operation_id and self.before_manufacturing_process_id.is_split_process:
-        #     production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-        #     self.product_id = self.operation_id.product_id.id
-        #     self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
-        #     self.location_dest_id = self.operation_id.location_dest_id.id
-        #     self.production_location_id = production_location.id
-        #     self.bom_id = self.operation_id.bom_id.id
-        #     if self.allow_lot_create:
-        #         self.product_id.write({
-        #             'tracking': 'serial',
-        #         })
-        #     else:
-        #         self.product_id.write({
-        #             'tracking': 'none',
-        #         })
-
         if self.operation_id and self.is_sub_process:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
             # self.product_id = self.operation_id.product_id.id
@@ -1869,21 +1940,7 @@ class ProductionProcess(models.Model):
                 self.product_id.write({
                     'tracking': 'none',
                 })
-        # elif self.operation_id and self.before_manufacturing_process_id.is_packing_process_next:
-        #     production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-        #     self.product_id = self.operation_id.product_id.id
-        #     self.location_src_id = self.before_manufacturing_process_id.location_dest_id.id
-        #     self.location_dest_id = self.operation_id.location_dest_id.id
-        #     self.production_location_id = production_location.id
-        #     self.bom_id = self.operation_id.bom_id.id
-        #     if self.allow_lot_create:
-        #         self.product_id.write({
-        #             'tracking': 'serial',
-        #         })
-        #     else:
-        #         self.product_id.write({
-        #             'tracking': 'none',
-        #         })
+
         elif self.operation_id:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
             # self.product_id = self.operation_id.product_id.id
@@ -1926,6 +1983,7 @@ class ProductionProcess(models.Model):
             return
 
         child_records = []
+        before = self.before_manufacturing_process_id
 
         if self.is_first_process:
             for line in self.bom_id.bom_line_ids:
@@ -1954,8 +2012,8 @@ class ProductionProcess(models.Model):
                     'production_plan_id': self.production_plan_id.id,
                     'manufacturing_process_id': self._origin.id or False,
                 }))
-        elif self.before_manufacturing_process_id.is_split_process and self.is_voltage_process:
-            # Use remaining_qty from before process instead of product_qty ratio
+
+        elif before.is_split_process and before.process_type1_id == self.manufacturing_process_type_id:
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
                     'product_id': line.product_id.id,
@@ -1964,12 +2022,12 @@ class ProductionProcess(models.Model):
                     'location_src_id': self.location_src_id.id,
                     'location_dest_id': self.location_dest_id.id,
                     'name': line.product_id.name,
-                    'product_qty':len(self.before_manufacturing_process_id.voltage_lot_ids),
+                    'product_qty': len(before.voltage_lot_ids),
                     'production_plan_id': self.production_plan_id.id,
                     'manufacturing_process_id': self._origin.id or False,
                 }))
-        elif self.before_manufacturing_process_id.is_split_process and self.is_capacity_process:
-            # Use remaining_qty from before process instead of product_qty ratio
+
+        elif before.is_split_process and before.process_type2_id == self.manufacturing_process_type_id:
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
                     'product_id': line.product_id.id,
@@ -1978,12 +2036,12 @@ class ProductionProcess(models.Model):
                     'location_src_id': self.location_src_id.id,
                     'location_dest_id': self.location_dest_id.id,
                     'name': line.product_id.name,
-                    'product_qty': len(self.before_manufacturing_process_id.capacity_lot_ids),
+                    'product_qty': len(before.capacity_lot_ids),
                     'production_plan_id': self.production_plan_id.id,
                     'manufacturing_process_id': self._origin.id or False,
                 }))
-        elif self.before_manufacturing_process_id.is_split_process and self.is_packing_process:
-            # Use remaining_qty from before process instead of product_qty ratio
+
+        elif before.is_split_process and before.next_manufacturing_process_type_id == self.manufacturing_process_type_id:
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
                     'product_id': line.product_id.id,
@@ -1992,19 +2050,13 @@ class ProductionProcess(models.Model):
                     'location_src_id': self.location_src_id.id,
                     'location_dest_id': self.location_dest_id.id,
                     'name': line.product_id.name,
-                    'product_qty': len(self.before_manufacturing_process_id.packing_lot_ids),
+                    'product_qty': len(before.packing_lot_ids),
                     'production_plan_id': self.production_plan_id.id,
                     'manufacturing_process_id': self._origin.id or False,
                 }))
+
         else:
-            all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-            get_voltage_process = all_lines.filtered(
-                lambda x: x.manufacturing_process_type_id.is_voltage_process == True)
-            get_capacity_process = all_lines.filtered(
-                lambda x: x.manufacturing_process_type_id.is_capacity_process == True)  # FIXED
-            self.capacity_dest_location_id = get_capacity_process.operation_id.location_src_id.id  # FIXED (was get_voltage_process)
-            self.voltage_dest_location_id = get_voltage_process.operation_id.location_src_id.id  # FIXED (was get_capacity_process)
-            remaining_qty = self.before_manufacturing_process_id.remaining_qty
+            remaining_qty = before.remaining_qty
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
                     'product_id': line.product_id.id,
@@ -2286,9 +2338,9 @@ class ProductionProcess(models.Model):
         # gets populated too as the "remaining" serials.
         for rec in self:
             if rec.is_split_process:
-                if rec.enable_capacity_test:
+                if rec.process_type1_id:
                     rec.action_create_capacity_lot()
-                if rec.enable_ocv_ir:
+                if rec.process_type2_id:
                     rec.action_create_voltage_lot()
 
         for rec in self:
@@ -2444,38 +2496,18 @@ class ProductionProcess(models.Model):
 
         for rec in self:
             all_lines = rec.production_plan_id.operation_ids.sorted('sequence')
-            current_line = all_lines.filtered(
-                lambda x: x.manufacturing_process_type_id == rec.manufacturing_process_type_id
+            # Next process = the operation line whose source location matches
+            # this process's destination location. Same rule for every process
+            # (split, branch, or normal).
+            next_op_line = all_lines.filtered(
+                lambda x: x.operation_id.location_src_id.id == rec.location_dest_id.id
             )[:1]
-            # if not rec.allow_lot_create:
-            #     existing_qty = sum(
-            #         self.env['manufacturing.process'].search([
-            #             ('production_plan_id', '=', rec.production_plan_id.id),
-            #             ('id', '!=', rec.id),
-            #         ]).mapped('remaining_qty')
-            #     )
 
-            next_line = all_lines.filtered(
-                lambda x: (x.sequence, x.id) > (current_line.sequence, current_line.id)
-            ).sorted(key=lambda x: (x.sequence, x.id))[:1]
-
-            if next_line and not self.is_split_process and rec.is_packing_process_next:
-                all_lines = self.production_plan_id.operation_ids.sorted('sequence')
-                current_line = all_lines.filtered(
-                    lambda x: x.manufacturing_process_type_id.is_packing_process == True)
-                if not current_line:
-                    raise UserError('Before Complete this Process Please Tick the IS Packing Process in Manufacturing Process')
-                rec.next_manufacturing_process_type_id = current_line.manufacturing_process_type_id
-                rec.next_manufacturing_process_id = rec.id
-
-            elif next_line and not self.is_split_process:
-                rec.next_manufacturing_process_type_id = next_line.manufacturing_process_type_id
-                rec.next_manufacturing_process_id = rec.id
-
+            if next_op_line:
+                rec.next_manufacturing_process_type_id = next_op_line.manufacturing_process_type_id.id
             else:
                 rec.next_manufacturing_process_id = False
                 rec.next_manufacturing_process_type_id = False
-
             for serial in rec.lot_ids:
                 if serial.lot_id:
                     quants = self.env['stock.quant'].sudo().search([

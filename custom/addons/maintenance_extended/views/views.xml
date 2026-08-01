@@ -391,7 +391,9 @@
         <field name="arch" type="xml">
             <field name="maintenance_kind_id" position="after">
                 <field name="schedule_date" readonly="1"/>
+                <field name="user_ids" widget="many2many_tags" readonly="1"/>
             </field>
+
             <field name="maintenance_kind_id" position="attributes">
                 <attribute name="readonly">not is_draft_state</attribute>
             </field>
@@ -452,6 +454,12 @@
             <field name="schedule_end" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
+            <field name="name" position="before">
+                <field name="sequence" readonly="1"/>
+            </field>
+            <field name="name" position="attributes">
+                <attribute name="nolabel">1</attribute>
+            </field>
             <field name="email_cc" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
@@ -505,10 +513,10 @@
                 <attribute name="readonly">not is_draft_state</attribute>
                 <attribute name="invisible">is_calibration</attribute>
             </field>
-<!--            <field name="category_id" position="attributes">-->
-<!--                <attribute name="readonly">not is_draft_state</attribute>-->
-<!--                <attribute name="invisible">is_calibration</attribute>-->
-<!--            </field>-->
+            <!--            <field name="category_id" position="attributes">-->
+            <!--                <attribute name="readonly">not is_draft_state</attribute>-->
+            <!--                <attribute name="invisible">is_calibration</attribute>-->
+            <!--            </field>-->
             <field name="maintenance_type" position="attributes">
                 <attribute name="readonly">1</attribute>
             </field>
@@ -516,7 +524,7 @@
                 <attribute name="readonly">not is_draft_state</attribute>
             </field>
             <field name="user_id" position="attributes">
-                <attribute name="readonly">not is_draft_state</attribute>
+                <attribute name="invisible">1</attribute>
             </field>
             <field name="schedule_date" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -536,7 +544,20 @@
             </field>
         </field>
     </record>
+    <record id="equipment_request_kanban_inherit_sequence" model="ir.ui.view">
+        <field name="name">equipment.request.kanban.inherit.sequence</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_kanban"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="sequence" class="fw-bold fs-6"/>
+            </field>
 
+            <field name="user_id" position="replace">
+                <field name="user_ids" widget="many2many_avatar_user" class="ms-1"/>
+            </field>
+        </field>
+    </record>
     <record id="maintenance_plan.maintenance_plan_action" model="ir.actions.act_window">
         <field name="domain">[('is_calibration', '=', False)]</field>
     </record>
@@ -562,7 +583,20 @@
             </list>
         </field>
     </record>
-
+    <record id="equipment_request_list_inherit_done_by" model="ir.ui.view">
+        <field name="name">equipment.request.list.inherit.done.by</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="replace">
+                <field name="create_uid"/>
+                <field name="user_ids" widget="many2many_tags" string="Done By"/>
+            </field>
+            <field name="employee_id" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+        </field>
+    </record>
     <record id="calibration_plan_action" model="ir.actions.act_window">
         <field name="name">Calibration plans</field>
         <field name="res_model">maintenance.plan</field>
@@ -639,4 +673,16 @@
         <field name="name">Maintenance Requests Analysis</field>
         <field name="action" ref="maintenance_extended.action_maintenance_dashboard"/>
     </record>
+
+    <record id="action_breakdown_dashboard" model="ir.actions.client">
+        <field name="name">Breakdown Requests Analysis</field>
+        <field name="tag">breakdown_request_dashboard.dashboard</field>
+    </record>
+
+    <!-- Sibling of the Maintenance Requests Analysis menu, shown right after it -->
+    <menuitem id="menu_breakdown_request_reporting"
+              name="Breakdown Requests Analysis"
+              parent="maintenance.maintenance_reporting"
+              action="action_breakdown_dashboard"
+              sequence="10"/>
 </odoo>

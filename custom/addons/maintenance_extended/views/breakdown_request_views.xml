@@ -8,7 +8,7 @@
                     <!-- Request: only in draft AND only for the requester -->
                     <button name="action_request" string="Breakdown Request" type="object"
                             class="btn-primary"
-                            invisible="state != 'draft' or requested_user_id != uid"/>
+                            invisible="state != 'draft'"/>
                     <!-- Complete: only maintenance user, in request state -->
                     <button name="action_done" string="Breakdown Complete" type="object"
                             class="btn-success"
@@ -34,12 +34,14 @@
                             <field name="shift_id" required="state == 'draft'"
                                    readonly="state != 'draft'"/>
                             <field name="problem_category" readonly="1"/>
+                            <field name="engineer_name" readonly="state != 'draft'" required="state == 'draft'"/>
                         </group>
                         <group>
                             <field name="priority" widget="priority" readonly="state != 'draft'"
                                    required="state == 'draft'"/>
                             <field name="requested_user_id" readonly="state != 'draft'" required="state == 'draft'"/>
                             <field name="requested_time" readonly="state != 'draft'" required="state == 'draft'"/>
+                            <field name="operated_by" readonly="state != 'draft'" required="state == 'draft'"/>
                         </group>
                     </group>
                     <separator string="Problem Description"/>

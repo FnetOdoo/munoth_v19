@@ -22,6 +22,8 @@ class BreakdownRequest(models.Model):
     requested_user_id = fields.Many2one('res.users', string='Requested By')
     requested_time = fields.Datetime(string='Requested Time',default=fields.Datetime.now)
     state = fields.Selection([('draft', 'Draft'), ('request', 'Requested'),('done', 'Closed')],default='draft', string='Status', tracking=True)
+    engineer_name = fields.Char('Engineer Name')
+    operated_by = fields.Char('Operated By')
 
     # Filled by the maintenance user
     attended_by = fields.Many2one('res.users', string='Attended By')

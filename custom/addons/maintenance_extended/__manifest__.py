@@ -23,6 +23,7 @@
         'datas/sequence.xml',
         'datas/crons.xml',
         'views/views.xml',
+        'views/res_config_settings.xml',
         'views/engineering_change_request.xml',
         'views/work_order_view.xml',
         'views/material_request.xml',

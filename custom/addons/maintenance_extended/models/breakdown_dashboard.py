@@ -40,13 +40,16 @@ class BreakdownRequest(models.Model):
         filters = filters or {}
         today = fields.Date.context_today(self)
         month_start = today.replace(day=1)
-
         start = filters.get('start') or str(month_start)
         end = filters.get('end') or str(today)
 
         date_domain = self._breakdown_date_domain(start, end)
 
-        request_domain = [('state', '=', REQUEST_STATE)] + date_domain
+        # "Requested" = everything requested in this period, regardless of
+        # current state (so the count doesn't shrink when a record moves on)
+        request_domain = date_domain
+
+        # "Closed" = of those, how many have moved to done
         done_domain = [('state', '=', DONE_STATE)] + date_domain
 
         request_ids = self.search(request_domain).ids

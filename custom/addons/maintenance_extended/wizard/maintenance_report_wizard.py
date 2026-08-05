@@ -121,8 +121,8 @@ class MaintenanceReportWizard(models.TransientModel):
             request.maintenance_type, request.maintenance_type or '')
 
     def _request_kind(self, request):
-        if 'maintenance_kind_id' in request._fields and request.maintenance_kind_id:
-            return str(request.maintenance_kind_id.name)
+        if 'maintenance_kind' in request._fields and request.maintenance_kind:
+            return str(request.maintenance_kind)
         return ''
 
     def _request_done_by(self, request):
@@ -131,6 +131,8 @@ class MaintenanceReportWizard(models.TransientModel):
         return ''
 
     def _request_state_key(self, request):
+        if getattr(request, 'is_cancel_state', False):
+            return 'cancel'
         if getattr(request, 'done', False):
             return 'done'
         if getattr(request, 'is_progress_state', False):
@@ -145,6 +147,10 @@ class MaintenanceReportWizard(models.TransientModel):
     def action_generate_report(self):
         self.ensure_one()
         requests = self._get_requests()
+
+        # Document number configured in Settings (Manufacturing > Maintenance),
+        # stored on the company as pm_document_no.
+        doc_no = self.env.company.pm_document_no or ''
 
         buffer = io.BytesIO()
         workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
@@ -190,9 +196,35 @@ class MaintenanceReportWizard(models.TransientModel):
         req_head_fmt = header_fmt(C_HEAD, '#4C9069')
         wo_head_fmt = header_fmt(C_WO, '#4A9099')
         total_fmt = F({'bold': True, 'font_size': 11, 'font_color': '#FFFFFF',
-                       'bg_color': C_TITLE, 'align': 'right',
+                       'bg_color': '#4472B4', 'align': 'right',
                        'valign': 'vcenter', 'border': 1,
-                       'border_color': C_TITLE})
+                       'border_color': '#365F9E'})
+        total_alt_fmt = F({'bold': True, 'font_size': 11,
+                           'font_color': '#22303F', 'bg_color': '#E9EFF8',
+                           'align': 'right', 'valign': 'vcenter',
+                           'border': 1, 'border_color': '#C7D6EC'})
+        doc_fmt = F({'bold': True, 'font_size': 10, 'font_color': '#FFFFFF',
+                     'bg_color': C_TITLE, 'align': 'right',
+                     'valign': 'vcenter', 'indent': 1})
+        total_val_fmt = F({'bold': True, 'font_size': 11,
+                           'font_color': '#FFFFFF', 'bg_color': '#4472B4',
+                           'align': 'center', 'valign': 'vcenter',
+                           'border': 1, 'border_color': '#365F9E'})
+
+        def total_line(ws, last, val_col, label_text, value_text, r):
+            """One total row: label on the left, the duration value placed
+            in its own column (val_col)."""
+            ws.set_row(r, 20)
+            if val_col > 0:
+                ws.merge_range(r, 0, r, val_col - 1, label_text, total_fmt)
+            else:
+                ws.write(r, 0, label_text, total_fmt)
+            ws.write(r, val_col, value_text, total_val_fmt)
+            if last == val_col + 1:
+                ws.write_blank(r, last, None, total_fmt)
+            elif last > val_col:
+                ws.merge_range(r, val_col + 1, r, last, '', total_fmt)
+            return r + 1
 
         def data_cell(alt):
             return F({'font_size': 10, 'valign': 'vcenter', 'align': 'center',
@@ -233,9 +265,16 @@ class MaintenanceReportWizard(models.TransientModel):
             for i, (_label, w) in enumerate(columns):
                 ws.set_column(i, i, w)
             last = len(columns) - 1
+            side = 3 if last >= 7 else 2      # columns reserved each side
             ws.set_row(0, 26)
-            ws.merge_range(0, 0, 0, last,
+            # left spacer keeps the title centred
+            ws.merge_range(0, 0, 0, side - 1, '', title_fmt)
+            # centred report title
+            ws.merge_range(0, side, 0, last - side,
                            'Preventive Maintenance Report', title_fmt)
+            # document number at the right corner
+            ws.merge_range(0, last - side + 1, 0, last,
+                           'Document No : %s' % (doc_no or '-'), doc_fmt)
             ws.set_row(1, 18)
             ws.merge_range(1, 0, 1, last, period, subtitle_fmt)
             ws.set_row(3, 26)
@@ -286,9 +325,11 @@ class MaintenanceReportWizard(models.TransientModel):
                 else:
                     s1.write(row, i1[label], values[label], cell[alt])
             row += 1
-        s1.set_row(row, 20)
-        s1.merge_range(row, 0, row, last1,
-                       'Total Requests : %s' % len(requests), total_fmt)
+        total_req_dur = sum(r.duration or 0.0 for r in requests)
+        row = total_line(
+            s1, last1, i1['Duration (Hours)'],
+            'Total Requests : %s' % len(requests),
+            self._fmt_duration(total_req_dur), row)
 
         # ==============================================================
         # SHEET 2 - Work Orders (all form-view fields except Materials)
@@ -347,9 +388,11 @@ class MaintenanceReportWizard(models.TransientModel):
                               'valign': 'vcenter', 'border': 1,
                               'border_color': BORDER}))
             row += 1
-        s2.set_row(row, 20)
-        s2.merge_range(row, 0, row, last2,
-                       'Total Work Orders : %s' % len(wo_pairs), total_fmt)
+        total_wo_dur = sum((wo.duration or 0.0) for _req, wo in wo_pairs)
+        row = total_line(
+            s2, last2, i2['Duration (Hours)'],
+            'Total Work Order : %s' % len(wo_pairs),
+            self._fmt_duration(total_wo_dur), row)
 
         workbook.close()
         buffer.seek(0)
@@ -369,11 +412,11 @@ class MaintenanceReportWizard(models.TransientModel):
         }
 
     # ==================================================================
-    # BREAKDOWN REPORT  (add these methods inside maintenance.report.wizard)
+    # BREAKDOWN REPORT
     # ==================================================================
     def _get_breakdown_requests(self):
-        """All breakdown requests created on/after Start Date and
-        on/before End Date, in every state (no state filter)."""
+        """All breakdown requests created within the selected date range,
+        in every state (no state filter)."""
         self.ensure_one()
         domain = [
             ('create_date', '>=', f'{self.start_date} 00:00:00'),
@@ -390,9 +433,28 @@ class MaintenanceReportWizard(models.TransientModel):
             return ''
         return dict(Request._fields[fname].selection).get(value, value)
 
+    def _breakdown_downtime_hours(self, request):
+        """Down time of a breakdown request in float hours (for totals).
+        Prefers a numeric field; falls back to parsing 'H:MM' display."""
+        for fname in ('duration', 'down_time', 'downtime',
+                      'duration_hours', 'total_downtime'):
+            if fname in request._fields:
+                value = request[fname]
+                if isinstance(value, (int, float)):
+                    return float(value)
+        disp = ''
+        if 'duration_display' in request._fields:
+            disp = (request.duration_display or '').strip()
+        if ':' in disp:
+            try:
+                h, m = disp.split(':')[:2]
+                return int(h) + int(m) / 60.0
+            except Exception:
+                return 0.0
+        return 0.0
+
     def _breakdown_columns(self):
-        """Column spec: (Header, width, getter). Every field on the
-        breakdown form. Missing fields are skipped automatically."""
+        """Column spec: (Header, width, getter). Missing fields skipped."""
         Request = self.env['breakdown.request']
 
         def has(fname):
@@ -411,11 +473,10 @@ class MaintenanceReportWizard(models.TransientModel):
              lambda r: r.problem_description or ''),
             ('Requested By', 20,
              lambda r: r.requested_user_id.display_name or ''),
-            ('Requested Time', 18,lambda r: self._fmt_dt(r.requested_time)),
+            ('Requested Time', 18, lambda r: self._fmt_dt(r.requested_time)),
             ('Engineer Name', 20, lambda r: r.engineer_name or ''),
             ('Operated By', 20, lambda r: r.operated_by or ''),
-            ('Attended By', 20,
-             lambda r: r.attended_by.display_name or ''),
+            ('Attended By', 20, lambda r: r.attended_by.display_name or ''),
             ('Root Cause', 30, lambda r: r.root_cause or ''),
             ('Corrective Action', 30, lambda r: r.corrective or ''),
             ('Permanent Solution', 14,
@@ -424,7 +485,6 @@ class MaintenanceReportWizard(models.TransientModel):
             ('End Date', 18, lambda r: self._fmt_dt(r.end_date)),
             ('Down Time', 14, lambda r: r.duration_display or ''),
         ]
-        # Optional Many2many "Done By" — only if the field is present.
         if has('user_ids'):
             columns.append(
                 ('Done By', 24,
@@ -441,14 +501,22 @@ class MaintenanceReportWizard(models.TransientModel):
         self.ensure_one()
         requests = self._get_breakdown_requests()
 
+        # Breakdown document number configured in Settings.
+        br_doc_no = self.env.company.br_document_no or ''
+
         buffer = io.BytesIO()
         workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
         sheet = workbook.add_worksheet('Breakdown')
 
-        # ---- Formats: same blue/green theme as the PM report ----------
+        # ---- Formats --------------------------------------------------
         title_fmt = workbook.add_format({
             'bold': True, 'font_size': 16, 'font_color': '#FFFFFF',
             'bg_color': '#3B7DDD', 'align': 'center', 'valign': 'vcenter',
+            'border': 1, 'border_color': '#2A5DA8',
+        })
+        doc_fmt = workbook.add_format({
+            'bold': True, 'font_size': 11, 'font_color': '#FFFFFF',
+            'bg_color': '#3B7DDD', 'align': 'right', 'valign': 'vcenter',
             'border': 1, 'border_color': '#2A5DA8',
         })
         subtitle_fmt = workbook.add_format({
@@ -479,9 +547,32 @@ class MaintenanceReportWizard(models.TransientModel):
         })
         total_fmt = workbook.add_format({
             'bold': True, 'font_size': 10, 'font_color': '#FFFFFF',
-            'bg_color': '#37474F', 'align': 'right', 'valign': 'vcenter',
-            'border': 1,
+            'bg_color': '#4472B4', 'align': 'right', 'valign': 'vcenter',
+            'border': 1, 'border_color': '#365F9E',
         })
+        total_alt_fmt = workbook.add_format({
+            'bold': True, 'font_size': 10, 'font_color': '#37474F',
+            'bg_color': '#E8F1FC', 'align': 'right', 'valign': 'vcenter',
+            'border': 1, 'border_color': '#B9D3F2',
+        })
+        total_val_fmt = workbook.add_format({
+            'bold': True, 'font_size': 10, 'font_color': '#FFFFFF',
+            'bg_color': '#4472B4', 'align': 'center', 'valign': 'vcenter',
+            'border': 1, 'border_color': '#365F9E',
+        })
+
+        def total_line(ws, last, val_col, label_text, value_text, r):
+            ws.set_row(r, 20)
+            if val_col > 0:
+                ws.merge_range(r, 0, r, val_col - 1, label_text, total_fmt)
+            else:
+                ws.write(r, 0, label_text, total_fmt)
+            ws.write(r, val_col, value_text, total_val_fmt)
+            if last == val_col + 1:
+                ws.write_blank(r, last, None, total_fmt)
+            elif last > val_col:
+                ws.merge_range(r, val_col + 1, r, last, '', total_fmt)
+            return r + 1
 
         columns = self._breakdown_columns()
         last_col = len(columns) - 1
@@ -494,10 +585,14 @@ class MaintenanceReportWizard(models.TransientModel):
             i for i, c in enumerate(columns) if c[0] in center_headers
         }
 
-        # ---- Title & subtitle -----------------------------------------
+        # ---- Title (centred) + Document No at right corner ------------
         sheet.set_row(0, 28)
-        sheet.merge_range(0, 0, 0, last_col,
+        side = 3 if last_col >= 7 else 2
+        sheet.merge_range(0, 0, 0, side - 1, '', title_fmt)
+        sheet.merge_range(0, side, 0, last_col - side,
                           'Breakdown Request Report', title_fmt)
+        sheet.merge_range(0, last_col - side + 1, 0, last_col,
+                          'Document No : %s' % (br_doc_no or '-'), doc_fmt)
         sheet.set_row(1, 18)
         sheet.merge_range(
             1, 0, 1, last_col,
@@ -506,7 +601,7 @@ class MaintenanceReportWizard(models.TransientModel):
                 self.end_date.strftime('%d/%m/%Y')),
             subtitle_fmt)
 
-        # ---- Header row -------------------------------------------------
+        # ---- Header row -----------------------------------------------
         header_row = 3
         sheet.set_row(header_row, 24)
         for col, (label, width, _getter) in enumerate(columns):
@@ -514,7 +609,7 @@ class MaintenanceReportWizard(models.TransientModel):
             sheet.write(header_row, col, label, header_fmt)
         sheet.freeze_panes(header_row + 1, 0)
 
-        # ---- Data rows (alternating band colors) ------------------------
+        # ---- Data rows ------------------------------------------------
         row = header_row + 1
         for index, request in enumerate(requests, start=1):
             banded = index % 2 == 0
@@ -531,9 +626,14 @@ class MaintenanceReportWizard(models.TransientModel):
                     sheet.write(row, col, value, text_fmt)
             row += 1
 
-        # ---- Total row ---------------------------------------------------
-        sheet.merge_range(row, 0, row, last_col,
-                          'Total Requests: %s' % len(requests), total_fmt)
+        # ---- Total: BR count + down time under the Down Time column ----
+        dt_col = next((i for i, c in enumerate(columns)
+                       if c[0] == 'Down Time'), last_col)
+        total_dt = sum(self._breakdown_downtime_hours(r) for r in requests)
+        row = total_line(
+            sheet, last_col, dt_col,
+            'Total Breakdown Requests : %s' % len(requests),
+            self._fmt_duration(total_dt), row)
 
         workbook.close()
         buffer.seek(0)

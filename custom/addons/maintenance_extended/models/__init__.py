@@ -7,3 +7,4 @@ from . import maintenance_dashboard
 from . import maintenance_instrument
 from . import breakdown_request
 from . import breakdown_dashboard
+from . import res_config_settings

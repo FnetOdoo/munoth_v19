@@ -28,11 +28,12 @@ class MaintenanceRequest(models.Model):
     def _get_dashboard_domains(self):
         """Base stage domains for the dashboard."""
         return {
-            'open': [('stage_id.is_draft_state', '=', True)],
-            'progress': [('stage_id.is_progress_state', '=', True)],   # NEW
+            # static: every request in the window (all start as draft),
+            # so the count does NOT drop when draft moves to in-progress/done
+            'open': [],
+            'progress': [('stage_id.is_progress_state', '=', True)],
             'done': [('stage_id.done', '=', True)],
         }
-
     @api.model
     def _dashboard_date_domain(self, start_field, end_field,
                                date_start, date_end):

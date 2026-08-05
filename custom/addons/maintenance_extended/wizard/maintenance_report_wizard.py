@@ -212,18 +212,35 @@ class MaintenanceReportWizard(models.TransientModel):
                            'border': 1, 'border_color': '#365F9E'})
 
         def total_line(ws, last, val_col, label_text, value_text, r):
-            """One total row: label on the left, the duration value placed
-            in its own column (val_col)."""
+            """One total row pinned to the right corner: a plain filler spans
+            the empty left area, then a compact label block and value block
+            sit together at the right edge. No big empty stretch in between.
+
+            (val_col is kept in the signature for call-site compatibility but
+            is no longer used for placement.)"""
             ws.set_row(r, 20)
-            if val_col > 0:
-                ws.merge_range(r, 0, r, val_col - 1, label_text, total_fmt)
+            # width (in columns) reserved for the label and value blocks
+            val_span = 3
+            label_span = 4
+            val_start = last - val_span + 1
+            label_start = val_start - label_span
+            if label_start < 0:
+                label_start = 0
+            # left filler
+            if label_start >= 1:
+                ws.merge_range(r, 0, r, label_start - 1, '', total_fmt)
+            # label block
+            if val_start - 1 >= label_start + 1:
+                ws.merge_range(r, label_start, r, val_start - 1,
+                               label_text, total_fmt)
             else:
-                ws.write(r, 0, label_text, total_fmt)
-            ws.write(r, val_col, value_text, total_val_fmt)
-            if last == val_col + 1:
-                ws.write_blank(r, last, None, total_fmt)
-            elif last > val_col:
-                ws.merge_range(r, val_col + 1, r, last, '', total_fmt)
+                ws.write(r, label_start, label_text, total_fmt)
+            # value block at the corner
+            if last >= val_start + 1:
+                ws.merge_range(r, val_start, r, last,
+                               value_text, total_val_fmt)
+            else:
+                ws.write(r, val_start, value_text, total_val_fmt)
             return r + 1
 
         def data_cell(alt):
@@ -327,8 +344,9 @@ class MaintenanceReportWizard(models.TransientModel):
         total_req_dur = sum(r.duration or 0.0 for r in requests)
         row = total_line(
             s1, last1, i1['Duration (Hours)'],
-            'Total Requests : %s    Total Duration' % len(requests),
-            self._fmt_duration(total_req_dur), row)
+            'Total Requests : %s' % len(requests),
+            'Total Duration : %s' % self._fmt_duration(total_req_dur), row)
+
         # ==============================================================
         # SHEET 2 - Work Orders (all form-view fields except Materials)
         # ==============================================================
@@ -387,10 +405,15 @@ class MaintenanceReportWizard(models.TransientModel):
                               'border_color': BORDER}))
             row += 1
         total_wo_dur = sum((wo.duration or 0.0) for _req, wo in wo_pairs)
+
         row = total_line(
-            s1, last1, i1['Duration (Hours)'],
-            'Total Requests : %s' % len(requests),
-            'Total Duration : %s' % self._fmt_duration(total_req_dur), row)
+            s2,
+            last2,
+            i2['Duration (Hours)'],
+            'Total Work Orders : %s' % len(wo_pairs),
+            'Total Duration : %s' % self._fmt_duration(total_wo_dur),
+            row
+        )
 
         workbook.close()
         buffer.seek(0)
@@ -559,16 +582,35 @@ class MaintenanceReportWizard(models.TransientModel):
         })
 
         def total_line(ws, last, val_col, label_text, value_text, r):
+            """One total row pinned to the right corner: a plain filler spans
+            the empty left area, then a compact label block and value block
+            sit together at the right edge. No big empty stretch in between.
+
+            (val_col is kept in the signature for call-site compatibility but
+            is no longer used for placement.)"""
             ws.set_row(r, 20)
-            if val_col > 0:
-                ws.merge_range(r, 0, r, val_col - 1, label_text, total_fmt)
+            # width (in columns) reserved for the label and value blocks
+            val_span = 3
+            label_span = 4
+            val_start = last - val_span + 1
+            label_start = val_start - label_span
+            if label_start < 0:
+                label_start = 0
+            # left filler
+            if label_start >= 1:
+                ws.merge_range(r, 0, r, label_start - 1, '', total_fmt)
+            # label block
+            if val_start - 1 >= label_start + 1:
+                ws.merge_range(r, label_start, r, val_start - 1,
+                               label_text, total_fmt)
             else:
-                ws.write(r, 0, label_text, total_fmt)
-            ws.write(r, val_col, value_text, total_val_fmt)
-            if last == val_col + 1:
-                ws.write_blank(r, last, None, total_fmt)
-            elif last > val_col:
-                ws.merge_range(r, val_col + 1, r, last, '', total_fmt)
+                ws.write(r, label_start, label_text, total_fmt)
+            # value block at the corner
+            if last >= val_start + 1:
+                ws.merge_range(r, val_start, r, last,
+                               value_text, total_val_fmt)
+            else:
+                ws.write(r, val_start, value_text, total_val_fmt)
             return r + 1
 
         columns = self._breakdown_columns()
@@ -623,7 +665,7 @@ class MaintenanceReportWizard(models.TransientModel):
                     sheet.write(row, col, value, text_fmt)
             row += 1
 
-        # ---- Total: BR count + down time under the Down Time column ----
+        # ---- Total: BR count + down time (split into two blocks) -------
         dt_col = next((i for i, c in enumerate(columns)
                        if c[0] == 'Down Time'), last_col)
         total_dt = sum(self._breakdown_downtime_hours(r) for r in requests)

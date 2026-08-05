@@ -8,8 +8,8 @@ class ManufacturingMachine(models.Model):
 
     name = fields.Char()
     manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type")
-    is_anode_slitting_process = fields.Boolean(related='manufacturing_process_type_id.is_anode_slitting_process', store=True)
-    is_cathode_slitting_process = fields.Boolean(related='manufacturing_process_type_id.is_cathode_slitting_process', store=True)
+    # is_anode_slitting_process = fields.Boolean(related='manufacturing_process_type_id.is_anode_slitting_process', store=True)
+    # is_cathode_slitting_process = fields.Boolean(related='manufacturing_process_type_id.is_cathode_slitting_process', store=True)
     type = fields.Selection([
         ('anode_slitting', 'Anode Slitting '),
         ('cathode_slitting', 'Cathode Slitting '),

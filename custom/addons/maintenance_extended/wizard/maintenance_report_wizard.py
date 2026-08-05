@@ -103,7 +103,6 @@ class MaintenanceReportWizard(models.TransientModel):
             [('maintenance_id', '=', request.id)], order='id')
 
     def _fmt_dt(self, value):
-        """Datetime -> user-tz string, '' when not set."""
         if not value:
             return ''
         value = fields.Datetime.context_timestamp(self, value)
@@ -132,8 +131,6 @@ class MaintenanceReportWizard(models.TransientModel):
         return ''
 
     def _request_state_key(self, request):
-        """Colour key for the request Status pill: done -> green,
-        in-progress -> amber, draft/new -> blue, else neutral."""
         if getattr(request, 'done', False):
             return 'done'
         if getattr(request, 'is_progress_state', False):
@@ -151,20 +148,18 @@ class MaintenanceReportWizard(models.TransientModel):
 
         buffer = io.BytesIO()
         workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
-        sheet = workbook.add_worksheet('PM Report')
-        sheet.set_landscape()
-        sheet.set_paper(9)
-        sheet.fit_to_pages(1, 0)
-        sheet.set_margins(0.3, 0.3, 0.3, 0.3)
-        sheet.hide_gridlines(2)
 
         def F(spec):
             spec = dict(spec)
             spec.setdefault('font_name', 'Arial')
             return workbook.add_format(spec)
 
-        # State badges (fill colour per state, white text). Keys match both
-        # the request state helper and work.order.state selection.
+        # ---- Shared palette & formats --------------------------------
+        C_TITLE = '#4472B4'
+        C_HEAD = '#5AA478'      # requests header (green)
+        C_WO = '#57A6B0'        # work-orders header (teal)
+        BORDER = '#D5DCE4'
+
         BADGE = {'draft': '#3F86D0', 'progress': '#EE9A1E', 'done': '#43A047',
                  'cancel': '#E06A4E', 'other': '#7B8AA0'}
         _badge_cache = {}
@@ -174,125 +169,97 @@ class MaintenanceReportWizard(models.TransientModel):
             if k not in _badge_cache:
                 color = BADGE.get(key, BADGE['other'])
                 _badge_cache[k] = F({
-                    'bold': True, 'font_size': font_size, 'font_color': '#FFFFFF',
-                    'bg_color': color, 'align': 'center', 'valign': 'vcenter',
+                    'bold': True, 'font_size': font_size,
+                    'font_color': '#FFFFFF', 'bg_color': color,
+                    'align': 'center', 'valign': 'vcenter',
                     'border': 1, 'border_color': color})
             return _badge_cache[k]
 
-        # ---- Soft professional palette (not dark) --------------------
-        C_TITLE = '#4472B4'      # calm blue (title + total)
-        C_HEAD = '#5AA478'       # soft green (request header)
-        C_WO = '#57A6B0'         # soft teal (WO sub-header)
-        BORDER = '#D5DCE4'
+        title_fmt = F({'bold': True, 'font_size': 15, 'font_color': '#FFFFFF',
+                       'bg_color': C_TITLE, 'align': 'center',
+                       'valign': 'vcenter'})
+        subtitle_fmt = F({'italic': True, 'font_size': 10,
+                          'font_color': '#3B4A5E', 'bg_color': '#EAF1FB',
+                          'align': 'center', 'valign': 'vcenter'})
 
-        title_fmt = F({
-            'bold': True, 'font_size': 15, 'font_color': '#FFFFFF',
-            'bg_color': C_TITLE, 'align': 'center', 'valign': 'vcenter'})
-        subtitle_fmt = F({
-            'italic': True, 'font_size': 10, 'font_color': '#3B4A5E',
-            'bg_color': '#EAF1FB', 'align': 'center', 'valign': 'vcenter'})
-        head_fmt = F({
-            'bold': True, 'font_size': 10, 'font_color': '#FFFFFF',
-            'bg_color': C_HEAD, 'align': 'center', 'valign': 'vcenter',
-            'text_wrap': True, 'border': 1, 'border_color': '#4C9069'})
-        wo_header_fmt = F({
-            'bold': True, 'font_size': 9, 'font_color': '#FFFFFF',
-            'bg_color': C_WO, 'align': 'center', 'valign': 'vcenter',
-            'text_wrap': True, 'border': 1, 'border_color': '#4A9099'})
-        total_fmt = F({
-            'bold': True, 'font_size': 11, 'font_color': '#FFFFFF',
-            'bg_color': C_TITLE, 'align': 'right', 'valign': 'vcenter',
-            'border': 1, 'border_color': C_TITLE})
-        subno_fmt = F({
-            'bold': True, 'font_size': 9, 'font_color': '#2C7A84',
-            'align': 'center', 'valign': 'vcenter', 'bg_color': '#DCEEF0',
-            'border': 1, 'border_color': BORDER})
-        none_fmt = F({
-            'italic': True, 'font_size': 9, 'font_color': '#8A94A2',
-            'valign': 'vcenter', 'bg_color': '#F7FAFB', 'indent': 1,
-            'border': 1, 'border_color': BORDER})
+        def header_fmt(bg, edge):
+            return F({'bold': True, 'font_size': 10, 'font_color': '#FFFFFF',
+                      'bg_color': bg, 'align': 'center', 'valign': 'vcenter',
+                      'text_wrap': True, 'border': 1, 'border_color': edge})
 
-        def req_cell(alt):
-            return F({
-                'font_size': 10, 'valign': 'vcenter', 'align': 'center',
-                'text_wrap': True,
-                'bg_color': '#F4F8F5' if alt else '#FFFFFF',
-                'border': 1, 'border_color': BORDER})
+        req_head_fmt = header_fmt(C_HEAD, '#4C9069')
+        wo_head_fmt = header_fmt(C_WO, '#4A9099')
+        total_fmt = F({'bold': True, 'font_size': 11, 'font_color': '#FFFFFF',
+                       'bg_color': C_TITLE, 'align': 'right',
+                       'valign': 'vcenter', 'border': 1,
+                       'border_color': C_TITLE})
 
-        def wo_cell(alt):
-            return F({
-                'font_size': 9, 'valign': 'vcenter', 'align': 'center',
-                'text_wrap': True,
-                'bg_color': '#F1F8F9' if alt else '#FFFFFF',
-                'border': 1, 'border_color': BORDER})
+        def data_cell(alt):
+            return F({'font_size': 10, 'valign': 'vcenter', 'align': 'center',
+                      'text_wrap': True,
+                      'bg_color': '#F4F8F5' if alt else '#FFFFFF',
+                      'border': 1, 'border_color': BORDER})
 
-        rq = {a: req_cell(a) for a in (False, True)}
-        wc = {a: wo_cell(a) for a in (False, True)}
+        cell = {a: data_cell(a) for a in (False, True)}
 
-        # ---- Columns (same structure as the original design) ----------
-        columns = [
+        # Generic status pill drawer (works on any sheet).
+        def put_status(ws, scol, spx, r_, cell_fmt, text, key, fs, row_h):
+            fill = BADGE.get(key, BADGE['other'])
+            pill = _make_status_pill(text, fill, fs)
+            if pill:
+                ws.write_blank(r_, scol, None, cell_fmt)
+                bio, pw, ph = pill
+                dw, dh = pw / _PILL_SCALE, ph / _PILL_SCALE
+                rpx = int(row_h * 4 / 3)
+                ws.insert_image(r_, scol, 'pill.png', {
+                    'image_data': bio,
+                    'x_scale': 1.0 / _PILL_SCALE, 'y_scale': 1.0 / _PILL_SCALE,
+                    'x_offset': int(max(1, (spx - dw) / 2)),
+                    'y_offset': int(max(1, (rpx - dh) / 2)),
+                    'object_position': 2})
+            else:
+                ws.write(r_, scol, text, badge(key, fs))
+
+        period = 'Actual Work Start from %s    to    Actual Work End %s' % (
+            self.start_date.strftime('%d/%m/%Y'),
+            self.end_date.strftime('%d/%m/%Y'))
+
+        def setup_sheet(ws, columns, head_fmt_):
+            ws.set_landscape()
+            ws.set_paper(9)
+            ws.fit_to_pages(1, 0)
+            ws.set_margins(0.3, 0.3, 0.3, 0.3)
+            ws.hide_gridlines(2)
+            for i, (_label, w) in enumerate(columns):
+                ws.set_column(i, i, w)
+            last = len(columns) - 1
+            ws.set_row(0, 26)
+            ws.merge_range(0, 0, 0, last,
+                           'Preventive Maintenance Report', title_fmt)
+            ws.set_row(1, 18)
+            ws.merge_range(1, 0, 1, last, period, subtitle_fmt)
+            ws.set_row(3, 26)
+            for c, (label, _w) in enumerate(columns):
+                ws.write(3, c, label, head_fmt_)
+            ws.freeze_panes(4, 0)
+            return last
+
+        # ==============================================================
+        # SHEET 1 - Maintenance Requests
+        # ==============================================================
+        s1 = workbook.add_worksheet('Maintenance Requests')
+        cols1 = [
             ('S.No', 6), ('Sequence', 16), ('Equipment', 35), ('Category', 16),
             ('Maintenance Type', 15), ('Maintenance Kind', 15), ('Team', 18),
             ('Status', 17), ('Done By', 18), ('Scheduled Date', 17),
             ('Actual Work Start', 17), ('Actual Work End', 17),
             ('Duration (Hours)', 13),
         ]
-        idx = {label: i for i, (label, _w) in enumerate(columns)}
-        last_col = len(columns) - 1
-        for i, (_label, w) in enumerate(columns):
-            sheet.set_column(i, i, w)
-        status_px = columns[idx['Status']][1] * 7 + 5
+        i1 = {label: i for i, (label, _w) in enumerate(cols1)}
+        last1 = setup_sheet(s1, cols1, req_head_fmt)
+        s1_status_px = cols1[i1['Status']][1] * 7 + 5
 
-        def put_status(cell_row, cell_fmt, text, key, font_size, row_h):
-            """Draw a rounded pill for the status, centered in its cell;
-            fall back to a filled cell badge if Pillow/font unavailable."""
-            fill = BADGE.get(key, BADGE['other'])
-            pill = _make_status_pill(text, fill, font_size)
-            if pill:
-                sheet.write_blank(cell_row, idx['Status'], None, cell_fmt)
-                bio, pw, ph = pill
-                dw, dh = pw / _PILL_SCALE, ph / _PILL_SCALE
-                rpx = int(row_h * 4 / 3)
-                sheet.insert_image(cell_row, idx['Status'], 'pill.png', {
-                    'image_data': bio,
-                    'x_scale': 1.0 / _PILL_SCALE, 'y_scale': 1.0 / _PILL_SCALE,
-                    'x_offset': int(max(1, (status_px - dw) / 2)),
-                    'y_offset': int(max(1, (rpx - dh) / 2)),
-                    'object_position': 2})
-            else:
-                sheet.write(cell_row, idx['Status'], text,
-                            badge(key, font_size))
-
-        act = (idx['Equipment'], idx['Category'])            # Activity merge
-        rem = (idx['Maintenance Type'], idx['Team'])         # Remarks merge
-        merged = {idx['Equipment'], idx['Category'],
-                  idx['Maintenance Type'], idx['Maintenance Kind'],
-                  idx['Team']}
-
-        wo_state_sel = dict(
-            self.env['work.order']._fields['state'].selection)
-
-        # ---- Title & subtitle -----------------------------------------
-        sheet.set_row(0, 26)
-        sheet.merge_range(0, 0, 0, last_col,
-                          'Preventive Maintenance Report', title_fmt)
-        sheet.set_row(1, 18)
-        sheet.merge_range(
-            1, 0, 1, last_col,
-            'Actual Work Start from %s    to    Actual Work End %s' % (
-                self.start_date.strftime('%d/%m/%Y'),
-                self.end_date.strftime('%d/%m/%Y')),
-            subtitle_fmt)
-
-        # ---- Request column header ------------------------------------
-        header_row = 3
-        sheet.set_row(header_row, 26)
-        for col, (label, _w) in enumerate(columns):
-            sheet.write(header_row, col, label, head_fmt)
-        sheet.freeze_panes(header_row + 1, 0)
-
-        # ---- Request rows + aligned work orders -----------------------
-        row = header_row + 1
+        row = 4
         for index, request in enumerate(requests, start=1):
             alt = index % 2 == 0
             values = {
@@ -310,75 +277,79 @@ class MaintenanceReportWizard(models.TransientModel):
                 'Actual Work End': self._fmt_dt(request.actual_end_date),
                 'Duration (Hours)': self._fmt_duration(request.duration),
             }
-            sheet.set_row(row, 20)
-            for label, _w in columns:
+            s1.set_row(row, 20)
+            for label, _w in cols1:
                 if label == 'Status':
-                    sheet.write_blank(row, idx[label], None, rq[alt])
-                    put_status(row, rq[alt], values[label],
+                    put_status(s1, i1['Status'], s1_status_px, row, cell[alt],
+                               values[label],
                                self._request_state_key(request), 10, 20)
                 else:
-                    sheet.write(row, idx[label], values[label], rq[alt])
+                    s1.write(row, i1[label], values[label], cell[alt])
+            row += 1
+        s1.set_row(row, 20)
+        s1.merge_range(row, 0, row, last1,
+                       'Total Requests : %s' % len(requests), total_fmt)
+
+        # ==============================================================
+        # SHEET 2 - Work Orders (all form-view fields except Materials)
+        # ==============================================================
+        s2 = workbook.add_worksheet('Work Orders')
+        cols2 = [
+            ('S.No', 6), ('Reference', 16), ('Maintenance', 18),
+            ('Equipment', 32), ('Activity', 30), ('Done By', 18),
+            ('Status', 17), ('Work Start', 17), ('Work End', 17),
+            ('Duration (Hours)', 13), ('Remarks', 28),
+        ]
+        i2 = {label: i for i, (label, _w) in enumerate(cols2)}
+        last2 = setup_sheet(s2, cols2, wo_head_fmt)
+        s2_status_px = cols2[i2['Status']][1] * 7 + 5
+
+        wo_state_sel = dict(
+            self.env['work.order']._fields['state'].selection)
+
+        # Collect every work order of the in-range requests.
+        wo_pairs = []
+        for request in requests:
+            for wo in self._get_work_orders(request):
+                wo_pairs.append((request, wo))
+
+        row = 4
+        for n, (request, wo) in enumerate(wo_pairs, start=1):
+            alt = n % 2 == 0
+            values = {
+                'S.No': n,
+                'Reference': wo.number or '',
+                'Maintenance': request.sequence or request.display_name or '',
+                'Equipment': (wo.equipment_id.display_name
+                              or request.equipment_id.display_name or ''),
+                'Activity': wo.name or '',
+                'Done By': wo.user_id.name or '',
+                'Status': wo_state_sel.get(wo.state, wo.state or ''),
+                'Work Start': self._fmt_dt(wo.date_start),
+                'Work End': self._fmt_dt(wo.date_end),
+                'Duration (Hours)': self._fmt_duration(wo.duration),
+                'Remarks': wo.remarks or '',
+            }
+            s2.set_row(row, 20)
+            for label, _w in cols2:
+                if label == 'Status':
+                    put_status(s2, i2['Status'], s2_status_px, row, cell[alt],
+                               values[label], wo.state or 'other', 10, 20)
+                else:
+                    s2.write(row, i2[label], values[label], cell[alt])
             row += 1
 
-            work_orders = self._get_work_orders(request)
-
-            if work_orders:
-                # aligned WO sub-header
-                sheet.set_row(row, 20)
-                heads = {
-                    idx['S.No']: 'WO', idx['Sequence']: 'Reference',
-                    idx['Status']: 'WO Status', idx['Done By']: 'Done By',
-                    idx['Actual Work Start']: 'Work Start',
-                    idx['Actual Work End']: 'Work End',
-                    idx['Duration (Hours)']: 'Duration'}
-                for col in range(last_col + 1):
-                    if col in merged:
-                        continue
-                    sheet.write(row, col, heads.get(col, ''), wo_header_fmt)
-                sheet.merge_range(row, act[0], row, act[1], 'Activity',
-                                  wo_header_fmt)
-                sheet.merge_range(row, rem[0], row, rem[1], 'Remarks',
-                                  wo_header_fmt)
-                row += 1
-
-                for wo_idx, wo in enumerate(work_orders, start=1):
-                    a2 = wo_idx % 2 == 0
-                    sheet.set_row(row, 18)
-                    for col in range(last_col + 1):
-                        if col in merged:
-                            continue
-                        sheet.write(row, col, '', wc[a2])
-                    sheet.write(row, idx['S.No'], '%d.%d' % (index, wo_idx),
-                                subno_fmt)
-                    sheet.write(row, idx['Sequence'], wo.number or '', wc[a2])
-                    sheet.merge_range(row, act[0], row, act[1],
-                                      wo.name or '', wc[a2])
-                    sheet.merge_range(row, rem[0], row, rem[1],
-                                      wo.remarks or '', wc[a2])
-                    put_status(row, wc[a2],
-                               wo_state_sel.get(wo.state, wo.state or ''),
-                               wo.state or 'other', 9, 18)
-                    sheet.write(row, idx['Done By'], wo.user_id.name or '',
-                                wc[a2])
-                    sheet.write(row, idx['Actual Work Start'],
-                                self._fmt_dt(wo.date_start), wc[a2])
-                    sheet.write(row, idx['Actual Work End'],
-                                self._fmt_dt(wo.date_end), wc[a2])
-                    sheet.write(row, idx['Duration (Hours)'],
-                                self._fmt_duration(wo.duration), wc[a2])
-                    row += 1
-            else:
-                sheet.set_row(row, 18)
-                for col in range(last_col + 1):
-                    sheet.write_blank(row, col, None, none_fmt)
-                sheet.write(row, idx['S.No'], '%d.0' % index, subno_fmt)
-                sheet.write(row, idx['Sequence'], 'No work orders', none_fmt)
-                row += 1
-
-        # ---- Total row -------------------------------------------------
-        sheet.set_row(row, 20)
-        sheet.merge_range(row, 0, row, last_col,
-                          'Total Requests : %s' % len(requests), total_fmt)
+        if not wo_pairs:
+            s2.set_row(row, 20)
+            s2.merge_range(row, 0, row, last2, 'No work orders in this period',
+                           F({'italic': True, 'font_size': 10,
+                              'font_color': '#8A94A2', 'align': 'center',
+                              'valign': 'vcenter', 'border': 1,
+                              'border_color': BORDER}))
+            row += 1
+        s2.set_row(row, 20)
+        s2.merge_range(row, 0, row, last2,
+                       'Total Work Orders : %s' % len(wo_pairs), total_fmt)
 
         workbook.close()
         buffer.seek(0)
@@ -396,7 +367,6 @@ class MaintenanceReportWizard(models.TransientModel):
                 self._name, self.id, self.file_name),
             'target': 'self',
         }
-
 
     # ==================================================================
     # BREAKDOWN REPORT  (add these methods inside maintenance.report.wizard)

@@ -161,6 +161,19 @@ class ProductModel(models.Model):
 
     def action_design_user_submit(self):
         for rec in self:
+            missing_bom = []
+
+            for process in rec.operation_ids:
+                if not process.bom_id:
+                    missing_bom.append(
+                        process.manufacturing_process_type_id.name or '?'
+                    )
+
+            if missing_bom:
+                raise UserError(_(
+                    "Please map the BOM in the Product Model's Operation lines "
+                    "for these process types:\n- %s"
+                ) % '\n- '.join(missing_bom))
             if rec.name == rec.product_template_id.name:
                 raise UserError('Model name is same as the Product Name')
             if not rec.product_model_bom_ids:

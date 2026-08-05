@@ -1841,15 +1841,7 @@ class ProductionProcess(models.Model):
         )
         self.operation_id = production_operation.operation_id
         self.product_model_id = self.production_plan_id.model_id
-        self.bom_id = (
-            production_operation.operation_id.bom_id
-            if production_operation.operation_id.bom_id
-            else self.env['manufacturing.bom'].search([
-                ('product_id', '=', self.product_id.id),
-                ('product_model_id', '=', self.product_model_id.id),
-                ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-            ], limit=1)
-        )
+        self.bom_id = production_operation.operation_id.bom_id
         return production_operation
 
     @api.onchange('production_plan_id')
@@ -1877,15 +1869,7 @@ class ProductionProcess(models.Model):
                  ('production_plan_id', '=', self.production_plan_id.id)], limit=1)
             self.operation_id = production_operation.operation_id
             self.product_model_id = self.production_plan_id.model_id
-            self.bom_id = (
-                production_operation.operation_id.bom_id
-                if production_operation.operation_id.bom_id
-                else self.env['manufacturing.bom'].search([
-                    ('product_id', '=', self.product_id.id),
-                    ('product_model_id', '=', self.product_model_id.id),
-                    ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
-                ], limit=1)
-            )
+            self.bom_id = production_operation.operation_id.bom_id
             self.product_qty = self.production_plan_id.expected_production_qty - existing_qty
             if not self.bom_id:
                 self.component_ids = False

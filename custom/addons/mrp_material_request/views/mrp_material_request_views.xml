@@ -421,12 +421,17 @@
         <menuitem id="menu_mrp_material_request_configuration"
                   groups="mrp_material_request.group_material_request_administrator" name="Configuration"
                   parent="menuitem_mrp_material_request_main" sequence="100"/>
+
         <menuitem id="menu_material_request_sub_department" name="Sub Departments"
                   parent="menu_mrp_material_request_configuration"
                   action="action_material_request_is_sub_department_configuration" sequence="1"/>
         <menuitem id="menu_material_request_approval_line" name="Approval Line"
                   parent="menu_mrp_material_request_configuration"
                   action="action_material_request_is_approval_line_configuration" sequence="2"/>
+
+        <menuitem id="menu_br_maintenance" name="Breakdown Requests"
+                  parent="menu_manufacturing_request_root" sequence="3"
+                  action="maintenance_extended.action_breakdown_request"/>
 
         <menuitem id="menu_manufacturing_request_maintenance" name="Maintenance Requests"
                   parent="menu_manufacturing_request_root" sequence="3"

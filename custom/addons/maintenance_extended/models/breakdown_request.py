@@ -93,6 +93,8 @@ class BreakdownRequest(models.Model):
         requester = self.requested_user_id
         machine = self.machine_id.display_name or 'N/A'
         shift = self.shift_id.display_name or 'N/A'
+        engineer_name = self.engineer_name or 'N/A'
+        operated_by = self.operated_by or 'N/A'
         req_time = self.requested_time and fields.Datetime.to_string(self.requested_time) or 'N/A'
         raw_desc = self.problem_description or 'N/A'
         problem_desc = Markup('<br/>').join(raw_desc.split('\n'))
@@ -152,6 +154,14 @@ class BreakdownRequest(models.Model):
                                         <tr>
                                             <td style="color:#666666; font-size:13px;">Shift</td>
                                             <td style="color:#2d2d2d; font-weight:600;">{shift}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Engineer Name</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{engineer_name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#666666; font-size:13px;">Operated By</td>
+                                            <td style="color:#2d2d2d; font-weight:600;">{operated_by}</td>
                                         </tr>
                                     </table>
                                 </td>

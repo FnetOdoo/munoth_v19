@@ -206,7 +206,7 @@
     flex: 1;
     display: flex;
     align-items: stretch;
-    justify-content: space-around;
+    justify-content: center; /* changed from space-around: only one group now, so center it */
     border-left: 3px solid var(--brd-axis);
     border-bottom: 3px solid var(--brd-axis);
     background-color: #fff;
@@ -233,26 +233,27 @@
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    width: 40%;
-    min-width: 140px;
+    width: auto;   /* changed from 40% */
+    min-width: 0;  /* changed from 140px */
 }
-
 .o_brd_dashboard .o_brd_bars {
     flex: 1;
     width: 100%;
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    gap: 3cm; /* was 0 — now a ~3-5cm gap between the Requested/Closed bars */
 }
 
 /* ------------------------------------------------ Bars */
 .o_brd_dashboard .o_brd_bar {
-    position: relative;
+    position: relative; /* needed so the xlabel absolute-positions relative to the bar */
     cursor: pointer;
     min-height: 4px;
     width: 90px;
     border: 1.5px solid rgba(0, 0, 0, 0.18);
     border-bottom: none;
+    border-right: none; /* removed so touching bars don't get a double edge */
     border-top: 3px dotted var(--brd-guide);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
     transition: transform 0.18s ease, filter 0.18s ease,
@@ -272,6 +273,10 @@
 .o_brd_dashboard .o_brd_bar_request { background: var(--brd-request); }
 .o_brd_dashboard .o_brd_bar_done    { background: var(--brd-done); }
 
+.o_brd_dashboard .o_brd_bar:last-child {
+    border-right: 1.5px solid rgba(0, 0, 0, 0.18);
+}
+
 .o_brd_dashboard .o_brd_count {
     position: absolute;
     top: -28px;
@@ -284,7 +289,10 @@
 }
 
 .o_brd_dashboard .o_brd_xlabel {
-    margin-top: 10px;
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
     height: 20px;
     font-size: 0.9375rem;
     font-weight: 700;
@@ -295,7 +303,7 @@
 
 .o_brd_dashboard .o_brd_xaxis_title {
     text-align: center;
-    margin-top: 10px;
+    margin-top: 34px; /* increased to clear the absolutely-positioned xlabels below the bars */
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--brd-ink);
@@ -377,7 +385,7 @@
 
     .o_brd_dashboard .o_brd_chart { height: 320px; }
 
-    .o_brd_dashboard .o_brd_group { min-width: 0; width: 45%; }
+    .o_brd_dashboard .o_brd_group { min-width: 0; width: auto; }
 
     .o_brd_dashboard .o_brd_bar { width: 60px; }
 

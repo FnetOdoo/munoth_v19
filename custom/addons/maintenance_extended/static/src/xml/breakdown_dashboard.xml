@@ -4,37 +4,37 @@
     <t t-name="breakdown_request_dashboard.Dashboard">
         <div class="o_brd_dashboard">
 
-            <!-- Header -->
-            <div class="o_brd_header">
+        <!-- Header -->
+        <div class="o_brd_header">
                 <div>
                     <h1 class="o_brd_title">Breakdown Requests Analysis</h1>
                 </div>
-                <div class="o_brd_header_right">
+            <div class="o_brd_header_right">
                     <span class="o_brd_updated" t-esc="lastUpdateLabel"/>
-                    <button class="btn btn-primary o_brd_refresh"
-                            t-on-click="loadData"
-                            title="Refresh now">
+                <button class="btn btn-primary o_brd_refresh"
+                        t-on-click="loadData"
+                        title="Refresh now">
                         <i class="fa fa-refresh me-1"/>
-                        Refresh
+                    Refresh
                     </button>
                 </div>
             </div>
 
-            <!-- Date filter (default: present month) -->
-            <div class="o_brd_filters">
+        <!-- Date filter (default: present month) -->
+        <div class="o_brd_filters">
                 <div class="o_brd_filters_title">Breakdown Request</div>
 
-                <div class="o_brd_filter_group">
+            <div class="o_brd_filter_group">
                     <span class="o_brd_filter_label">
                         Breakdown Requests <small>(Requested Date)</small>
                     </span>
-                    <label class="o_brd_filter_field">
+                <label class="o_brd_filter_field">
                         Start Date
                         <input type="date"
                                t-model="state.filters.start"
                                t-on-change="onFilterChange"/>
                     </label>
-                    <label class="o_brd_filter_field">
+                <label class="o_brd_filter_field">
                         End Date
                         <input type="date"
                                t-model="state.filters.end"
@@ -42,21 +42,21 @@
                     </label>
                 </div>
 
-                <button class="btn btn-secondary o_brd_filter_reset"
-                        t-on-click="resetFilters"
-                        title="Reset to present month">
+            <button class="btn btn-secondary o_brd_filter_reset"
+                    t-on-click="resetFilters"
+                    title="Reset to present month">
                     <i class="fa fa-undo me-1"/>
-                    This Month
+                This Month
                 </button>
             </div>
 
-            <!-- Loading -->
-            <div t-if="state.loading" class="o_brd_loading">
+        <!-- Loading -->
+        <div t-if="state.loading" class="o_brd_loading">
                 <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
             </div>
 
-            <!-- Chart card -->
-            <div t-else="" class="o_brd_card">
+        <!-- Chart card -->
+        <div t-else="" class="o_brd_card">
                 <div class="o_brd_chart">
 
                     <!-- Tooltip -->
@@ -81,37 +81,36 @@
 
                     <!-- Plot -->
                     <div class="o_brd_plot">
-                        <t t-foreach="state.bars" t-as="bar" t-key="bar.key">
-                            <div class="o_brd_group">
-                                <div class="o_brd_bars">
-                                    <div t-attf-class="o_brd_bar o_brd_bar_{{ bar.key }}"
-                                         t-attf-style="height: {{ heightFor(bar.count) }}%;"
-                                         role="button"
-                                         t-on-click="() => this.openRecords(bar)"
-                                         t-on-mousemove="(ev) => this.showTooltip(ev, bar.label, bar.count)"
-                                         t-on-mouseleave="hideTooltip">
-                                        <span class="o_brd_count" t-esc="bar.count"/>
-                                    </div>
+                    <div class="o_brd_group">
+                        <div class="o_brd_bars">
+                            <t t-foreach="state.bars" t-as="bar" t-key="bar.key">
+                                <div t-attf-class="o_brd_bar o_brd_bar_{{ bar.key }}"
+                                     t-attf-style="height: {{ heightFor(bar.count) }}%;"
+                                     role="button"
+                                     t-on-click="() => this.openRecords(bar)"
+                                     t-on-mousemove="(ev) => this.showTooltip(ev, bar.label, bar.count)"
+                                     t-on-mouseleave="hideTooltip">
+                                    <span class="o_brd_count" t-esc="bar.count"/>
+                                    <div class="o_brd_xlabel" t-esc="bar.label"/>
                                 </div>
-                                <div class="o_brd_xlabel" t-esc="bar.label"/>
-                            </div>
-                        </t>
+                            </t>
+                        </div>
                     </div>
                 </div>
-
-                <div class="o_brd_xaxis_title">
+                </div>
+                    <div class="o_brd_xaxis_title">
                     Breakdown Overview
                     <span class="o_brd_axis_arrow">&#10230;</span>
                 </div>
 
-                <div class="o_brd_legend">
+                    <div class="o_brd_legend">
                     <span class="o_brd_legend_item">
                         <span class="o_brd_swatch o_brd_swatch_request"/>
                         Requested
                     </span>
-                    <span class="o_brd_legend_item">
+                        <span class="o_brd_legend_item">
                         <span class="o_brd_swatch o_brd_swatch_done"/>
-                        Closed
+                            Closed
                     </span>
                 </div>
             </div>

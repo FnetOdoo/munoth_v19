@@ -67,13 +67,11 @@ class BreakdownRequest(models.Model):
             'bars': [
                 {
                     'key': 'request',
-                    'label': 'Requested',
                     'count': request_count,
                     'domain': request_domain,
                 },
                 {
                     'key': 'done',
-                    'label': 'Closed',
                     'count': done_count,
                     'domain': done_domain,
                 },

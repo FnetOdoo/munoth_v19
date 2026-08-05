@@ -142,22 +142,22 @@
                             <group>
                                 <field name="is_power_bank" widget="boolean_toggle"/>
                                 <field name="is_split_process" string="Enable Split" widget="boolean_toggle"/>
-<!--                                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle"/>-->
+                                <!--                                <field name="is_packing_process" string="Is Packing Process" widget="boolean_toggle"/>-->
                                 <!--                                <field name="is_voltage_process" string="Is Voltage Process" widget="boolean_toggle"/>-->
                                 <!--                                <field name="is_capacity_process" string="Is Capacity Process" widget="boolean_toggle"/>-->
-<!--                                <field name="is_next_packing_process" string="Next Last Process ?"-->
-<!--                                       widget="boolean_toggle"/>-->
+                                <!--                                <field name="is_next_packing_process" string="Next Last Process ?"-->
+                                <!--                                       widget="boolean_toggle"/>-->
                             </group>
 
                             <group invisible="not is_split_process">
-<!--                                <div class="text-muted" style="font-size: 12px; margin-top: -8px; margin-bottom: 12px;"-->
-<!--                                     invisible="not is_split_process">-->
-<!--                                    <i class="fa fa-info-circle" style="margin-right: 4px;"/>-->
-<!--                                    <b>Example:</b>-->
-<!--                                    In the Pad Printing process, 90% of the output goes to Packing, 5% to OCV/IR, and 5%-->
-<!--                                    to-->
-<!--                                    Capacity Testing. Based on this field enable OCV/IR, Capacity Testing-->
-<!--                                </div>-->
+                                <!--                                <div class="text-muted" style="font-size: 12px; margin-top: -8px; margin-bottom: 12px;"-->
+                                <!--                                     invisible="not is_split_process">-->
+                                <!--                                    <i class="fa fa-info-circle" style="margin-right: 4px;"/>-->
+                                <!--                                    <b>Example:</b>-->
+                                <!--                                    In the Pad Printing process, 90% of the output goes to Packing, 5% to OCV/IR, and 5%-->
+                                <!--                                    to-->
+                                <!--                                    Capacity Testing. Based on this field enable OCV/IR, Capacity Testing-->
+                                <!--                                </div>-->
 
                                 <group>
                                     <field name="process_type1_id"/>
@@ -165,43 +165,43 @@
                                 </group>
                             </group>
                         </page>
-<!--                        <page string="Operation Field Configuration">-->
-<!--                            <group string="Process Type">-->
-<!--                                <group string="Operations">-->
-<!--                                    <field name="is_power_bank" widget="boolean_toggle"/>-->
-<!--                                    <field name="show_injection" widget="boolean_toggle" string="Injection"/>-->
-<!--                                    <field name="show_degas" widget="boolean_toggle" string="Degas"/>-->
-<!--                                    <field name="show_packing" widget="boolean_toggle" string="Packing"/>-->
-<!--                                    <field name="show_cell_drying" widget="boolean_toggle" string="Cell Drying"/>-->
-<!--                                    <field name="show_high_temperature" widget="boolean_toggle"-->
-<!--                                           string="High Temperature"/>-->
-<!--                                    <field name="show_cell_clamp_baking" widget="boolean_toggle"-->
-<!--                                           string="Cell Clamp Baking"/>-->
-<!--                                </group>-->
-<!--                                <group string="Processes">-->
-<!--                                    <field name="show_capacity_test" widget="boolean_toggle" string="Capacity Test"/>-->
-<!--                                    <field name="show_voltage_test" widget="boolean_toggle" string="Voltage Test"/>-->
-<!--                                    <field name="show_drying_process" widget="boolean_toggle" string="Drying Process"/>-->
-<!--                                    <field name="show_slitting_process" widget="boolean_toggle"-->
-<!--                                           string="Slitting Process"/>-->
-<!--                                    <field name="show_pad_printing" widget="boolean_toggle" string="Pad Printing"/>-->
-<!--                                    <field name="show_aged_formation_1" widget="boolean_toggle"-->
-<!--                                           string="Aged Formation Cell 1"/>-->
-<!--                                    <field name="show_aged_formation_2" widget="boolean_toggle"-->
-<!--                                           string="Aged Formation Cell 2"/>-->
-<!--                                </group>-->
-<!--                            </group>-->
-<!--                        </page>-->
-<!--                        <page string="Machine Field Configuration">-->
-<!--                            <group>-->
-<!--                                <group string="Processes">-->
-<!--                                    <field name="is_anode_slitting_process" widget="boolean_toggle"-->
-<!--                                           string="Is Anode Slitting"/>-->
-<!--                                    <field name="is_cathode_slitting_process" widget="boolean_toggle"-->
-<!--                                           string="Is Cathode Slitting"/>-->
-<!--                                </group>-->
-<!--                            </group>-->
-<!--                        </page>-->
+                        <!--                        <page string="Operation Field Configuration">-->
+                        <!--                            <group string="Process Type">-->
+                        <!--                                <group string="Operations">-->
+                        <!--                                    <field name="is_power_bank" widget="boolean_toggle"/>-->
+                        <!--                                    <field name="show_injection" widget="boolean_toggle" string="Injection"/>-->
+                        <!--                                    <field name="show_degas" widget="boolean_toggle" string="Degas"/>-->
+                        <!--                                    <field name="show_packing" widget="boolean_toggle" string="Packing"/>-->
+                        <!--                                    <field name="show_cell_drying" widget="boolean_toggle" string="Cell Drying"/>-->
+                        <!--                                    <field name="show_high_temperature" widget="boolean_toggle"-->
+                        <!--                                           string="High Temperature"/>-->
+                        <!--                                    <field name="show_cell_clamp_baking" widget="boolean_toggle"-->
+                        <!--                                           string="Cell Clamp Baking"/>-->
+                        <!--                                </group>-->
+                        <!--                                <group string="Processes">-->
+                        <!--                                    <field name="show_capacity_test" widget="boolean_toggle" string="Capacity Test"/>-->
+                        <!--                                    <field name="show_voltage_test" widget="boolean_toggle" string="Voltage Test"/>-->
+                        <!--                                    <field name="show_drying_process" widget="boolean_toggle" string="Drying Process"/>-->
+                        <!--                                    <field name="show_slitting_process" widget="boolean_toggle"-->
+                        <!--                                           string="Slitting Process"/>-->
+                        <!--                                    <field name="show_pad_printing" widget="boolean_toggle" string="Pad Printing"/>-->
+                        <!--                                    <field name="show_aged_formation_1" widget="boolean_toggle"-->
+                        <!--                                           string="Aged Formation Cell 1"/>-->
+                        <!--                                    <field name="show_aged_formation_2" widget="boolean_toggle"-->
+                        <!--                                           string="Aged Formation Cell 2"/>-->
+                        <!--                                </group>-->
+                        <!--                            </group>-->
+                        <!--                        </page>-->
+                        <!--                        <page string="Machine Field Configuration">-->
+                        <!--                            <group>-->
+                        <!--                                <group string="Processes">-->
+                        <!--                                    <field name="is_anode_slitting_process" widget="boolean_toggle"-->
+                        <!--                                           string="Is Anode Slitting"/>-->
+                        <!--                                    <field name="is_cathode_slitting_process" widget="boolean_toggle"-->
+                        <!--                                           string="Is Cathode Slitting"/>-->
+                        <!--                                </group>-->
+                        <!--                            </group>-->
+                        <!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -248,17 +248,16 @@
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" string="Production Plan" name="action_open_production_plan"
                                 type="object" icon="fa-industry" invisible="not production_plan_id"/>
-<!--                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"-->
-<!--                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']">-->
-<!--                            -->
-<!--                        </button>-->
+                        <!--                        <button class="oe_stat_button" string="In Process Quality" name="action_view_in_process_quality"-->
+                        <!--                                type="object" icon="fa-check" invisible="state in ['draft','confirmed','cancel']">-->
+                        <!--                            -->
+                        <!--                        </button>-->
                         <button class="oe_stat_button" string="Quality" name="action_view_quality" type="object"
                                 icon="fa-thermometer-half"
-                                invisible="state in ['draft','confirmed','progress'] or is_sub_process or quality_count == 0">
-                             <div class="o_stat_info">
-                                <span class="o_stat_text">
-                                    <field name="quality_count" readonly="1"/>
-                                </span>
+                                invisible="quality_count == 0">
+                            <div class="o_stat_info">
+                                <field name="quality_count" readonly="1" class="o_stat_value"/>
+                                <span class="o_stat_text">Quality</span>
                             </div>
                         </button>
                         <button class="oe_stat_button" string="Stock Move" name="action_view_product_move" type="object"
@@ -312,7 +311,7 @@
                         <!--                                icon="fa-cube" type="object">-->
                         <!--                            <field name="name_3"/>-->
                         <!--                        </button>-->
-                         <button name="action_open_next_cell_process"
+                        <button name="action_open_next_cell_process"
                                 invisible="state not in ['close'] or not next_manufacturing_process_id or not is_split_process or  not is_next_process_created or is_sub_process"
                                 type="object">
 
@@ -326,9 +325,6 @@
                             <i class="fa fa-arrow-right"/>
                             <field name="next_manufacturing_process_type_name"/>
                         </button>
-
-
-
 
 
                         <button name="action_open_next_cell_process"
@@ -473,7 +469,7 @@
                                    style="min-height:400px;"
                                    domain="[('id', 'in', lot_ids), ('id', 'not in', capacity_lots)]"
                                    readonly="is_voltage_created"
-                                  >
+                            >
                                 <list editable="bottom">
                                     <field name="name"/>
                                 </list>

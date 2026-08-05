@@ -1101,6 +1101,7 @@ class ProductionProcess(models.Model):
     def _compute_quality_count(self):
         for rec in self:
             rec.quality_count = self.env['mrp.quality'].search([
+                ('production_plan_id', '=', rec.production_plan_id.id),
                 ('manufacturing_process_id', '=', rec.id),
             ])
 

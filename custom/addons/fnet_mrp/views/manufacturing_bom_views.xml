@@ -23,7 +23,7 @@
                             <group>
                                 <field name="name"/>
 <!--                                <field name="manufacturing_stages_id" required="1"/>-->
-                                <field name="manufacturing_process_type_id" string="Type" invisible="0"/>
+<!--                                <field name="manufacturing_process_type_id" string="Type" invisible="0"/>-->
                                 <!--                                <field name="type_id"/>-->
 <!--                                <field name="roll_size" string="Roll Size" invisible="type not in ['anode_slitting', 'cathode_slitting']" required="type in ['anode_slitting', 'cathode_slitting']"/>-->
                                 <field name="quantity" invisible="1"/>

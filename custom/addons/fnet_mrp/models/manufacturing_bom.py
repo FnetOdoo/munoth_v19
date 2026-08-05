@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class ManufacturingBom(models.Model):
@@ -92,6 +93,12 @@ class ManufacturingBom(models.Model):
     # type_id = fields.Many2one('bom.operation.type', 'Operation Type')
 
     roll_size = fields.Integer()
+
+    @api.constrains('bom_line_ids')
+    def _check_bom_line_ids(self):
+        for rec in self:
+            if not rec.bom_line_ids:
+                raise UserError(_("Please add at least one BOM line."))
 
     @api.onchange('product_tmpl_id')
     def _onchange_product_id(self):

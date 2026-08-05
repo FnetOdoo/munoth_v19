@@ -1103,6 +1103,7 @@ class ProductionProcess(models.Model):
             rec.quality_count = self.env['mrp.quality'].search([
                 ('production_plan_id', '=', rec.production_plan_id.id),
                 ('manufacturing_process_id', '=', rec.id),
+                ('operation_id', '=', rec.operation_id.id),
             ])
 
     @api.onchange('capacity_lots')

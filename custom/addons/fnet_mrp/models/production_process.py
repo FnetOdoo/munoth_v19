@@ -1100,12 +1100,12 @@ class ProductionProcess(models.Model):
 
     def _compute_quality_count(self):
         for rec in self:
-            rec.quality_count = self.env['mrp.quality'].search([
+            rec.quality_count = self.env['mrp.quality'].search_count([
                 ('production_plan_id', '=', rec.production_plan_id.id),
                 ('manufacturing_process_id', '=', rec.id),
                 ('operation_id', '=', rec.operation_id.id),
             ])
-
+            _logger.info("Quality count for %s = %s", rec.name, rec.quality_count)
     @api.onchange('capacity_lots')
     def _onchange_capacity_lots(self):
         # If a lot gets added to Capacity, automatically drop it from Voltage

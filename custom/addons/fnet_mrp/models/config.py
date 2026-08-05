@@ -341,28 +341,31 @@ class MaterialLine(models.Model):
                         }))
             elif self.manufacturing_process_id.lot_ids:
                 print("Loading Lots From Production Plan based on the Lot_ids")
-                print("Production Plan ID:", self.production_plan_id.id)
-                print("Production Plan Name:", self.production_plan_id.name)
-                print("Location:", self.location_src_id.display_name)
 
-                # NEW: search only by the names already present in manufacturing_process_id.lot_ids
-                serial_names = self.manufacturing_process_id.lot_ids.mapped('name')
-                print("Serial Names to Search:", serial_names)
+                serials_rec = self.manufacturing_process_id.lot_ids
 
-                lot_ids = self.env['stock.lot'].search([
-                    ('product_id', '=', self.product_id.id),
-                    ('name', 'in', serial_names),
-                ])
+                # Use the stock.lot already linked on each serial record
+                lot_ids = serials_rec.mapped('lot_id')
+
+                # Fall back: for serials with no linked lot_id, look them up by name
+                missing = serials_rec.filtered(lambda s: not s.lot_id)
+                if missing:
+                    found = self.env['stock.lot'].search([
+                        ('product_id', '=', self.product_id.id),
+                        ('name', 'in', missing.mapped('name')),
+                    ])
+                    lot_ids |= found
 
                 print("Lots Found Count:", len(lot_ids))
                 print("Lots Found:", lot_ids.ids)
+
                 if not lot_ids:
                     print("ERROR: No Lots Found")
                     raise UserError(
                         _("No lots available for the plan %s at location %s" %
-                          (self.production_plan_id.name,
-                           self.location_src_id.name))
+                          (self.production_plan_id.name, self.location_src_id.name))
                     )
+
                 for lot in lot_ids:
                     print("Processing Lot:", lot.id, lot.name)
                     child_records.append((0, 0, {
@@ -381,6 +384,7 @@ class MaterialLine(models.Model):
                             'product_id': self.product_id.id,
                             'name': lot.name,
                             'product_uom_id': self.product_uom_id.id,
+                            'lot_id': lot.id,
                         }))
             else:
                 print("Loading Lots From Production Plan")

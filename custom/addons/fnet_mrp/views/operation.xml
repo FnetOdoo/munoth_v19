@@ -37,20 +37,20 @@
 
 
 
-                    <!-- Hidden computed fields needed for invisible conditions -->
-                    <field name="show_injection" invisible="1"/>
-                    <field name="show_degas" invisible="1"/>
-                    <field name="show_packing" invisible="1"/>
-                    <field name="show_cell_drying" invisible="1"/>
-                    <field name="show_high_temperature" invisible="1"/>
-                    <field name="show_cell_clamp_baking" invisible="1"/>
-                    <field name="show_capacity_test" invisible="1"/>
-                    <field name="show_voltage_test" invisible="1"/>
-                    <field name="show_pad_printing" invisible="1"/>
-                    <field name="show_aged_formation_1" invisible="1"/>
-                    <field name="show_aged_formation_2" invisible="1"/>
-                    <field name="show_slitting" invisible="1"/>
-                    <field name="show_drying" invisible="1"/>
+<!--                    &lt;!&ndash; Hidden computed fields needed for invisible conditions &ndash;&gt;-->
+<!--                    <field name="show_injection" invisible="1"/>-->
+<!--                    <field name="show_degas" invisible="1"/>-->
+<!--                    <field name="show_packing" invisible="1"/>-->
+<!--                    <field name="show_cell_drying" invisible="1"/>-->
+<!--                    <field name="show_high_temperature" invisible="1"/>-->
+<!--                    <field name="show_cell_clamp_baking" invisible="1"/>-->
+<!--                    <field name="show_capacity_test" invisible="1"/>-->
+<!--                    <field name="show_voltage_test" invisible="1"/>-->
+<!--                    <field name="show_pad_printing" invisible="1"/>-->
+<!--                    <field name="show_aged_formation_1" invisible="1"/>-->
+<!--                    <field name="show_aged_formation_2" invisible="1"/>-->
+<!--                    <field name="show_slitting" invisible="1"/>-->
+<!--                    <field name="show_drying" invisible="1"/>-->
 
                     <notebook>
                         <page string="Utility Parameter">
@@ -61,8 +61,8 @@
                                     <field name="compressed_air"/>
                                 </group>
                                 <group string="Humidity">
-                                    <field name="min_humidity" invisible="show_cell_clamp_baking"/>
-                                    <field name="max_humidity" invisible="show_cell_clamp_baking"/>
+                                    <field name="min_humidity"/>
+                                    <field name="max_humidity"/>
                                     <field name="nitrogen"/>
                                 </group>
                                 <group string="Time" invisible="1">
@@ -73,18 +73,18 @@
 
                         <page string="Quality Parameters">
                             <group>
-                                <field name="weight" invisible="not show_injection and not show_high_temperature"/>
+                                <field name="weight" />
                                 <field name="moisture_in_electrolyte"
-                                       invisible="not show_injection and not show_high_temperature"/>
-                                <field name="dimension" invisible="not show_injection and not show_high_temperature"/>
+                                />
+                                <field name="dimension"/>
                                 <field name="visual_examination"
-                                       invisible="not show_injection and not show_high_temperature"/>
+                                />
                             </group>
                             <group>
-                                <field name="voltage" invisible="not show_degas"/>
-                                <field name="resistance" invisible="not show_degas"/>
+                                <field name="voltage" />
+                                <field name="resistance" />
                             </group>
-                            <group invisible="not show_packing">
+                            <group>
                                 <field name="printing_defects"/>
                                 <field name="visual_appearence"/>
                                 <field name="dimension_check"/>
@@ -92,7 +92,7 @@
                                 <field name="visual_check"/>
                             </group>
 
-                            <group invisible="not show_cell_drying" col="2">
+                            <group  col="2">
                                 <label for="temperature"/>
                                 <div class="o_row">
                                     <field name="temperature" force_save="1" nolabel="1"/>
@@ -110,7 +110,7 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_injection" col="2">
+                            <group col="2">
                                 <label for="electrolyte_qty"/>
                                 <div class="o_row">
                                     <field name="electrolyte_qty" force_save="1" nolabel="1"/>
@@ -154,7 +154,7 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_degas" col="2">
+                            <group col="2">
                                 <label for="ironing_temperature"/>
                                 <div class="o_row">
                                     <field name="ironing_temperature" force_save="1" nolabel="1"/>
@@ -177,7 +177,7 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_cell_clamp_baking and not show_high_temperature" col="2">
+                            <group col="2">
                                 <group string="High Temperature Standing Room">
                                     <label for="temperature"/>
                                     <div class="o_row">
@@ -219,7 +219,7 @@
                                 </group>
                             </group>
 
-                            <group invisible="not show_high_temperature" string="HT-2">
+                            <group string="HT-2">
                                 <label for="temperature_two"/>
                                 <div class="o_row">
                                     <field name="temperature_two" force_save="1" nolabel="1"/>
@@ -232,12 +232,12 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_pad_printing">
+                            <group>
                                 <field name="symbol"/>
                                 <field name="standard"/>
                             </group>
 
-                            <group invisible="not show_capacity_test">
+                            <group>
                                 <label for="capacity"/>
                                 <div class="o_row">
                                     <field name="capacity" force_save="1" nolabel="1"/>
@@ -245,7 +245,7 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_aged_formation_1" string="Room Temperature standing-1">
+                            <group string="Room Temperature standing-1">
                                 <label for="room_temperature"/>
                                 <div class="o_row">
                                     <field name="room_temperature" force_save="1" nolabel="1"/>
@@ -258,7 +258,7 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_voltage_test">
+                            <group>
                                 <group string="OCV-IR-1">
                                     <label for="min_voltage"/>
                                     <div class="o_row">
@@ -285,7 +285,7 @@
                                 </group>
                             </group>
 
-                            <group invisible="not show_aged_formation_2" string="Room Temperature standing-2">
+                            <group string="Room Temperature standing-2">
                                 <label for="room_temperature_two"/>
                                 <div class="o_row">
                                     <field name="room_temperature_two" force_save="1" nolabel="1"/>
@@ -298,20 +298,20 @@
                                 </div>
                             </group>
 
-                            <group invisible="not show_capacity_test">
+                            <group>
                                 <field name="ccv_discharge_amps"/>
                                 <field name="ccv_discharge_volts"/>
                                 <field name="ccv_discharge_physical"/>
                             </group>
 
-                            <group invisible="not show_voltage_test">
+                            <group>
                                 <field name="ocv"/>
                                 <field name="ir"/>
                                 <field name="visual_examination"/>
                             </group>
                         </page>
 
-                        <page string="Insulation Test" invisible="not show_degas">
+                        <page string="Insulation Test">
                             <group></group>
                             <group>
                                 <field name="voltage_resist"/>
@@ -321,7 +321,7 @@
                         </page>
 
                         <page string="Machine Parameter">
-                            <group invisible="not show_injection and not show_high_temperature">
+                            <group>
                                 <field name="injection_volume"/>
                                 <field name="sealing_pressure"/>
                                 <field name="sealing_temp"/>
@@ -337,7 +337,7 @@
                                 <field name="weight_after"/>
                             </group>
 
-                            <group invisible="not show_degas">
+                            <group>
                                 <field name="sealing_time"/>
                                 <field name="vacuum_holding_time"/>
                                 <field name="weight_before_degas"/>
@@ -346,7 +346,7 @@
                                 <field name="folding"/>
                             </group>
 
-                            <group invisible="not show_voltage_test">
+                            <group>
                                 <group>
                                     <field name="voltage"/>
                                     <field name="resistance"/>
@@ -354,7 +354,7 @@
                                 <group></group>
                             </group>
 
-                            <group invisible="not show_capacity_test">
+                            <group>
                                 <group>
                                     <field name="rest_time"/>
                                 </group>
@@ -379,7 +379,7 @@
                                 </group>
                             </group>
 
-                            <group invisible="not show_drying">
+                            <group>
                                 <group string="Temperature">
                                     <field name="dry_min_temperature" string="Minimum Temperature"/>
                                     <field name="dry_max_temperature" string="Maximum Temperature"/>
@@ -390,7 +390,7 @@
                                 </group>
                             </group>
 
-                            <group invisible="not show_slitting">
+                            <group>
                                 <!-- ... all slitting fields unchanged ... -->
                             </group>
                         </page>

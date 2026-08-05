@@ -491,7 +491,6 @@ class MaintenanceReportWizard(models.TransientModel):
                  lambda r: ', '.join(r.user_ids.mapped('name'))))
         columns += [
             ('Remarks', 30, lambda r: r.remarks or ''),
-            ('Created On', 18, lambda r: self._fmt_dt(r.create_date)),
             ('Status', 14,
              lambda r: self._breakdown_sel_label(r, 'state')),
         ]

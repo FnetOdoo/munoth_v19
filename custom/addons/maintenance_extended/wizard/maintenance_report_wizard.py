@@ -121,8 +121,8 @@ class MaintenanceReportWizard(models.TransientModel):
             request.maintenance_type, request.maintenance_type or '')
 
     def _request_kind(self, request):
-        if 'maintenance_kind' in request._fields and request.maintenance_kind:
-            return str(request.maintenance_kind)
+        if 'maintenance_kind_id' in request._fields and request.maintenance_kind_id:
+            return str(request.maintenance_kind_id)
         return ''
 
     def _request_done_by(self, request):
@@ -288,7 +288,7 @@ class MaintenanceReportWizard(models.TransientModel):
         # ==============================================================
         s1 = workbook.add_worksheet('Maintenance Requests')
         cols1 = [
-            ('S.No', 6), ('Sequence', 16), ('Equipment', 35), ('Category', 16),
+            ('S.No', 6), ('Equipment', 35), ('Category', 16),
             ('Maintenance Type', 15), ('Maintenance Kind', 15), ('Team', 18),
             ('Status', 17), ('Done By', 18), ('Scheduled Date', 17),
             ('Actual Work Start', 17), ('Actual Work End', 17),
@@ -303,7 +303,6 @@ class MaintenanceReportWizard(models.TransientModel):
             alt = index % 2 == 0
             values = {
                 'S.No': index,
-                'Sequence': request.sequence or '',
                 'Equipment': request.equipment_id.display_name or '',
                 'Category': request.category_id.display_name or '',
                 'Maintenance Type': self._request_type_label(request),

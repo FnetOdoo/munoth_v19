@@ -1988,12 +1988,12 @@ class ProductionProcess(models.Model):
         elif self.is_sub_process:
             for line in self.bom_id.bom_line_ids:
                 child_records.append((0, 0, {
-                    'product_id': line.product_id.id,
+                    'product_id': self.product_id.id,
                     'product_uom_category_id': line.product_uom_category_id.id,
                     'product_uom_id': line.product_uom_id.id,
                     'location_src_id': self.location_src_id.id,
                     'location_dest_id': self.location_dest_id.id,
-                    'name': line.product_id.name,
+                    'name': self.product_id.name,
                     'product_qty': self.product_qty,
                     'production_plan_id': self.production_plan_id.id,
                     'manufacturing_process_id': self._origin.id or False,

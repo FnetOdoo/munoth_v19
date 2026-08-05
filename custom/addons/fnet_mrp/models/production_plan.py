@@ -342,7 +342,7 @@ class ProductionPlan(models.Model):
             missing_bom = []
 
             for process in rec.model_id.operation_ids:
-                if not process.bom_id:
+                if not process.bom_id and process.manufacturing_stages_id == self.manufacturing_stages_id:
                     missing_bom.append(
                         process.manufacturing_process_type_id.name or '?'
                     )

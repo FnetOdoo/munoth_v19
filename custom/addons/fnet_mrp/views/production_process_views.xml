@@ -165,43 +165,43 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Operation Field Configuration">
-                            <group string="Process Type">
-                                <group string="Operations">
-                                    <field name="is_power_bank" widget="boolean_toggle"/>
-                                    <field name="show_injection" widget="boolean_toggle" string="Injection"/>
-                                    <field name="show_degas" widget="boolean_toggle" string="Degas"/>
-                                    <field name="show_packing" widget="boolean_toggle" string="Packing"/>
-                                    <field name="show_cell_drying" widget="boolean_toggle" string="Cell Drying"/>
-                                    <field name="show_high_temperature" widget="boolean_toggle"
-                                           string="High Temperature"/>
-                                    <field name="show_cell_clamp_baking" widget="boolean_toggle"
-                                           string="Cell Clamp Baking"/>
-                                </group>
-                                <group string="Processes">
-                                    <field name="show_capacity_test" widget="boolean_toggle" string="Capacity Test"/>
-                                    <field name="show_voltage_test" widget="boolean_toggle" string="Voltage Test"/>
-                                    <field name="show_drying_process" widget="boolean_toggle" string="Drying Process"/>
-                                    <field name="show_slitting_process" widget="boolean_toggle"
-                                           string="Slitting Process"/>
-                                    <field name="show_pad_printing" widget="boolean_toggle" string="Pad Printing"/>
-                                    <field name="show_aged_formation_1" widget="boolean_toggle"
-                                           string="Aged Formation Cell 1"/>
-                                    <field name="show_aged_formation_2" widget="boolean_toggle"
-                                           string="Aged Formation Cell 2"/>
-                                </group>
-                            </group>
-                        </page>
-                        <page string="Machine Field Configuration">
-                            <group>
-                                <group string="Processes">
-                                    <field name="is_anode_slitting_process" widget="boolean_toggle"
-                                           string="Is Anode Slitting"/>
-                                    <field name="is_cathode_slitting_process" widget="boolean_toggle"
-                                           string="Is Cathode Slitting"/>
-                                </group>
-                            </group>
-                        </page>
+<!--                        <page string="Operation Field Configuration">-->
+<!--                            <group string="Process Type">-->
+<!--                                <group string="Operations">-->
+<!--                                    <field name="is_power_bank" widget="boolean_toggle"/>-->
+<!--                                    <field name="show_injection" widget="boolean_toggle" string="Injection"/>-->
+<!--                                    <field name="show_degas" widget="boolean_toggle" string="Degas"/>-->
+<!--                                    <field name="show_packing" widget="boolean_toggle" string="Packing"/>-->
+<!--                                    <field name="show_cell_drying" widget="boolean_toggle" string="Cell Drying"/>-->
+<!--                                    <field name="show_high_temperature" widget="boolean_toggle"-->
+<!--                                           string="High Temperature"/>-->
+<!--                                    <field name="show_cell_clamp_baking" widget="boolean_toggle"-->
+<!--                                           string="Cell Clamp Baking"/>-->
+<!--                                </group>-->
+<!--                                <group string="Processes">-->
+<!--                                    <field name="show_capacity_test" widget="boolean_toggle" string="Capacity Test"/>-->
+<!--                                    <field name="show_voltage_test" widget="boolean_toggle" string="Voltage Test"/>-->
+<!--                                    <field name="show_drying_process" widget="boolean_toggle" string="Drying Process"/>-->
+<!--                                    <field name="show_slitting_process" widget="boolean_toggle"-->
+<!--                                           string="Slitting Process"/>-->
+<!--                                    <field name="show_pad_printing" widget="boolean_toggle" string="Pad Printing"/>-->
+<!--                                    <field name="show_aged_formation_1" widget="boolean_toggle"-->
+<!--                                           string="Aged Formation Cell 1"/>-->
+<!--                                    <field name="show_aged_formation_2" widget="boolean_toggle"-->
+<!--                                           string="Aged Formation Cell 2"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+<!--                        </page>-->
+<!--                        <page string="Machine Field Configuration">-->
+<!--                            <group>-->
+<!--                                <group string="Processes">-->
+<!--                                    <field name="is_anode_slitting_process" widget="boolean_toggle"-->
+<!--                                           string="Is Anode Slitting"/>-->
+<!--                                    <field name="is_cathode_slitting_process" widget="boolean_toggle"-->
+<!--                                           string="Is Cathode Slitting"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+<!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>

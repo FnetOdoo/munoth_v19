@@ -3,7 +3,7 @@
    ===================================================================== */
 
 .o_brd_dashboard {
-    --brd-request: #f57c00;   /* Requested (orange) */
+    --brd-request: #eeca1a;   /* Requested (yellow) */
     --brd-done: #28a745;      /* Closed    (green)  */
     --brd-ink: #37474f;
     --brd-muted: #78909c;

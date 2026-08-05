@@ -327,9 +327,8 @@ class MaintenanceReportWizard(models.TransientModel):
         total_req_dur = sum(r.duration or 0.0 for r in requests)
         row = total_line(
             s1, last1, i1['Duration (Hours)'],
-            'Total Requests : %s' % len(requests),
+            'Total Requests : %s    Total Duration' % len(requests),
             self._fmt_duration(total_req_dur), row)
-
         # ==============================================================
         # SHEET 2 - Work Orders (all form-view fields except Materials)
         # ==============================================================
@@ -389,9 +388,9 @@ class MaintenanceReportWizard(models.TransientModel):
             row += 1
         total_wo_dur = sum((wo.duration or 0.0) for _req, wo in wo_pairs)
         row = total_line(
-            s2, last2, i2['Duration (Hours)'],
-            'Total Work Order : %s' % len(wo_pairs),
-            self._fmt_duration(total_wo_dur), row)
+            s1, last1, i1['Duration (Hours)'],
+            'Total Requests : %s' % len(requests),
+            'Total Duration : %s' % self._fmt_duration(total_req_dur), row)
 
         workbook.close()
         buffer.seek(0)
@@ -631,7 +630,7 @@ class MaintenanceReportWizard(models.TransientModel):
         row = total_line(
             sheet, last_col, dt_col,
             'Total Breakdown Requests : %s' % len(requests),
-            self._fmt_duration(total_dt), row)
+            'Total Down time : %s' % self._fmt_duration(total_dt), row)
 
         workbook.close()
         buffer.seek(0)

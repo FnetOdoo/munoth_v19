@@ -126,7 +126,7 @@ class MaintenanceRequest(models.Model):
         # ---- Related Work Orders (via maintenance_id) ------------------
         wo_open_domain, wo_done_domain = self._dashboard_wo_state_domains()
         wo_open_count, open_wo_ids = self._count_workorders(
-            open_request_ids, wo_open_domain)
+            open_request_ids, [])  # <-- static: all WOs, like open requests
         # NEW: work orders of in-progress requests (active = not done/cancel)
         wo_progress_count, progress_wo_ids = self._count_workorders(
             progress_request_ids, wo_open_domain)

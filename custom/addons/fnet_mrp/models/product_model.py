@@ -16,8 +16,17 @@ class ProductModel(models.Model):
         default=lambda self: self.env.company)
     machine_ids = fields.One2many('machine.allocation', 'product_model_id')
 
-    product_template_id = fields.Many2one('product.template', string="Product")
-    product_id = fields.Many2one('product.product', string="Product Variant")
+    product_template_id = fields.Many2one(
+        'product.template',
+        string="Product",
+        domain=[('mrp_ok', '=', True)]
+    )
+
+    product_id = fields.Many2one(
+        'product.product',
+        string="Product Variant",
+        domain="[('product_tmpl_id', '=', product_template_id)]"
+    )
     state = fields.Selection([('draft', 'Draft'),
                               ('user_request', 'User Requested'),
                               ('design_user_request', 'Design User Requested'),

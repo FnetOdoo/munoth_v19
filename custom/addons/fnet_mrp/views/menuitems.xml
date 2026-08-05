@@ -17,7 +17,7 @@
 
         <menuitem id="menu_mrp_quality" name="Quality" parent="fnet_mrp.menu_manufacturing_root" sequence="5"/>
         <menuitem id="menu_mrp_quality_check" name="Quality Check" parent="menu_mrp_quality" sequence="1" action="action_mrp_quality"/>
-        <menuitem id="menu_process_quality_check_injection" name="In Process Quality Check" parent="fnet_mrp.menu_mrp_quality" sequence="8" action="action_process_quality_check"/>
+<!--        <menuitem id="menu_process_quality_check_injection" name="In Process Quality Check" parent="fnet_mrp.menu_mrp_quality" sequence="8" action="action_process_quality_check"/>-->
         <menuitem id="menu_mrp_first_article_inspection" name="Process/FAI/FPA Inspection" parent="fnet_mrp.menu_mrp_quality" sequence="2" action="view_first_article_inspection_action"/>
         <menuitem id="menu_stock_inspection" name="IN/OUT/Audit Inspection" parent="fnet_mrp.menu_mrp_quality" action="stock_inspection_action" sequence="7"/>
         <menuitem id="menu_complaint_register" name="Customer Complaint Register" parent="fnet_mrp.menu_mrp_quality" sequence="9" action="action_customer_complaint_register"/>

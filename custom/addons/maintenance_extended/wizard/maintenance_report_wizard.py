@@ -122,7 +122,7 @@ class MaintenanceReportWizard(models.TransientModel):
 
     def _request_kind(self, request):
         if 'maintenance_kind_id' in request._fields and request.maintenance_kind_id:
-            return str(request.maintenance_kind_id)
+            return str(request.maintenance_kind_id.name)
         return ''
 
     def _request_done_by(self, request):

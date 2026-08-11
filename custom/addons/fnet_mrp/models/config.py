@@ -226,7 +226,7 @@ class MaterialLine(models.Model):
         else:
             print("Tracking Enabled")
 
-            if not self.out_file and not self.production_plan_id:
+            if not self.out_file and not self.production_plan_id and not record.is_power_bank:
                 print("ERROR: No upload file and no production plan selected")
                 raise UserError(
                     _("This is lot enabled product. Please upload the serial number updated file.")

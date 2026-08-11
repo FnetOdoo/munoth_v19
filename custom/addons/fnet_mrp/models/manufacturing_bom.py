@@ -89,6 +89,7 @@ class ManufacturingBom(models.Model):
         ('powerbank', 'Power Bank')
     ])
     manufacturing_stages_id = fields.Many2one('manufacturing.stages',string='Process')
+    is_power_bank                 = fields.Boolean(related='manufacturing_process_type_id.is_power_bank')
 
     # type_id = fields.Many2one('bom.operation.type', 'Operation Type')
 
@@ -117,7 +118,7 @@ class ManufacturingBom(models.Model):
         res = {}
         if not self.product_uom_id or not self.product_tmpl_id:
             return
-        if self.product_uom_id.product_uom_category_id.id != self.product_tmpl_id.uom_id.relative_uom_id.id:
+        if self.product_uom_id.relative_uom_id.id != self.product_tmpl_id.uom_id.relative_uom_id.id:
             self.product_uom_id = self.product_tmpl_id.uom_id.id
             res['warning'] = {'title': _('Warning'), 'message': _(
                 'The Product Unit of Measure you chose has a different category than in the product form.')}

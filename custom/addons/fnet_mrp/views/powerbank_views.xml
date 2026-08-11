@@ -58,7 +58,9 @@
 
                         <notebook>
                             <page string="Materials" name="input">
-                                <field name="input_material_lines" readonly="state in ['done', 'close']"/>
+                                <field name="input_material_lines" readonly="state in ['done', 'close']">
+                                </field>
+
                             </page>
 
                             <page string="Detailed Materials" name="materials">

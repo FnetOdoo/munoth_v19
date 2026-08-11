@@ -38,8 +38,7 @@
                                     <!--                                    <field name="manufacturing_stages_id" string="Stage"/>-->
                                     <field name="manufacturing_process_type_id"/>
                                     <!--                                <field name="bom_id"/>-->
-                                    <field name="machine_id"
-                                           domain="[('manufacturing_process_type_id', '=', manufacturing_process_type_id)]"/>
+                                    <field name="machine_id"/>
                                     <field name="allow_lot_create"/>
                                     <field name="location_src_id"/>
                                     <field name="location_dest_id"/>
@@ -120,7 +119,7 @@
         <field name="name">manufacturing.process.list</field>
         <field name="model">manufacturing.process.type</field>
         <field name="arch" type="xml">
-            <list string="Manufacturing Type">
+            <list string="Manufacturing Operation Type">
                 <field name="name"/>
                 <field name="prefix"/>
             </list>
@@ -225,15 +224,15 @@
                     <button name="check_available_stock" string="Check Availability" type="object"
                             invisible="state != 'draft' or is_sub_process"/>
                     <button name="action_done_production" string="Production Done" class="btn-success" type="object"
-                            invisible="state != 'progress'"/>
+                            invisible="state not in [ 'restarted','progress']"/>
                     <!--                    <button name="action_close" string="Close" type="object" invisible="state != 'done'"-->
                     <!--                            class="oe_highlight"/>-->
-                    <button name="action_break_production" string="Pause Production" class="btn-danger" type="object"
-                            invisible="state != 'progress'"/>
-                    <button name="action_restart_production" string="Restart Production" class="btn-success"
-                            type="object" invisible="state != 'hold'"/>
+                    <!--                    <button name="action_break_production" string="Pause Pause Production" class="btn-danger" type="object"-->
+                    <!--                            invisible="state != 'progress'"/>-->
+                    <!--                    &lt;!&ndash;                    <button name="action_restart_production" string="Restart Production" class="btn-success"&ndash;&gt;-->
+                    <!--                            type="object" invisible="state != 'hold'"/>-->
                     <button name="create_scrap_product" string="Rejection" class="btn-strong" type="object"
-                            invisible="state != 'done' or is_next_process_created or not lot_ids or is_sub_process or is_sub_process_created"/>
+                            invisible="state != 'done' or is_next_process_created or not lot_ids or is_sub_process or is_sub_process_created or sub_process_manufacturing_process_id"/>
                     <button name="action_rejection_complete" string="Completed" class="btn-strong" type="object"
                             confirm="Are you sure you want to complete this process?"
                             invisible="state != 'done' or not lot_ids or sub_process_lot_ids or is_sub_process"/>
@@ -371,6 +370,7 @@
 
                             <field name="is_power_bank" invisible="1"/>
                             <field name="quality_count" invisible="1"/>
+                            <field name="machine_id" invisible="1"/>
                         </h1>
                     </div>
                     <group>
@@ -378,13 +378,19 @@
                             <field name="production_plan_id" readonly="state not in ['draft']" invisible="is_power_bank"
                                    force_save="1"/>
                             <field name="operation_id" readonly="state not in ['draft']" invisible="not is_power_bank"
+                                   domain="[('is_power_bank','=',True)]"
+                                   context="{'default_is_power_bank': True,}"
+                                   force_save="1"/>
+                            <field name="manufacturing_process_type_id"
+                                   readonly="state not in ['draft'] or production_plan_id" invisible="is_power_bank"
                                    force_save="1"/>
                             <field name="manufacturing_process_type_id"
                                    readonly="state not in ['draft'] or production_plan_id"
-                                   force_save="1"/>
-                            <field name="product_model_id" force_save="1" string="Model"
+                                   domain="[('is_power_bank','=',True)]" invisible="not is_power_bank" force_save="1"/>
+                            <field name="product_model_id" force_save="1" string="Model" invisible="is_power_bank"
                                    readonly="state not in ['draft'] or production_plan_id"/>
-                            <field name="product_id" readonly="1" force_save="1"/>
+                            <field name="product_id" readonly="not is_power_bank or state not in ['draft']"
+                                   required="is_power_bank" force_save="1"/>
                             <field name="product_tracking" invisible="1"/>
                             <field name="product_tmpl_id" invisible="1"/>
                             <field name="product_qty"
@@ -397,8 +403,11 @@
                             <field name="name_3" invisible="1" force_save="1"/>
                         </group>
                         <group>
-                            <field name="bom_id" readonly="state not in ['draft'] or production_plan_id " force_save="1"
-                            />
+                            <field name="bom_id" readonly="1" force_save="1"/>
+                            <!--                            <field name="bom_id"-->
+                            <!--                                   readonly="state not in ['draft'] or production_plan_id"-->
+                            <!--                                   force_save="1" domain="[('is_power_bank','=',True)]"-->
+                            <!--                                   invisible="not is_power_bank"/>-->
                             <field name="qty_producing" invisible="1"/>
                             <field name="product_uom_category_id" invisible="1"/>
                             <field name="product_uom_qty" invisible="1"/>
@@ -441,7 +450,8 @@
                                     <field name="product_uom_id" readonly="parent.before_manufacturing_process_id"/>
                                     <field name="product_qty" string="Required Qty"/>
                                     <field name="qty_done" string="Reserved Qty"/>
-                                    <button name="action_show_details" type="object" icon="fa-list"/>
+                                    <button name="action_show_details" type="object" icon="fa-list"
+                                            invisible="parent.state != 'draft'"/>
                                 </list>
                             </field>
                         </page>
@@ -647,7 +657,7 @@
                             </field>
                         </page>
 
-                        <page string="Utility" invisible="is_sub_process">
+                        <page string="Utility" invisible="is_sub_process" name="utility">
                             <field name="utility_ids" readonly="state not in ['progress']">
                                 <list editable="bottom">
                                     <field name="date"/>
@@ -660,35 +670,16 @@
                             </field>
                         </page>
 
-                        <page string="Breakdown" invisible="is_sub_process">
-                            <field name="breakdown_ids" readonly="state not in ['progress']">
-                                <list delete="0">
-                                    <field name="time" string="Time"/>
-                                    <field name="reason" column_invisible="1"/>
-                                    <field name="remarks"/>
-                                </list>
-
-                                <form delete="0">
-                                    <group>
-                                        <group>
-                                            <field name="time" readonly="1"/>
-                                            <field name="remarks" readonly="1"/>
-                                        </group>
-                                    </group>
-                                </form>
-                            </field>
-                        </page>
 
                         <page string="Location Details">
                             <group>
                                 <group>
-                                    <!--                                    <field name="type" readonly="state in ['done','close']"/>-->
-                                    <field name="location_src_id" readonly="state not in ['draft']"/>
-                                    <field name="production_location_id" readonly="state not in ['draft']"/>
-                                    <field name="location_dest_id" readonly="state not in ['draft']"/>
-                                    <field name="capacity_dest_location_id" readonly="1"
+                                    <field name="location_src_id" force_save="1" readonly="1"/>
+                                    <field name="production_location_id" readonly="1" force_save="1"/>
+                                    <field name="location_dest_id" readonly="1" force_save="1"/>
+                                    <field name="capacity_dest_location_id" readonly="1" force_save="1"
                                            invisible="not is_split_process"/>
-                                    <field name="voltage_dest_location_id" readonly="1"
+                                    <field name="voltage_dest_location_id" readonly="1" force_save="1"
                                            invisible="not is_split_process"/>
                                 </group>
                             </group>
@@ -709,11 +700,10 @@
         <field name="name">manufacturing.process.list</field>
         <field name="model">manufacturing.process</field>
         <field name="arch" type="xml">
-            <list string="QR Code Printing" sample="1">
+            <list sample="1">
                 <field name="name" column_invisible="0"/>
                 <field name="product_id"/>
                 <field name="product_qty"/>
-                <!--                    <field name="qty_produced"/>-->
                 <field name="state"/>
             </list>
         </field>
@@ -738,7 +728,7 @@
         <field name="name">Manufacturing Process</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">manufacturing.process</field>
-        <field name="domain">[('is_power_bank', '=', True)]</field>
+        <field name="domain">[('is_power_bank', '=', True),('is_sub_process', '=', False)]</field>
         <field name="context">{'default_is_power_bank': True}</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
@@ -748,7 +738,7 @@
         </field>
     </record>
     <record id="action_manufacturing_process" model="ir.actions.act_window">
-        <field name="name">Manufacturing Type</field>
+        <field name="name">Manufacturing Operation Type</field>
         <field name="res_model">manufacturing.process.type</field>
         <field name="view_mode">list,form</field>
     </record>

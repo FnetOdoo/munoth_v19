@@ -72,7 +72,7 @@ class ManufacturingStageLine(models.Model):
 
     manufacturing_process_type_id = fields.Many2one('manufacturing.process.type', string="Operation Type")
 
-    machine_id = fields.Many2many('manufacturing.machine')
+    machine_id = fields.Many2many('maintenance.equipment')
     qty = fields.Float()
     stage_id = fields.Many2one('mrp.stage')
     estimation_id = fields.Many2one('mrp.estimation')

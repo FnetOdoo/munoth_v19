@@ -301,7 +301,7 @@ class AnodeDrying(models.Model):
     @api.onchange('type')
     def _onchange_of_operation_type(self):
         if self.type:
-            machine = self.env['manufacturing.machine'].search([('type', '=', self.type)], limit=1)
+            machine = self.env['maintenance.equipment'].search([('type', '=', self.type)], limit=1)
             if machine:
                 self.machine_id = machine.id
 

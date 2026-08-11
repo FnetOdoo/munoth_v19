@@ -275,7 +275,7 @@ class MachineAllocation(models.Model):
         ('capacity_test', 'Capacity Test')
     ], default='anode_slitting')
 
-    mrp_machine_ids = fields.Many2many('manufacturing.machine')
+    mrp_machine_ids = fields.Many2many('maintenance.equipment')
 
 
 

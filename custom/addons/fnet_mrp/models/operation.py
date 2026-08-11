@@ -40,7 +40,7 @@ class ManufacturingOperation(models.Model):
     bom_ids = fields.One2many('operation.bom.line', 'operation_id')
     sequence = fields.Integer(index=True, default=1)
     manufacturing_operation_line_id = fields.Many2one('manufacturing.operation')
-    product_id = fields.Many2one('product.product', related='bom_id.product_id')
+    product_id = fields.Many2one('product.product')
     vendor_id = fields.Many2one('res.partner')
 
     process_duration = fields.Float()
@@ -48,9 +48,11 @@ class ManufacturingOperation(models.Model):
     model_id = fields.Many2one('product.model')
     reference = fields.Char()
 
-    machine_id = fields.Many2one('manufacturing.machine', string="Default Machine")
+    machine_id = fields.Many2one('maintenance.equipment',string='Default Machine',ondelete='restrict',)
     allow_lot_create = fields.Boolean('Allow lot creation')
     max_rework_count = fields.Integer('Maximum Allowed Rework', default=3)
+
+
 
     # sliting machine parameter - monitor parameter
 

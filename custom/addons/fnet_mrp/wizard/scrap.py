@@ -51,7 +51,7 @@ class ManufacturingScrap(models.Model):
         required=True, domain="[('relative_uom_id', '=', product_uom_category_id)]")
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.relative_uom_id')
     reason = fields.Text(required=True)
-    production_plan_id = fields.Many2one('production.plan', string='Production Plan', required=True)
+    production_plan_id = fields.Many2one('production.plan', string='Production Plan')
 
     manufacturing_process_id = fields.Many2one('manufacturing.process')
 
@@ -65,6 +65,7 @@ class ManufacturingScrap(models.Model):
     # voltage_test_id = fields.Many2one('voltage.test')
     lot_file_name = fields.Char(string='File Name')
     lot_file = fields.Binary(string='Lot File')
+    is_power_bank            = fields.Boolean()
 
     def action_upload_serial(self):
         if not self.lot_file:

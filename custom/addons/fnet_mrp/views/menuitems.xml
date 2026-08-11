@@ -31,14 +31,14 @@
         <menuitem id="menu_bill_of_material" name="Bill of Material" action="manufacturing_bom_form_action" parent="fnet_mrp.menu_manufacturing_product" sequence="4"/>
 
         <menuitem id="menu_manufacturing_report" name="Reporting" sequence="6" parent="fnet_mrp.menu_manufacturing_root"/>
-        <menuitem name="MTTR MTBF Reporting" id="menu_mttr_mtbf_report" sequence="2" action="action_mttr_mtbf_report" parent="fnet_mrp.menu_manufacturing_report"/>
+<!--        <menuitem name="MTTR MTBF Reporting" id="menu_mttr_mtbf_report" sequence="2" action="action_mttr_mtbf_report" parent="fnet_mrp.menu_manufacturing_report"/>-->
         <menuitem name="Availability Reporting" id="menu_availability_report" sequence="3" action="action_availability_report" parent="fnet_mrp.menu_manufacturing_report"/>
 
         <menuitem id="menu_mrp_powerbank" name="Power Bank" parent="fnet_mrp.menu_manufacturing_root" sequence="6" action="manufacturing_process_power_bank_action"/>
         <menuitem id="monthly_plan_menu" name="Monthly Plan" action="monthly_plan_action" parent="fnet_mrp.menu_manufacturing_plan_main" sequence="12"/>
 
         <!-- Configuration -->
-        <menuitem id="menu_manufacturing_configuration" name="Configuration" parent="fnet_mrp.menu_manufacturing_root" sequence="7" groups="fnet_mrp.group_manufacturing_manager"/>
+        <menuitem id="menu_manufacturing_configuration" name="Configuration" parent="fnet_mrp.menu_manufacturing_root" sequence="7"/>
 
         <menuitem id="menu_manufacturing_stages" name="Manufacturing Process" parent="fnet_mrp.menu_manufacturing_configuration" action="action_manufacturing_stages" sequence="1"/>
 
@@ -48,7 +48,7 @@
 
         <menuitem id="menu_product_model" name="Product Model" action="product_model_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="4"/>
 
-        <menuitem id="menu_manufacturing_machine" name="Machine" action="action_mrp_machine_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="5"/>
+<!--        <menuitem id="menu_manufacturing_machine" name="Machine" action="action_mrp_machine_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="5"/>-->
 
 <!--        <menuitem id="menu_manufacturing_operation" name="Operation" action="manufacturing_operation_form_action" parent="fnet_mrp.menu_manufacturing_configuration" sequence="6"/>-->
 

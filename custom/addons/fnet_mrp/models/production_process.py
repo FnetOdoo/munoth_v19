@@ -129,12 +129,12 @@ class ProductionStages(models.Model):
 
                     # >>> PLACE IT HERE <
                     # Only the first operation may create lots
-                if not is_first and line.allow_lot_create:
-                    raise UserError(_(
-                        "Operation '%s' has 'Allow Lot Creation' enabled, but "
-                        "only the first operation in the sequence is allowed "
-                        "to create lots."
-                    ) % line.display_name)
+                # if not is_first and line.allow_lot_create:
+                #     raise UserError(_(
+                #         "Operation '%s' has 'Allow Lot Creation' enabled, but "
+                #         "only the first operation in the sequence is allowed "
+                #         "to create lots."
+                #     ) % line.display_name)
 
                 # Branch operations must come AFTER their split operation.
                 # This runs at top level so it actually fires for split ops.
@@ -536,7 +536,7 @@ class ProductionStages(models.Model):
                 vals.update({
                     'model_id': model.id,
                     'manufacturing_stages_id': template_to_stage[template.id],
-                    'bom_id': False,
+                    # 'bom_id': False,
                     'manufacturing_operation_line_id': template.id,
                 })
                 self.env['manufacturing.operation'].create(vals)
@@ -549,7 +549,7 @@ class ProductionStages(models.Model):
                 vals.pop('manufacturing_operation_line_id', None)  # already correct, don't touch
                 vals.update({
                     'manufacturing_stages_id': template_to_stage[tmpl_id],
-                    'bom_id': False,
+                    # 'bom_id': False,
                 })
                 existing_lines[tmpl_id].write(vals)
 
@@ -761,29 +761,29 @@ class ProductionProcessType(models.Model):
     #     return super().write(vals)
 
 
-    @api.constrains('is_power_bank','is_packing_process','is_split_process','is_next_packing_process')
-    def _check_power_bank(self):
-        for rec in self:
-            if rec.is_next_packing_process:
-                if not rec.process_type3_id:
-                    raise UserError("Process type 3 is required.")
-            elif not rec.is_next_packing_process:
-                rec.process_type3_id = False
-
-            if rec.is_split_process and (not rec.process_type1_id or not rec.process_type2_id):
-                raise UserError(_("Please select both Process 1 and Process 2."))
-            elif not rec.is_split_process:
-                rec.process_type1_id = False
-                rec.process_type2_id = False
-
-            if rec.is_power_bank:
-                existing_record = self.search([
-                    ('is_power_bank', '=', True),
-                    ('id', '!=', rec.id)
-                ], limit=1)
-
-                if existing_record:
-                    raise UserError("Only one record can be marked as Power Bank.")
+    # @api.constrains('is_power_bank','is_packing_process','is_split_process','is_next_packing_process')
+    # def _check_power_bank(self):
+    #     for rec in self:
+    #         if rec.is_next_packing_process:
+    #             if not rec.process_type3_id:
+    #                 raise UserError("Process type 3 is required.")
+    #         elif not rec.is_next_packing_process:
+    #             rec.process_type3_id = False
+    #
+    #         if rec.is_split_process and (not rec.process_type1_id or not rec.process_type2_id):
+    #             raise UserError(_("Please select both Process 1 and Process 2."))
+    #         elif not rec.is_split_process:
+    #             rec.process_type1_id = False
+    #             rec.process_type2_id = False
+    #
+    #         if rec.is_power_bank:
+    #             existing_record = self.search([
+    #                 ('is_power_bank', '=', True),
+    #                 ('id', '!=', rec.id)
+    #             ], limit=1)
+    #
+    #             if existing_record:
+    #                 raise UserError("Only one record can be marked as Power Bank.")
             # if rec.is_packing_process:
             #     existing_record = self.search([
             #         ('is_packing_process', '=', True),
@@ -861,7 +861,7 @@ class ProductSerialNumber(models.Model):
     packing_manufacturing_process_id = fields.Many2one('manufacturing.process')
     voltage_manufacturing_process_id = fields.Many2one('manufacturing.process')
     capacity_manufacturing_process_id = fields.Many2one('manufacturing.process')
-    batch_id = fields.Many2one('manufacturing.batch', string='Batch',related='manufacturing_process_id.batch_id')
+    batch_id = fields.Many2one('manufacturing.batch', string='Batch',related='manufacturing_process_id.batch_id',store=True)
     cell_weight = fields.Float(string='Cell Weight (g)', digits=(16, 4))  #  was Char
     # _sql_constraints = [
     #     ('unique_capacity_serial', 'unique(name, capacity_manufacturing_process_id)',
@@ -961,7 +961,8 @@ class ProductionProcess(models.Model):
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
         ('progress', 'In Progress'),
-        ('hold', 'Hold'),
+        ('breakdown', 'Breakdown'),
+        ('restarted', 'Restarted'),
         ('done', 'Done'),
         ('close', 'Closed'),
         ('completed', 'Completed'),
@@ -974,7 +975,7 @@ class ProductionProcess(models.Model):
              " * Close: The production is done, the MO has to be closed.\n"
              " * Done: The MO is closed, the stock moves are posted. \n"
              " * Cancelled: The MO has been cancelled, can't be confirmed anymore.")
-    product_tracking = fields.Selection(related='product_id.tracking')
+    product_tracking = fields.Selection(related='product_id.tracking',store=True)
     product_tmpl_id = fields.Many2one('product.template', 'Product Template', related='product_id.product_tmpl_id')
     product_qty = fields.Float(
         'Quantity To Produce',
@@ -1009,7 +1010,7 @@ class ProductionProcess(models.Model):
     quality_ids = fields.One2many(
         'quality.parameter', 'manufacturing_process_id', 'Quality',
         copy=False, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    machine_id = fields.Many2one('manufacturing.machine')
+    machine_id = fields.Many2one('maintenance.equipment',string='Default Machine',ondelete='restrict',)
     start_time = fields.Datetime()
     end_time = fields.Datetime()
     # product_tray_id = fields.Many2one('product.tray')
@@ -1031,7 +1032,7 @@ class ProductionProcess(models.Model):
 
     before_manufacturing_process_id = fields.Many2one('manufacturing.process')
     before_manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
-    before_manufacturing_process_type_name = fields.Char(related='before_manufacturing_process_type_id.name')
+    before_manufacturing_process_type_name = fields.Char(related='before_manufacturing_process_type_id.name',store=True)
 
     next_manufacturing_process_id = fields.Many2one('manufacturing.process')
     next_manufacturing_process_type_id = fields.Many2one('manufacturing.process.type')
@@ -1190,11 +1191,15 @@ class ProductionProcess(models.Model):
         records = super(ProductionProcess, self).create(vals_list)
         return records
 
-    @api.depends('operation_id')
+    @api.depends('operation_id', )
     def _compute_allow_lot_create(self):
         for rec in self:
-            get_lot_create = self.env['manufacturing.process'].search([('is_first_process','=',True),('production_plan_id','=',self.production_plan_id.id)])
-            rec.allow_lot_create = get_lot_create.operation_id.allow_lot_create
+            if rec.operation_id.allow_lot_create:
+                rec.allow_lot_create = True
+            elif any(move.lot_id for move in rec.before_manufacturing_process_id.finished_move_ids):
+                rec.allow_lot_create = True
+            else:
+                rec.allow_lot_create = False
 
 
     @api.depends('manufacturing_process_type_id', 'is_capacity_created', 'is_voltage_created','state',
@@ -1508,10 +1513,10 @@ class ProductionProcess(models.Model):
             'domain': [('id', 'in', move_lines.mapped('lot_id').ids)],
         }
     def lot_creation(self):
-        if self.product_id:
-            self.product_id.write({
-                'tracking': 'serial',
-            })
+        # if self.product_id:
+        #     self.product_id.write({
+        #         'tracking': 'serial',
+        #     })
 
         # for lot in self.lot_ids:
         #     if lot.lot_id:
@@ -1764,7 +1769,9 @@ class ProductionProcess(models.Model):
         if self.allow_lot_create:
             next_process.done_lot = True
             next_process.lot_creation()
-
+        # for line in next_process.input_material_lines:
+        #     line.action_upload_serial()
+        # next_process.check_available_stock()
         return {
             'name': self.next_manufacturing_process_id.manufacturing_process_type_id.name,
             'type': 'ir.actions.act_window',
@@ -1786,10 +1793,14 @@ class ProductionProcess(models.Model):
             'is_first_process': False,
             'is_sub_process': True,
             'done_lot': True,
+            'is_power_bank': self.is_power_bank,
         })
         self.write({'sub_process_manufacturing_process_id': sub_process.id})
-        sub_process._onchange_of_product_plan_id()
+        if sub_process.is_power_bank:
+            sub_process._onchange_of_power_bank_product_id()
 
+        else:
+            sub_process._onchange_of_product_plan_id()
         if sub_process.product_id:
             sub_process.product_id.write({'tracking': 'serial'})
         sub_process.write({
@@ -1832,7 +1843,6 @@ class ProductionProcess(models.Model):
                 line.state = self.state
 
     def _resolve_bom(self):
-        """Common lookup shared by every process branch."""
         production_operation = self.env['production.operation'].search(
             [
                 ('manufacturing_process_type_id', '=', self.manufacturing_process_type_id.id),
@@ -1841,10 +1851,24 @@ class ProductionProcess(models.Model):
             order='sequence asc',
             limit=1,
         )
-        self.operation_id = production_operation.operation_id
-        self.product_model_id = self.production_plan_id.model_id
-        self.bom_id = production_operation.operation_id.bom_id
+        if production_operation:
+            self.operation_id = production_operation.operation_id
+            self.product_model_id = self.production_plan_id.model_id
+            self.bom_id = production_operation.operation_id.bom_id
+        elif self.is_power_bank:
+            self.operation_id = self.before_manufacturing_process_id.operation_id
+            self.manufacturing_process_type_id = self.before_manufacturing_process_id.manufacturing_process_type_id.id
+            self.bom_id = self.before_manufacturing_process_id.bom_id
         return production_operation
+
+    @api.onchange('is_power_bank')
+    def _onchange_of_power_bank_product_id(self):
+        production_operation = self._resolve_bom()
+        self.sequence = (self.sequence or 0) + 1
+        self.before_manufacturing_process_id.is_sub_process_created = True
+        # self.manufacturing_process_type_id = production_operation.manufacturing_process_type_id
+        self.product_qty = len(self.main_manufacturing_process_id.sub_process_lot_ids)
+        self._onchange_of_operation()
 
     @api.onchange('production_plan_id')
     def _onchange_of_product_plan_id(self):
@@ -1905,7 +1929,7 @@ class ProductionProcess(models.Model):
     @api.onchange('manufacturing_process_type_id')
     def _onchange_of_operation_type(self):
         if self.manufacturing_process_type_id:
-            machine = self.env['manufacturing.machine'].search([('manufacturing_process_type_id', '=', self.manufacturing_process_type_id)], limit=1)
+            machine = self.env['maintenance.equipment'].search([('manufacturing_process_type_id', '=', self.manufacturing_process_type_id)], limit=1)
             if machine:
                 self.machine_id = machine.id
 
@@ -1913,35 +1937,40 @@ class ProductionProcess(models.Model):
     def _onchange_of_operation(self):
         if self.operation_id and self.is_sub_process:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            # self.product_id = self.operation_id.product_id.id
+            if self.is_power_bank:
+                self.product_id = self.operation_id.product_id
             self.location_src_id = self.before_manufacturing_process_id.location_src_id.id
             self.location_dest_id = self.operation_id.location_dest_id.id
             self.production_location_id = production_location.id
             # self.bom_id = self.operation_id.bom_id.id
-            if self.allow_lot_create:
-                self.product_id.write({
-                    'tracking': 'serial',
-                })
-            else:
-                self.product_id.write({
-                    'tracking': 'none',
-                })
+            # if self.allow_lot_create:
+            #     self.product_id.write({
+            #         'tracking': 'serial',
+            #     })
+            # else:
+            #     self.product_id.write({
+            #         'tracking': 'none',
+            #     })
 
         elif self.operation_id:
             production_location = self.env['stock.location'].search([('usage', '=', 'production')], limit=1)
-            # self.product_id = self.operation_id.product_id.id
+            if self.is_power_bank:
+                self.bom_id = self.operation_id.bom_id
+                self.product_id = self.operation_id.product_id
+                self.manufacturing_process_type_id = self.operation_id.manufacturing_process_type_id
             self.location_src_id = self.operation_id.location_src_id.id
             self.location_dest_id = self.operation_id.location_dest_id.id
             self.production_location_id = production_location.id
             # self.bom_id = self.operation_id.bom_id.id
-            if self.allow_lot_create:
-                self.product_id.write({
-                    'tracking': 'serial',
-                })
-            else:
-                self.product_id.write({
-                    'tracking': 'none',
-                })
+            # if self.allow_lot_create:
+            #     self.product_id.write({
+            #         'tracking': 'serial',
+            #     })
+            # else:
+            #     self.product_id.write({
+            #         'tracking': 'none',
+            #     })
+
         else:
             self.bom_id = False
             self.component_ids =False
@@ -2041,6 +2070,22 @@ class ProductionProcess(models.Model):
                     'manufacturing_process_id': self._origin.id or False,
                 }))
 
+
+
+        elif self.is_power_bank:
+            for line in self.bom_id.bom_line_ids:
+                child_records.append((0, 0, {
+                    'product_id': line.product_id.id,
+                    'product_uom_category_id': line.product_uom_category_id.id,
+                    'product_uom_id': line.product_uom_id.id,
+                    'location_src_id': self.location_src_id.id,
+                    'location_dest_id': self.location_dest_id.id,
+                    'name': line.product_id.name,
+                    'product_qty': self.product_qty,
+                    'production_plan_id': self.production_plan_id.id,
+                    'manufacturing_process_id': self._origin.id or False,
+                }))
+
         else:
             remaining_qty = before.remaining_qty
             for line in self.bom_id.bom_line_ids:
@@ -2079,17 +2124,15 @@ class ProductionProcess(models.Model):
 
     def check_available_stock(self):
         for rec in self:
-            if rec.allow_lot_create:
-                rec.product_id.write({
-                    'tracking': 'serial',
-                })
-            else:
-                rec.product_id.write({
-                    'tracking': 'none',
-                })
             rec.need_material_request = False
             rec.check_available = False
-            for line in rec.input_material_lines:
+            for index, line in enumerate(rec.input_material_lines):
+                if not line.product_qty:
+                    raise UserError(_('Please enter the product quantity.'))
+                if index == 0 and line.product_qty != rec.product_qty:
+                    raise UserError(_(
+                        'Quantity for "%s" (%s) must match the required quantity (%s).'
+                    ) % (line.product_id.display_name, line.product_qty, rec.product_qty))
                 available_qty = line.product_id.get_available_quantity(line.location_src_id)
                 if available_qty < line.product_qty:
                     rec.need_material_request = True
@@ -2315,10 +2358,12 @@ class ProductionProcess(models.Model):
 
     def action_done_production(self):
         for rec in self:
-
             if self.allow_lot_create and not self.lot_ids:
-                raise UserError("This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
-            rec.lot_creation()
+                raise UserError(
+                    "This is lot enabled product.Please upload the Lot/Serial Number in the Serial Number tab.")
+            rec.check_available_stock()
+
+
         # NEW: if this is a split process, trigger Capacity/Voltage lot creation first.
         # These already call action_create_packing_lot() internally, so packing_lot_ids
         # gets populated too as the "remaining" serials.
@@ -2329,54 +2374,164 @@ class ProductionProcess(models.Model):
                 if rec.process_type2_id:
                     rec.action_create_voltage_lot()
 
-        for rec in self:
-            rec.check_available_stock()
-            stock_moves = []
-            for line in rec.component_ids:
-                stock_move_vals = {
-                    'inventory_name': rec.name,
-                    'product_id': line.product_id.id,
-                    'product_uom': line.product_uom_id.id,
-                    'product_uom_qty': line.product_qty,
-                    'location_id': line.location_src_id.id,
-                    'location_dest_id': rec.production_location_id.id,
-                    'manufacturing_process_id': rec.id,
-                    'move_line_ids': [(0, 0, {
+        if self.operation_id.allow_lot_create:
+            # ══════════════════════════════════════════════════════════════
+            # NEW FLOW — operation has allow_lot_create enabled
+            # Process 1: move all component lines EXCEPT self.product_id
+            # Process 2: move self.product_id src → production, then create lots
+            # ══════════════════════════════════════════════════════════════
+            for rec in self:
+                rec.check_available_stock()
+                # check_available_stock() may have set tracking='serial' already.
+                # Force it to 'none' now so that ALL stock moves below can execute
+                # without Odoo demanding lot numbers. Correct tracking is applied
+                # later (after lot_creation), at the end of this block.
+                rec.product_id.sudo().write({'tracking': 'none'})
+
+                # ── Process 1: Move component lines where product DIFFERS from self.product_id ──
+                # These are the raw-material components consumed into production.
+                # self.product_id is handled exclusively in Process 2 below.
+                other_component_lines = rec.component_ids.filtered(
+                    lambda l: l.product_id != rec.product_id
+                )
+                stock_moves = []
+                for line in other_component_lines:
+                    stock_move_vals = {
+                        'inventory_name': rec.name,
                         'product_id': line.product_id.id,
-                        'product_uom_id': line.product_id.uom_id.id,
-                        'quantity': line.product_qty,
+                        'product_uom': line.product_uom_id.id,
+                        'product_uom_qty': line.product_qty,
                         'location_id': line.location_src_id.id,
                         'location_dest_id': rec.production_location_id.id,
-                        'company_id': rec.company_id.id,
-                        'lot_id': line.lot_id.id if line.lot_id else False,
                         'manufacturing_process_id': rec.id,
-                    })],
-                }
-                stock_moves.append(stock_move_vals)
-            created_stock_moves = self.env['stock.move'].create(stock_moves)
-            created_stock_moves._action_confirm()
-            created_stock_moves._action_assign()
-            for move, line in zip(created_stock_moves, rec.component_ids):
-                if move.move_line_ids:
-                    move.move_line_ids.write({
-                        'quantity': line.product_qty,
-                        'lot_id': line.lot_id.id if line.lot_id else False,
-                        'manufacturing_process_id': rec.id,
-                    })
-                else:
-                    self.env['stock.move.line'].create({
-                        'move_id': move.id,
+                        'move_line_ids': [(0, 0, {
+                            'product_id': line.product_id.id,
+                            'product_uom_id': line.product_id.uom_id.id,
+                            'quantity': line.product_qty,
+                            'location_id': line.location_src_id.id,
+                            'location_dest_id': rec.production_location_id.id,
+                            'company_id': rec.company_id.id,
+                            'lot_id': line.lot_id.id if line.lot_id else False,
+                            'manufacturing_process_id': rec.id,
+                        })],
+                    }
+                    stock_moves.append(stock_move_vals)
+                if stock_moves:
+                    created_stock_moves = self.env['stock.move'].create(stock_moves)
+                    created_stock_moves._action_confirm()
+                    created_stock_moves._action_assign()
+                    for move, line in zip(created_stock_moves, other_component_lines):
+                        if move.move_line_ids:
+                            move.move_line_ids.write({
+                                'quantity': line.product_qty,
+                                'lot_id': line.lot_id.id if line.lot_id else False,
+                                'manufacturing_process_id': rec.id,
+                            })
+                        else:
+                            self.env['stock.move.line'].create({
+                                'move_id': move.id,
+                                'product_id': line.product_id.id,
+                                'product_uom_id': line.product_uom_id.id,
+                                'quantity': line.product_qty,
+                                'location_id': line.location_src_id.id,
+                                'location_dest_id': rec.production_location_id.id,
+                                'company_id': rec.company_id.id,
+                                'lot_id': line.lot_id.id if line.lot_id else False,
+                                'manufacturing_process_id': rec.id,
+                            })
+                        move.move_line_ids.picked = True
+                    created_stock_moves._action_done()
+
+            # ── Process 2: Move self.product_id from location_src_id → production_location_id ──
+            # Use sudo() + direct state write to bypass Odoo's lot/serial validation.
+            # Lots are created later in lot_creation() after tracking is set.
+            src_to_prod_move = self.env['stock.move'].sudo().create({
+                'inventory_name': self.name,
+                'product_id': self.product_id.id,
+                'product_uom': self.product_uom_id.id,
+                'product_uom_qty': self.product_qty,
+                'location_id': self.location_src_id.id,
+                'location_dest_id': self.production_location_id.id,
+                'manufacturing_process_id': self.id,
+                'state': 'draft',
+            })
+            src_to_prod_move.sudo().write({'state': 'confirmed'})
+            self.env['stock.move.line'].sudo().create({
+                'move_id': src_to_prod_move.id,
+                'product_id': self.product_id.id,
+                'product_uom_id': self.product_uom_id.id,
+                'quantity': self.product_qty,
+                'location_id': self.location_src_id.id,
+                'location_dest_id': self.production_location_id.id,
+                'company_id': self.company_id.id,
+                'manufacturing_process_id': self.id,
+                'picked': True,
+            })
+            src_to_prod_move.sudo().write({'state': 'done'})
+
+            # ── Set final tracking and create lots in production_location_id ──
+            self.product_id.sudo().write({'tracking': 'serial'})
+            self.lot_creation()
+
+        else:
+            # ══════════════════════════════════════════════════════════════
+            # ORIGINAL FLOW — operation does NOT have allow_lot_create
+            # Move ALL component lines as before; existing tracking logic applies.
+            # ══════════════════════════════════════════════════════════════
+            for rec in self:
+                rec.check_available_stock()
+                stock_moves = []
+                for line in rec.component_ids:
+                    stock_move_vals = {
+                        'inventory_name': rec.name,
                         'product_id': line.product_id.id,
-                        'product_uom_id': line.product_uom_id.id,
-                        'quantity': line.product_qty,
+                        'product_uom': line.product_uom_id.id,
+                        'product_uom_qty': line.product_qty,
                         'location_id': line.location_src_id.id,
                         'location_dest_id': rec.production_location_id.id,
-                        'company_id': rec.company_id.id,
-                        'lot_id': line.lot_id.id if line.lot_id else False,
                         'manufacturing_process_id': rec.id,
-                    })
-                move.move_line_ids.picked = True
-            created_stock_moves._action_done()
+                        'move_line_ids': [(0, 0, {
+                            'product_id': line.product_id.id,
+                            'product_uom_id': line.product_id.uom_id.id,
+                            'quantity': line.product_qty,
+                            'location_id': line.location_src_id.id,
+                            'location_dest_id': rec.production_location_id.id,
+                            'company_id': rec.company_id.id,
+                            'lot_id': line.lot_id.id if line.lot_id else False,
+                            'manufacturing_process_id': rec.id,
+                        })],
+                    }
+                    stock_moves.append(stock_move_vals)
+                created_stock_moves = self.env['stock.move'].create(stock_moves)
+                created_stock_moves._action_confirm()
+                created_stock_moves._action_assign()
+                for move, line in zip(created_stock_moves, rec.component_ids):
+                    if move.move_line_ids:
+                        move.move_line_ids.write({
+                            'quantity': line.product_qty,
+                            'lot_id': line.lot_id.id if line.lot_id else False,
+                            'manufacturing_process_id': rec.id,
+                        })
+                    else:
+                        self.env['stock.move.line'].create({
+                            'move_id': move.id,
+                            'product_id': line.product_id.id,
+                            'product_uom_id': line.product_uom_id.id,
+                            'quantity': line.product_qty,
+                            'location_id': line.location_src_id.id,
+                            'location_dest_id': rec.production_location_id.id,
+                            'company_id': rec.company_id.id,
+                            'lot_id': line.lot_id.id if line.lot_id else False,
+                            'manufacturing_process_id': rec.id,
+                        })
+                    move.move_line_ids.picked = True
+                created_stock_moves._action_done()
+            if self.allow_lot_create:
+                self.product_id.write({'tracking': 'serial'})
+            else:
+                self.product_id.write({'tracking': 'none'})
+            if self.product_id.tracking == 'serial':
+                self.lot_creation()
 
         for lot in self.lot_ids:
             if lot.lot_id:
@@ -2601,6 +2756,7 @@ class ProductionProcess(models.Model):
                     'default_product_uom_id': rec.product_uom_id.id,
                     'default_location_src_id': rec.location_dest_id.id,
                     'default_manufacturing_process_id': rec.id,
+                    'default_is_power_bank':rec.is_power_bank,
                 },
             }
 
@@ -2620,22 +2776,6 @@ class ProductionProcess(models.Model):
                 },
             }
 
-    def action_break_production(self):
-        for rec in self:
-            view = self.env.ref('fnet_mrp.production_breakdown_form_view1')
-            return {
-                'name': _('Production  Breakdown'),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'views': [(view.id, 'form')],
-                'view_id': view.id,
-                'res_model': 'production.breakdown',
-                'target': 'new',
-                'context': {
-                    'default_manufacturing_process_id': rec.id,
-                    'default_type': 'HOLD',
-                },
-            }
 
     def action_restart_production(self):
         for rec in self:

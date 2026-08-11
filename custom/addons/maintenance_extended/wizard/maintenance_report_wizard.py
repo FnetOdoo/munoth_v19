@@ -78,6 +78,10 @@ class MaintenanceReportWizard(models.TransientModel):
     file_data = fields.Binary(string='XLSX File', readonly=True)
     file_name = fields.Char(string='File Name', readonly=True)
 
+    manufacturing_process_type_id = fields.Many2one(
+        'manufacturing.process.type',
+        string='Operation Type'
+    )
     @api.constrains('start_date', 'end_date')
     def _check_dates(self):
         for wizard in self:
@@ -690,3 +694,347 @@ class MaintenanceReportWizard(models.TransientModel):
                 self._name, self.id, self.file_name),
             'target': 'self',
         }
+
+
+    # ==================================================================
+    # MTTR MTBF REPORT
+    # ==================================================================
+
+    def _get_mttr_mtbf_requests(self):
+        self.ensure_one()
+
+        domain = [
+            ('create_date', '>=', f'{self.start_date} 00:00:00'),
+            ('create_date', '<=', f'{self.end_date} 23:59:59'),
+        ]
+
+        if self.manufacturing_process_type_id:
+            processes = self.env['manufacturing.process'].search([
+                ('manufacturing_process_type_id', '=',
+                 self.manufacturing_process_type_id.id)
+            ])
+            domain.append((
+                'manufacturing_process_id', 'in', processes.ids
+            ))
+
+        return self.env['breakdown.request'].search(
+            domain, order='create_date'
+        )
+
+    def _mttr_mtbf_label(self, record, field):
+        model = self.env['breakdown.request']
+        if field not in model._fields:
+            return ''
+
+        value = record[field]
+        if not value:
+            return ''
+
+        selection = model._fields[field].selection
+        if callable(selection):
+            selection = selection(model.env)
+
+        return dict(selection).get(value, value)
+
+    def _mttr_mtbf_downtime(self, record):
+        if record.start_date and record.end_date:
+            return max(
+                (record.end_date - record.start_date).total_seconds() / 3600,
+                0
+            )
+
+        if 'duration' in record._fields and record.duration:
+            return float(record.duration)
+
+        if 'duration_display' in record._fields and record.duration_display:
+            try:
+                h, m = record.duration_display.split(':')[:2]
+                return int(h) + int(m) / 60
+            except Exception:
+                pass
+
+        return 0
+
+    def _mttr_mtbf_hours(self, value):
+        minutes = round(float(value or 0) * 60)
+        return '%02d:%02d' % (minutes // 60, minutes % 60)
+
+    def action_generate_mttr_mtbf_report(self):
+        self.ensure_one()
+
+        requests = self._get_mttr_mtbf_requests()
+        buffer = io.BytesIO()
+        workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
+        sheet = workbook.add_worksheet('MTTR MTBF')
+
+        # --------------------------------------------------------------
+        # Formats
+        # --------------------------------------------------------------
+
+        title = workbook.add_format({
+            'bold': True, 'font_size': 16, 'font_color': '#FFFFFF',
+            'bg_color': '#3B7DDD', 'align': 'center',
+            'valign': 'vcenter', 'border': 1
+        })
+
+        header = workbook.add_format({
+            'bold': True, 'font_color': '#FFFFFF',
+            'bg_color': '#28A745', 'align': 'center',
+            'valign': 'vcenter', 'text_wrap': True, 'border': 1
+        })
+
+        cell = workbook.add_format({
+            'valign': 'vcenter', 'text_wrap': True, 'border': 1
+        })
+
+        center = workbook.add_format({
+            'align': 'center', 'valign': 'vcenter',
+            'text_wrap': True, 'border': 1
+        })
+
+        summary_label = workbook.add_format({
+            'bold': True, 'font_color': '#FFFFFF',
+            'bg_color': '#4472B4', 'align': 'right',
+            'valign': 'vcenter', 'border': 1
+        })
+
+        summary_value = workbook.add_format({
+            'bold': True, 'font_color': '#FFFFFF',
+            'bg_color': '#4472B4', 'align': 'center',
+            'valign': 'vcenter', 'border': 1
+        })
+
+        # --------------------------------------------------------------
+        # Columns
+        # --------------------------------------------------------------
+
+        columns = [
+            ('S.No', 6, lambda r: None),
+            ('Ticket No', 16, lambda r: r.name or ''),
+            ('Machine', 25, lambda r: r.machine_id.display_name if r.machine_id else ''),
+            ('Shift', 15, lambda r: r.shift_id.display_name if r.shift_id else ''),
+            ('Problem Category', 18, lambda r: self._mttr_mtbf_label(r, 'problem_category')),
+            ('Priority', 12, lambda r: self._mttr_mtbf_label(r, 'priority')),
+            ('Problem Description', 35, lambda r: r.problem_description or ''),
+            ('Requested By', 20, lambda r: r.requested_user_id.display_name if r.requested_user_id else ''),
+            ('Requested Time', 18, lambda r: self._fmt_dt(r.requested_time)),
+            ('Engineer Name', 20, lambda r: r.engineer_name or ''),
+            ('Operated By', 20, lambda r: r.operated_by or ''),
+            ('Attended By', 20, lambda r: r.attended_by.display_name if r.attended_by else ''),
+            ('Root Cause', 30, lambda r: r.root_cause or ''),
+            ('Corrective Action', 30, lambda r: r.corrective or ''),
+            ('Permanent Solution', 18, lambda r: self._mttr_mtbf_label(r, 'solution_permanent')),
+            ('Start Date', 18, lambda r: self._fmt_dt(r.start_date)),
+            ('End Date', 18, lambda r: self._fmt_dt(r.end_date)),
+            ('Down Time', 14, lambda r: r.duration_display or self._mttr_mtbf_hours(self._mttr_mtbf_downtime(r))),
+            ('Remarks', 30, lambda r: r.remarks or ''),
+            ('Status', 14, lambda r: self._mttr_mtbf_label(r, 'state')),
+        ]
+
+        if 'user_ids' in self.env['breakdown.request']._fields:
+            columns.insert(
+                -2,
+                ('Done By', 24, lambda r: ', '.join(r.user_ids.mapped('name')))
+            )
+
+        for col, (_, width, _) in enumerate(columns):
+            sheet.set_column(col, col, width)
+
+        last_col = len(columns) - 1
+
+        # --------------------------------------------------------------
+        # Title
+        # --------------------------------------------------------------
+
+        sheet.merge_range(
+            0, 0, 0, last_col,
+            'MTTR MTBF Report',
+            title
+        )
+
+        operation = (
+            self.manufacturing_process_type_id.display_name
+            if self.manufacturing_process_type_id
+            else 'All Operation Types'
+        )
+
+        sheet.merge_range(
+            1, 0, 1, last_col,
+            'Operation Type : %s | From : %s | To : %s' % (
+                operation,
+                self.start_date.strftime('%d/%m/%Y'),
+                self.end_date.strftime('%d/%m/%Y')
+            ),
+            workbook.add_format({
+                'italic': True, 'align': 'center',
+                'valign': 'vcenter', 'border': 1
+            })
+        )
+
+        # --------------------------------------------------------------
+        # Header
+        # --------------------------------------------------------------
+
+        header_row = 3
+
+        for col, (name, _, _) in enumerate(columns):
+            sheet.write(header_row, col, name, header)
+
+        sheet.freeze_panes(header_row + 1, 0)
+
+        # --------------------------------------------------------------
+        # Data
+        # --------------------------------------------------------------
+
+        center_fields = {
+            'S.No', 'Priority', 'Problem Category',
+            'Permanent Solution', 'Down Time', 'Status'
+        }
+
+        row = header_row + 1
+
+        for index, record in enumerate(requests, 1):
+
+            for col, (name, _, getter) in enumerate(columns):
+                value = index if name == 'S.No' else getter(record)
+
+                sheet.write(
+                    row,
+                    col,
+                    value or '',
+                    center if name in center_fields else cell
+                )
+
+            row += 1
+
+        # --------------------------------------------------------------
+        # MTTR / MTBF
+        # --------------------------------------------------------------
+
+        failures = len(requests)
+
+        downtime = sum(
+            self._mttr_mtbf_downtime(r)
+            for r in requests
+        )
+
+        available = max(
+            (
+                    self.end_date - self.start_date
+            ).total_seconds() / 3600,
+            0
+        )
+
+        operating = max(
+            available - downtime,
+            0
+        )
+
+        mttr = downtime / failures if failures else 0
+        mtbf = operating / failures if failures else 0
+
+        # --------------------------------------------------------------
+        # Summary
+        # --------------------------------------------------------------
+
+        def summary(label, value):
+            nonlocal row
+
+            label_start = max(last_col - 8, 0)
+            value_start = last_col - 3
+
+            if label_start:
+                sheet.merge_range(
+                    row, 0, row, label_start - 1,
+                    '', summary_label
+                )
+
+            sheet.merge_range(
+                row, label_start,
+                row, value_start - 1,
+                label,
+                summary_label
+            )
+
+            sheet.merge_range(
+                row, value_start,
+                row, last_col,
+                value,
+                summary_value
+            )
+
+            row += 1
+
+        summary(
+            'Total Records : %s' % failures,
+            'Total Down Time : %s' %
+            self._mttr_mtbf_hours(downtime)
+        )
+
+        summary(
+            'MTTR :',
+            '%s Hours' %
+            self._mttr_mtbf_hours(mttr)
+        )
+
+        summary(
+            'MTBF :',
+            '%s Hours' %
+            self._mttr_mtbf_hours(mtbf)
+        )
+
+        # --------------------------------------------------------------
+        # Footer
+        # --------------------------------------------------------------
+
+        row += 1
+
+        footer = workbook.add_format({
+            'italic': True,
+            'align': 'right'
+        })
+
+        sheet.merge_range(
+            row, 0, row, last_col,
+            'Available Time : %.2f Hours | Operating Time : %.2f Hours | Failures : %s'
+            % (available, operating, failures),
+            footer
+        )
+
+        if requests:
+            sheet.autofilter(
+                header_row,
+                0,
+                header_row + len(requests),
+                last_col
+            )
+
+        sheet.set_landscape()
+        sheet.fit_to_pages(1, 0)
+        sheet.set_margins(0.25, 0.25, 0.5, 0.5)
+        sheet.repeat_rows(0, header_row)
+
+        workbook.close()
+        buffer.seek(0)
+
+        self.write({
+            'file_data': base64.b64encode(buffer.read()),
+            'file_name': 'MTTR MTBF Report %s to %s.xlsx' % (
+                self.start_date.strftime('%Y-%m-%d'),
+                self.end_date.strftime('%Y-%m-%d')
+            ),
+        })
+
+        buffer.close()
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s/%s/file_data/%s?download=true' % (
+                self._name,
+                self.id,
+                self.file_name
+            ),
+            'target': 'self',
+        }
+
+

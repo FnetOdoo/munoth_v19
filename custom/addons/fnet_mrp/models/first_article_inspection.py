@@ -23,7 +23,7 @@ class FirstArticleInspection(models.Model):
     template_id = fields.Many2one('fai.template', string="Template",states={'done': [('readonly', True)]})
     line_ids = fields.One2many('fai.line', 'inspection_id', string="Inspection")
     operation_id = fields.Many2one('manufacturing.operation', string="Operation", states={'request': [('readonly', True)], 'done': [('readonly', True)]})
-    origin = fields.Char("Source Document",readonly=True)
+    origin = fields.Char("Source Document")
     inspection_type = fields.Selection(
         [('process', 'Process Approval'), ('fai', 'First Article Inspection'), ('fpa', 'First Part Approval')], string="Inspection Type", required=True, states={'request': [('readonly', True)], 'done': [('readonly', True)]})
     lot_id = fields.Many2one('stock.lot', string="Serial Number")

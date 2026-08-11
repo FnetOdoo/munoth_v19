@@ -54,12 +54,38 @@
             </form>
         </field>
     </record>
+    <record id="view_fnet_mttr_mtbf_report_wizard_form" model="ir.ui.view">
+        <field name="name">maintenance.report.wizard.mttr.mtbf.form</field>
+        <field name="model">maintenance.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="MTTR MTBF Report">
+                <group col="4">
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="manufacturing_process_type_id"/>
+                </group>
 
-    <record id="action_breakdown_report_wizard" model="ir.actions.act_window">
-        <field name="name">Breakdown Request Report (XLSX)</field>
+                <footer>
+                    <button name="action_generate_mttr_mtbf_report"
+                            string="Generate XLSX"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"/>
+
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                            data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mttr_mtbf_report_wizard" model="ir.actions.act_window">
+        <field name="name">MTTR MTBF Report (XLSX)</field>
         <field name="res_model">maintenance.report.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_breakdown_report_wizard_form"/>
+        <field name="view_id" ref="view_fnet_mttr_mtbf_report_wizard_form"/>
         <field name="target">new</field>
     </record>
     <record id="action_maintenance_report_wizard" model="ir.actions.act_window">
@@ -70,7 +96,13 @@
         <field name="target">new</field>
     </record>
 
-
+    <record id="action_breakdown_report_wizard" model="ir.actions.act_window">
+        <field name="name">Breakdown Request Report (XLSX)</field>
+        <field name="res_model">maintenance.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_breakdown_report_wizard_form"/>
+        <field name="target">new</field>
+    </record>
     <menuitem id="menu_maintenance_report_wizard"
               name="Preventive Maintenance Report (XLSX)"
               parent="maintenance.maintenance_reporting"
@@ -82,5 +114,9 @@
               parent="maintenance.maintenance_reporting"
               action="action_breakdown_report_wizard"
               sequence="30"/>
+
+    <menuitem name="MTTR MTBF Reporting" id="menu_mttr_mtbf_report" sequence="2"
+              action="action_mttr_mtbf_report_wizard"
+              parent="fnet_mrp.menu_manufacturing_report"/>
 
 </odoo>

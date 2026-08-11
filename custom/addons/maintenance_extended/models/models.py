@@ -16,6 +16,8 @@ class MaintenanceRequest(models.Model):
     location_id = fields.Many2one('stock.location', string='Destination Location', copy=True)
     instrument_ids = fields.One2many('maintenance.instrument', 'equipment_id', string='Maintenance Instrument')
     technician_user_id = fields.Many2one('res.users', 'Responsible', default=lambda self: self.env.uid)
+    manufacturing_process_type_id = fields.Many2one('manufacturing.process.type',string="Operation Type",tracking=True)
+
 
     def _prepare_requests_from_plan(self, maintenance_plan, next_maintenance_date):
         res = super()._prepare_request_from_plan(maintenance_plan, next_maintenance_date)
@@ -374,7 +376,3 @@ class SaleSubscription(models.Model):
     _inherit = 'sales.subscription'
 
     is_maintenance = fields.Boolean("Is Maintenance?")
-
-
-
-

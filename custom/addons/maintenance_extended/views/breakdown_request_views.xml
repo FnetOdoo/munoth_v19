@@ -82,6 +82,72 @@
             </form>
         </field>
     </record>
+    <record id="view_breakdown_request_wizard_form" model="ir.ui.view">
+        <field name="name">breakdown.request.form</field>
+        <field name="model">breakdown.request</field>
+        <field name="arch" type="xml">
+            <form string="Production Breakdown">
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <field name="company_id" invisible="1"/>
+                    <field name="manufacturing_process_id" invisible="1"/>
+
+                    <group>
+                        <group>
+                            <field name="machine_id"
+                                   required="1"/>
+                            <field name="shift_id"
+                                   required="1"/>
+                            <field name="problem_category"
+                                   readonly="1"/>
+                            <field name="engineer_name"
+                                   required="1"/>
+                        </group>
+
+                        <group>
+                            <field name="priority"
+                                   widget="priority"
+                                   required="1"/>
+                            <field name="requested_user_id"
+                                   required="1"/>
+                            <field name="requested_time"
+                                   required="1"/>
+                            <field name="operated_by"
+                                   required="1"/>
+                        </group>
+                    </group>
+
+                    <separator string="Problem Description"/>
+
+                    <field name="problem_description"
+                           nolabel="1"
+                           required="1"
+                           placeholder="Enter Problem Description here..."/>
+
+                </sheet>
+
+                <footer>
+                    <button name="action_request"
+                            string="Breakdown Request"
+                            type="object"
+                            class="btn-primary"/>
+
+                    <button string="Cancel"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+
+            </form>
+        </field>
+    </record>
     <record id="view_breakdown_request_tree" model="ir.ui.view">
         <field name="name">breakdown.request.tree</field>
         <field name="model">breakdown.request</field>
@@ -107,8 +173,6 @@
         <field name="name">Breakdown Requests</field>
         <field name="res_model">breakdown.request</field>
         <field name="view_mode">list,form</field>
-        <field name="context">{'default_is_breakdown_request': True}</field>
-        <field name="domain">[('is_breakdown_request', '=', True)]</field>
         <field name="view_ids" eval="[(5, 0, 0),
         (0, 0, {'view_mode': 'list', 'sequence': 1, 'view_id': ref('view_breakdown_request_tree')}),
         (0, 0, {'view_mode': 'form', 'sequence': 2, 'view_id': ref('view_breakdown_request_form')})]"/>
@@ -121,6 +185,37 @@
             </p>
         </field>
     </record>
+
+    <record id="manufacturing_process_process_form_view_inherit" model="ir.ui.view">
+        <field name="model">manufacturing.process</field>
+        <field name="inherit_id" ref="fnet_mrp.manufacturing_process_process_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_break_production" type="object" class="btn-danger" string="Pause Production"
+                       invisible="state not in [ 'restarted','progress']"/>
+            </xpath>
+            <xpath expr="//page[@name='utility']" position="after">
+                <page string="Breakdown" invisible="is_sub_process">
+                    <field name="breakdown_request_ids" readonly="1"/>
+                </page>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_breakdown_requests"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-wrench"
+                        string="Breakdown"
+                        invisible="breakdown_request_count == 0">
+                    <field name="breakdown_request_count"
+                           widget="statinfo"
+                           string="Breakdown"/>
+
+                </button>
+
+            </xpath>
+        </field>
+    </record>
+
     <menuitem id="menu_bd_requests" name="Breakdown Requests" parent="maintenance.menu_m_request_form"
               action="action_breakdown_request" sequence="2"/>
 </odoo>

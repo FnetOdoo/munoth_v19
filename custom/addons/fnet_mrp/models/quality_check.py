@@ -35,7 +35,7 @@ class MrpQuality(models.Model):
     state = fields.Selection([('draft', 'New'), ('request', 'Requested'),('rework','Rework'),('scrap','Scrap'),('done', 'Done')], default='request', string="Status",tracking=True)
     decision = fields.Selection([('scrap', 'Scrap'), ('rework', 'Rework')])
     date = fields.Datetime('Date', default=fields.Datetime.now, required=True,tracking=True,states={'done': [('readonly', True)], 'request': [('readonly', True)]})
-    production_plan_id = fields.Many2one('production.plan', string="Production Plan",tracking=True, states={'done': [('readonly', True)], 'request': [('readonly', True)]})
+    production_plan_id = fields.Many2one('production.plan', string="Production Plan",tracking=True,)
     operation_id = fields.Many2one('manufacturing.operation', string="Operation",tracking=True, states={'done': [('readonly', True)], 'request': [('readonly', True)]})
     product_id = fields.Many2one('product.product', required=True, string="Product",states={'done': [('readonly', True)], 'request': [('readonly', True)]})
     product_uom_id = fields.Many2one(
@@ -56,6 +56,7 @@ class MrpQuality(models.Model):
     max_value=fields.Integer()
     mode = fields.Selection([('auto', 'Automatic'), ('manual', 'Manual')], default='auto', required=True, string="Mode",tracking=True,states={'done': [('readonly', True)], 'request': [('readonly', True)]})
 
+    is_power_bank            = fields.Boolean(related='manufacturing_process_id.is_power_bank',store=True)
 
 
     # qr_code_printing_id = fields.Many2one('qr.code.printing', string="QR Code Printing")

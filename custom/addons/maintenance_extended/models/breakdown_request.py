@@ -41,6 +41,9 @@ class BreakdownRequest(models.Model):
     duration = fields.Float(string='Down Time', compute='_compute_duration', store=True)
     duration_display = fields.Char(string='Down Time', compute='_compute_duration_display')
 
+
+    manufacturing_process_id = fields.Many2one('manufacturing.process', string="Manufacturing Process")
+
     @api.depends('duration')
     def _compute_duration_display(self):
         for rec in self:
@@ -74,6 +77,8 @@ class BreakdownRequest(models.Model):
             if record.state != 'draft':
                 continue
             record.state = 'request'
+            if record.manufacturing_process_id:
+                record.manufacturing_process_id.write({'state': 'breakdown'})
             record._notify_equipment_managers()
 
     def _notify_equipment_managers(self):
@@ -205,7 +210,101 @@ class BreakdownRequest(models.Model):
         mail = self.env['mail.mail'].sudo().create(mail_values)
         mail.sudo().send()
 
-
     def action_done(self):
-        self.write({'state': 'done'})
+        for record in self:
+            record.write({'state': 'done'})
+
+            if record.manufacturing_process_id:
+                record.manufacturing_process_id.write({'state': 'restarted'})
+
+            record._notify_breakdown_resolved()
+
+    def _notify_breakdown_resolved(self):
+        self.ensure_one()
+
+        requester = self.requested_user_id
+
+        if not requester or not requester.email:
+            raise ValidationError(
+                _("The requested user does not have an email address configured.")
+            )
+
+        mail_body = f"""
+            <p>Dear {requester.name or 'Team'},</p>
+
+            <p>
+                The breakdown request <strong>{self.name or ''}</strong>
+                has been resolved successfully.
+            </p>
+
+            <p>
+                The reported issue has been fixed and the request is now completed.
+            </p>
+
+            <p>
+                Thanks &amp; regards,<br/>
+                <strong>{self.env.user.name}</strong>
+            </p>
+        """
+
+        mail_values = {
+            'subject': f'Breakdown Request Resolved - {self.name or ""}',
+            'email_to': requester.email,
+            'email_from': self.env.company.email or '',
+            'body_html': mail_body,
+        }
+
+        mail = self.env['mail.mail'].sudo().create(mail_values)
+        mail.sudo().send()
+
+
+class ProductionProcess(models.Model):
+    _inherit = 'manufacturing.process'
+
+    breakdown_request_count = fields.Integer(
+        string='Breakdown Requests',
+        compute='_compute_breakdown_request_count'
+    )
+
+    def _compute_breakdown_request_count(self):
+        for record in self:
+            record.breakdown_request_count = len(record.breakdown_request_ids)
+
+    breakdown_request_ids = fields.One2many(
+        'breakdown.request',
+        'manufacturing_process_id',
+        string='Breakdown Requests'
+    )
+
+    def action_break_production(self):
+        self.ensure_one()
+        breakdown = self.env['breakdown.request'].create({
+            'manufacturing_process_id': self.id,
+        })
+
+        return {
+            'name': _('Production Breakdown'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'breakdown.request',
+            'view_id': self.env.ref(
+                'maintenance_extended.view_breakdown_request_wizard_form'
+            ).id,
+            'res_id': breakdown.id,
+            'target': 'new',
+        }
+
+    def action_view_breakdown_requests(self):
+        self.ensure_one()
+
+        return {
+            'name': _('Breakdown Requests'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'breakdown.request',
+            'view_mode': 'list,form',
+            'domain': [
+                ('manufacturing_process_id', '=', self.id)
+            ],
+            'target': 'current',
+        }
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+<!--        <record id="report_customer_account_details" model="ir.actions.report">-->
+<!--            <field name="name">Customer Account Details</field>-->
+<!--            <field name="model">payment.request</field>-->
+<!--            <field name="report_type">xlsx</field>-->
+<!--            <field name="report_name">payment_request.report_customer_acc_details_xlsx</field>-->
+<!--            <field name="report_file">payment_request.report_customer_acc_details_xlsx</field>-->
+<!--            <field name="binding_model_id" ref="model_payment_request"/>-->
+<!--            <field name="binding_type">report</field>    </record>-->
+
+
+            <report
+                    id="customer_account_details_xlsx"
+                    model="payment.request"
+                    string="Print Xlsx Report"
+                    report_type="xlsx"
+                    name="payment_request.report_customer_acc_details_xlsx"
+                    file="payment_request.report_customer_acc_details_xlsx"
+                    attachment_use="False"
+                    menu="False"/>
+
+
+
+</odoo>

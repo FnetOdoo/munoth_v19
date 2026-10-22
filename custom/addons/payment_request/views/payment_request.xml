@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!-- ===============================================================
+         PAYMENT REQUEST — FORM VIEW (ODOO 19 MIGRATED)
+    ================================================================ -->
+    <record id="payment_request_form_view" model="ir.ui.view">
+        <field name="name">payment.request.form</field>
+        <field name="model">payment.request</field>
+        <field name="arch" type="xml">
+
+            <form string="Payment Request" create="false" menu="false">
+
+                <header>
+                    <button name="print_account_details"
+                            type="object"
+                            class="btn-primary"
+                            string="Print Account Details"
+                            invisible="state not in ('approved','paid')"/>
+
+                    <button id="button_finance_approval"
+                            name="action_state_draft"
+                            invisible="state != 'cancel'"
+                            string="Reset to Draft"
+                            type="object"
+                            groups="payment_request.group_payment_request_admin,payment_request.group_payment_request_manager"/>
+
+                    <button id="button_approved"
+                            name="action_finance_approval"
+                            invisible="state != 'finance_approval'"
+                            class="btn-primary"
+                            string="Finance Approve"
+                            type="object"
+                            groups="payment_request.group_payment_request_manager"/>
+
+                    <button id="button_md_approval"
+                            name="action_md_approved"
+                            invisible="state != 'md_approval'"
+                            class="btn-success"
+                            string="MD Approve"
+                            type="object"
+                            groups="payment_request.group_payment_request_admin"/>
+
+                    <button id="button_cancel"
+                            name="action_cancel"
+                            invisible="state not in ('finance_approval', 'md_approval')"
+                            string="Cancel"
+                            type="object"
+                            groups="payment_request.group_payment_request_billing"/>
+
+                    <button id="button_rejected"
+                            name="action_rejected"
+                            string="Reject"
+                            invisible="state != 'md_approval'"
+                            class="btn-danger"
+                            type="object"
+                            groups="payment_request.group_payment_request_admin"/>
+
+                    <button name="action_payment_request_email"
+                            string="Send Email"
+                            class="btn-primary"
+                            type="object"
+                            invisible="1"/>
+
+                    <button name="action_register_payment"
+                            type="object"
+                            class="btn-primary"
+                            string="Register Payments"
+                            invisible="state != 'approved'"/>
+
+                    <button name="action_draft_payment_request"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state not in ['approved']"/>
+
+                    <button name="generate_invoice_details_report"
+                            string="Print Invoice Report"
+                            type="object"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           clickable="false"
+                           statusbar_visible="finance_approval,md_approval,approved,paid"/>
+                </header>
+
+                <sheet>
+
+                    <!-- Statistic Buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_payments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-bars">
+                            <span>Payments</span>
+                        </button>
+
+                        <button name="action_open_bills"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-bars">
+                            <span>Bills</span>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="request_number"/>
+                        </group>
+
+                        <group>
+                            <field name="file_data" string="Account Details"/>
+                            <field name="invoice_report_name" invisible="1"/>
+                            <field name="get_invoice_report" filename="invoice_report_name"/>
+                        </group>
+                    </group>
+
+                    <br/>
+
+                    <field name="email"
+                           invisible="state not in ['finance_approval']"/>
+
+                    <field name="line_ids"
+                           nolabel="1"
+                           readonly="state in ['approved','reject','paid']">
+
+                        <list string="Request Lines" editable="bottom">
+                            <field name="account_move_id"
+                                   string="Number"
+                                   options="{'no_create': True}"
+                                   domain="[('move_type','=','in_invoice'), ('state','=','posted'), ('payment_state','not in', ['paid','in_payment'])]"
+                                   readonly="parent.state != 'finance_approval'"/>
+                            <field name="partner_id" string="Partner" readonly="1"/>
+                            <field name="invoice_date_due" string="Due Date" readonly="1"/>
+                            <field name="amount_untaxed_signed" string="Tax Excluded" sum="Total" readonly="1"/>
+                            <field name="amount_total_signed" string="Total" sum="Total" readonly="1"/>
+                            <field name="amount_total_in_currency_signed" string="Total in Currency" sum="Total" readonly="1"/>
+                            <field name="bill_amount" string="Amount Due" sum="Total Due" readonly="1"/>
+                            <field name="request_amount" string="Request Amount" sum="Total Request"
+                                   readonly="parent.state != 'finance_approval'"/>
+                            <field name="payment_state" string="Payment Status"
+                                   widget="badge"
+                                   decoration-danger="payment_state == 'not_paid'"
+                                   decoration-warning="payment_state in ('partial', 'in_payment')"
+                                   decoration-success="payment_state in ('paid', 'reversed')"
+                                   readonly="1"/>
+                            <field name="bill_state" string="Status"
+                                   widget="badge"
+                                   decoration-success="bill_state == 'posted'"
+                                   decoration-info="bill_state == 'draft'"
+                                   readonly="1"/>
+                            <field name="cust_invoice_partner_id" string="Invoice Customer" readonly="1"/>
+                            <field name="cust_invoice_name" string="Number" readonly="1"/>
+                            <field name="reference_1" string="Reference" readonly="1"/>
+                            <field name="cust_invoice_amount_residual" string="Invoice Amount Due" sum="Total" readonly="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <button name="action_view_bill" type="object" string="View"
+                                    class="btn-link" icon="fa-external-link"/>
+                        </list>
+
+                    </field>
+
+                    <group>
+                        <group>
+                            <field name="total_due_amount"
+                                   widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   string="Total Requested Amount"/>
+                        </group>
+                    </group>
+
+                    <field name="account_move_ids" invisible="1"/>
+                    <field name="payment_ids" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+
+
+                </sheet>
+
+                <chatter/>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- ===============================================================
+         LIST VIEW
+    ================================================================ -->
+    <record id="payment_request_list_view" model="ir.ui.view">
+        <field name="name">payment.request.list</field>
+        <field name="model">payment.request</field>
+        <field name="arch" type="xml">
+            <list string="Payment Request" create="false">
+                <field name="request_number"/>
+                <field name="payment_request_date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+
+    <!-- ===============================================================
+         SEARCH VIEW
+    ================================================================ -->
+    <record id="payment_request_search" model="ir.ui.view">
+        <field name="name">payment.request.search</field>
+        <field name="model">payment.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+
+    <!-- ===============================================================
+         ACTION + MENU
+    ================================================================ -->
+    <record id="action_payment_request" model="ir.actions.act_window">
+        <field name="name">Payment Request</field>
+        <field name="res_model">payment.request</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_payment_request"
+              action="action_payment_request"
+              parent="account.menu_finance_payables"
+              sequence="10"/>
+
+</odoo>

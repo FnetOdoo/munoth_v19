@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="account_invoice_list_inherited">
+            <field name="name">Account Invoice</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_invoice_tree"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//list//header" position="inside">
+                        <button name="payment_request" string="Payment Request" class="btn-primary"
+                                type="object"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="account_payment_cheque_list_inherited">
+            <field name="name">Account Payment</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_tree"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//field[@name='state']" position="before">
+                        <field name="cheque_reference"/>
+                        <field name="bank_reference"/>
+                    </xpath>
+
+                    <xpath expr="//list//header" position="inside">
+                        <button name="action_utr_number_update" string="UTR" class="btn-success ml-2 mr-2"
+                                type="object"/>
+                        <button name="action_cheque_number_update" string="Cheque" class="btn-primary ml-2 mr-2"
+                                type="object"/>
+                        <button name="payment_advice_mail" string="Payment Advice" class="btn-danger ml-2 mr-2"
+                                type="object"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="account_payment_print_cheque_inherit">
+            <field name="name">Account Payment</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account_check_printing.view_account_payment_form_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header/button[@name='print_checks']" position="replace">
+                    <button name="print_checks" class="oe_highlight" invisible="1"
+                            string="Print Check" type="object"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="reconcile_form_inherit" model="ir.ui.view">
+            <field name="name">reconcile.form.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@id='header_right_group']" position="inside">
+                    <field name="cust_invoice_id" invisible="move_type != 'in_invoice'"
+                           domain="[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')]"/>
+                    <field name="reference_1" invisible="move_type != 'in_invoice'"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="form_payment_advice_mail" model="ir.ui.view">
+        <field name="name">payment.advice.mail</field>
+        <field name="model">payment.advice.mail</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id" invisible="0"/>
+                        </group>
+                        <group>
+                            <field name="email_to" invisible="0"/>
+                            <field name="email_cc" invisible="0"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_mail_send" type="object" string="Send" class="btn-primary"/>
+                        <button string="Cancel" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payment_advice_mail" model="ir.actions.act_window">
+        <field name="name">Payment Advice Email</field>
+        <field name="res_model">payment.advice.mail</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="form_payment_advice_mail"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

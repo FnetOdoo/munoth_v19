@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_move_inherited_form" model="ir.ui.view">
+            <field name="name">account.move.inherit.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet/notebook/page[@id='aml_tab']" position="inside">
+                    <field name="narration"
+                           placeholder="Add an internal note..."
+                           nolabel="1"
+                           height="50"
+                           invisible="move_type != 'entry'"/>
+                </xpath>
+
+                <xpath expr="//page[3]" position="after">
+                    <page string="Other Information"
+                          invisible="move_type in ['out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt']">
+                        <group>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="write_date" readonly="1"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_account_move_select_filter" model="ir.ui.view">
+            <field name="name">account.move.select.filter</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_move_filter"/>
+            <field name="arch" type="xml">
+                <filter name="misc_filter" position="before">
+                    <filter string="Bank Operations"
+                            domain="[('journal_id.type','=','bank')]"
+                            context="{'default_journal_type': 'Bank Journal'}"
+                            name="bank_filter"/>
+                    <filter string="Contra Operations"
+                            context="{'default_journal_type': 'contra'}"
+                            domain="[('journal_id.type','=','contra')]"
+                            name="contra_filter"/>
+                </filter>
+            </field>
+        </record>
+
+        <!-- =========================
+             Bank Journal View
+        ========================== -->
+        <record id="view_move_form_bank" model="ir.ui.view">
+            <field name="name">account.move.form.bank</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+                <form string="Account Entry">
+                    <header>
+                        <button name="action_post"
+                                invisible="state != 'draft'"
+                                string="Post"
+                                type="object"
+                                class="oe_highlight"
+                                groups="account.group_account_invoice"/>
+                        <button name="%(account.action_view_account_move_reversal)d"
+                                invisible="state != 'posted'"
+                                string="Reverse Entry"
+                                type="action"
+                                groups="account.group_account_invoice"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <field name="id" invisible="1"/>
+                        <div class="oe_button_box">
+                            <button name="open_reconcile_view"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    type="object"
+                                    string="Reconciled entries">
+                            </button>
+                        </div>
+
+                        <h1>
+                            <field name="name"
+                                   readonly="True"
+                                   invisible="name == '/'"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="payment_mode"
+                                       readonly="state == 'posted'"/>
+                                <field name="parent_id"
+                                       readonly="1"
+                                       invisible="parent_id == False"/>
+                                <field name="ref"
+                                       required="id == False"/>
+                                <field name="ref_date"
+                                       readonly="state == 'posted'"/>
+                            </group>
+
+                            <group>
+                                <field name="journal_id"
+                                       domain="[('type','=','bank')]"
+                                       options="{'no_open': True, 'no_create': True}"
+                                       readonly="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="reference"
+                                       invisible="1"
+                                       readonly="state == 'posted'"/>
+                                <field name="bank"
+                                       invisible="payment_mode not in ['cheque','demand_draft','debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="in_favour_of"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="imps_ref"
+                                       invisible="payment_mode != 'imps'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="card_name"
+                                       invisible="payment_mode not in ['debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="card_type"
+                                       invisible="payment_mode not in ['debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="branch_code"
+                                       invisible="payment_mode != 'cash'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="reverse_entry" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Journal Items">
+                                <field name="line_ids"
+                                       widget="one2many_list"
+                                       context="{'line_ids': line_ids, 'journal_id': journal_id}">
+                                    <list editable="bottom" string="Journal Items">
+                                        <field name="voucher_account_type" required="1"/>
+
+                                        <field name="partner_id"
+                                               domain="[('parent_id', '=', False)]"
+                                               required="voucher_account_type != 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+
+                                        <field name="account_id"
+                                               force_save="1"
+                                               readonly="voucher_account_type != 'gl'"
+                                               required="voucher_account_type == 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+
+                                        <field name="name"/>
+
+
+                                        <field name="amount_currency"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="company_currency_id" invisible="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="currency_id"
+                                               options="{'no_create': True}"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="debit" sum="Total Debit"/>
+                                        <field name="credit" sum="Total Credit"/>
+                                        <field name="date_maturity"
+                                               required="0"
+                                               invisible="context.get('view_no_maturity', False)"/>
+                                    </list>
+                                </field>
+
+                                <field name="narration"
+                                       colspan="4"
+                                       placeholder="Add an internal note..."
+                                       nolabel="1"
+                                       height="50"/>
+                            </page>
+
+                            <page string="Other Information">
+                                <group>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="create_date" readonly="1"/>
+                                    <field name="write_date" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_move_journal_line_bank" model="ir.actions.act_window">
+            <field name="name">Bank Journal</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="search_view_id" ref="account.view_account_move_filter"/>
+            <field name="context">
+                {'search_default_bank_filter': 1,
+                'view_no_maturity': True,
+                'journal_type': 'Bank Journal'}
+            </field>
+            <field name="domain">[('journal_id.name','=','Bank Journal')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to create a Bank entry.
+                </p>
+                <p>
+                    A journal entry consists of several journal items, each of which
+                    is either a debit or a credit transaction.
+                </p>
+                <p>
+                    Odoo automatically creates one journal entry per accounting
+                    document: invoice, refund, vendor payment, bank statements, etc.
+                    So, you should record journal entries manually only/mainly
+                    for miscellaneous operations.
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_move_journal_line_bank_list">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="act_window_id" ref="action_move_journal_line_bank"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_move_journal_line_bank_form">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_move_form_bank"/>
+            <field name="act_window_id" ref="action_move_journal_line_bank"/>
+        </record>
+
+        <menuitem action="action_move_journal_line_bank"
+                  id="menu_action_move_journal_line_form_bank"
+                  parent="account.account_transactions_menu"
+                  groups="account.group_account_user"
+                  sequence="10"/>
+
+        <!-- =========================
+             Contra Journal View
+        ========================== -->
+        <record id="view_move_form_contra" model="ir.ui.view">
+            <field name="name">account.move.form.contra</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+                <form string="Account Entry">
+                    <header>
+                        <button name="action_post"
+                                invisible="state != 'draft'"
+                                string="Post"
+                                type="object"
+                                class="oe_highlight"
+                                groups="account.group_account_invoice"/>
+                        <button name="%(account.action_view_account_move_reversal)d"
+                                invisible="state != 'posted'"
+                                string="Reverse Entry"
+                                type="action"
+                                groups="account.group_account_invoice"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <field name="id" invisible="1"/>
+                        <div class="oe_button_box">
+                            <button name="open_reconcile_view"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    type="object"
+                                    string="Reconciled entries">
+                            </button>
+                        </div>
+
+                        <h1>
+                            <field name="name"
+                                   readonly="True"
+                                   invisible="name == '/'"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="payment_mode"
+                                       readonly="state == 'posted'"/>
+                                <field name="parent_id"
+                                       readonly="1"
+                                       invisible="parent_id == False"/>
+                                <field name="ref"
+                                       required="id == False"/>
+                                <field name="ref_date"
+                                       readonly="state == 'posted'"/>
+                            </group>
+
+                            <group>
+                                <field name="journal_id"
+                                       domain="[('type','=','contra')]"
+                                       options="{'no_open': True, 'no_create': True}"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="reference"
+                                       invisible="1"
+                                       readonly="state == 'posted'"/>
+
+                                <!-- same pattern as bank -->
+                                <field name="bank"
+                                       invisible="payment_mode not in ['cheque','demand_draft','debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="in_favour_of"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="imps_ref"
+                                       invisible="payment_mode != 'imps'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="card_name"
+                                       invisible="payment_mode not in ['debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="card_type"
+                                       invisible="payment_mode not in ['debit_card','credit_card']"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="branch_code"
+                                       invisible="payment_mode != 'cash'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="reverse_entry" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Journal Items">
+                                <field name="line_ids"
+                                       widget="one2many_list"
+                                       context="{'line_ids': line_ids, 'journal_id': journal_id}">
+                                    <list editable="bottom" string="Journal Items">
+                                        <field name="account_id"/>
+                                        <field name="partner_id"
+                                               domain="['|', ('parent_id', '=', False), ('is_company', '=', True)]"
+                                               invisible="1"/>
+                                        <field name="name"/>
+
+
+                                        <field name="amount_currency"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="company_currency_id" invisible="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="currency_id"
+                                               options="{'no_create': True}"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="debit" sum="Total Debit"/>
+                                        <field name="credit" sum="Total Credit"/>
+                                        <field name="date_maturity"
+                                               required="0"
+                                               invisible="context.get('view_no_maturity', False)"/>
+                                    </list>
+                                </field>
+
+                                <field name="narration"
+                                       colspan="4"
+                                       placeholder="Add an internal note..."
+                                       nolabel="1"
+                                       height="50"/>
+                            </page>
+
+                            <page string="Other Information">
+                                <group>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="create_date" readonly="1"/>
+                                    <field name="write_date" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_move_journal_line_contra" model="ir.actions.act_window">
+            <field name="name">Contra</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="search_view_id" ref="account.view_account_move_filter"/>
+            <field name="domain">[('journal_id.name','=','Contra')]</field>
+            <field name="context">
+                {'search_default_contra_filter': 1,
+                'view_no_maturity': True,
+                'journal_type': 'Contra'}
+            </field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to create a Contra entry.
+                </p>
+                <p>
+                    A journal entry consists of several journal items, each of which
+                    is either a debit or a credit transaction.
+                </p>
+                <p>
+                    Odoo automatically creates one journal entry per accounting
+                    document: invoice, refund, vendor payment, bank statements,
+                    etc. So, you should record journal entries manually only/mainly
+                    for miscellaneous operations.
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_move_journal_line_bank_contra">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="act_window_id" ref="action_move_journal_line_contra"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_move_journal_line_contra_form">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_move_form_contra"/>
+            <field name="act_window_id" ref="action_move_journal_line_contra"/>
+        </record>
+
+        <menuitem action="action_move_journal_line_contra"
+                  id="menu_action_move_journal_line_form_contara"
+                  parent="account.account_transactions_menu"
+                  groups="account.group_account_user"
+                  sequence="16"/>
+
+<!--        &lt;!&ndash; Extra menuitems (unchanged) &ndash;&gt;-->
+<!--        <menuitem-->
+<!--                id="account.menu_action_move_out_receipt_type"-->
+<!--                action="account.action_move_out_receipt_type"-->
+<!--                parent="account.menu_finance_receivables"-->
+<!--                groups="base.group_no_one"-->
+<!--                sequence="1"/>-->
+
+<!--        <menuitem-->
+<!--                id="account.menu_action_move_in_receipt_type"-->
+<!--                action="account.action_move_in_receipt_type"-->
+<!--                parent="account.menu_finance_payables"-->
+<!--                groups="base.group_no_one"-->
+<!--                sequence="1"/>-->
+
+    </data>
+</odoo>

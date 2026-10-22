@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+
+        <record id="group_payment_request_billing" model="res.groups">
+            <field name="name">Payment Request/billing</field>
+        </record>
+        <record id="group_payment_request_manager" model="res.groups">
+            <field name="name">Payment Request/Manager</field>
+        </record>
+        <record id="group_payment_request_admin" model="res.groups">
+            <field name="name">Payment Request/Admin</field>
+        </record>
+
+
+    </data>
+
+</odoo>

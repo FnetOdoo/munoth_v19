@@ -1,0 +1,6 @@
+.o_list_view .o_data_row .o_field_cell[name="bill_amount"] {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+    font-weight: bold;
+    border-radius: 3px;
+}

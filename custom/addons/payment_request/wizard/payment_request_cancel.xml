@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="form_payment_request_cancel_reason_update" model="ir.ui.view">
+        <field name="name">payment.request.cancel.reason</field>
+        <field name="model">payment.request.cancel.reason</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" invisible="0"/>
+                        </group>
+
+                    </group>
+                    <footer>
+                        <button name="action_update_cancel_reason" type="object" string="Update" class="btn-primary"/>
+                        <button string="Cancel" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payment_request_cancel_reason" model="ir.actions.act_window">
+        <field name="name">Payment Request Cancel</field>
+        <field name="res_model">payment.request.cancel.reason</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="form_payment_request_cancel_reason_update"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

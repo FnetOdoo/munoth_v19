@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_voucher_manager,account.voucher.manager,model_account_voucher,account.group_account_manager,1,0,0,1
+access_account_voucher_line_manager,account.voucher.line.manager,model_account_voucher_line,account.group_account_manager,1,0,0,1
+access_account_voucher_invoice,account.voucher invoice,model_account_voucher,account.group_account_user,1,1,1,0
+access_account_voucher_line_invoice,account.voucher.line invoice,model_account_voucher_line,account.group_account_user,1,1,1,0
+access_group_cash_payment_access,group.cash.payment.access,model_account_voucher,journal_voucher.group_cash_payment_access,1,1,1,0
+access_group_cash_payment_line_access,group.cash.payment.line.access,model_account_voucher_line,journal_voucher.group_cash_payment_access,1,1,1,0
+access_group_account_journal,group.account.journal,model_account_journal,journal_voucher.group_cash_payment_access,1,1,1,0
+
+access_group_currencies_access,group_currencies_access,base.model_res_currency,journal_voucher.group_currencies_access,1,1,1,0
+access_group_currencies_rate_access,group_currencies_rate_access,base.model_res_currency_rate,journal_voucher.group_currencies_access,1,1,1,0

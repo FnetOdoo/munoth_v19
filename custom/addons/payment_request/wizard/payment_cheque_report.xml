@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="paper_format_account_payment" model="report.paperformat">
+        <field name="name">Cheque Print</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="bank_check_move" model="ir.actions.report">
+        <field name="name">Cheque Payment</field>
+        <field name="model">account.payment.cheque.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">payment_request.bank_check_template_report</field>
+        <field name="report_file">payment_request.bank_check_template_report</field>
+        <field name="paperformat_id" ref="paper_format_account_payment"/>
+        <field name="binding_model_id" ref="model_account_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="bank_check_template_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="payment_request.bank_check_template_report_move" t-lang="lang"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="bank_check_template_report_move">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page">
+                    <!--                    <t t-set="r" t-value="o.company_id"/>-->
+                    <div style="padding-left:80mm;width:295mm; height:210mm;font-size:18px;">
+                        <div style="padding-top:70mm; margin-left:145mm;">
+                            <p>
+                                <strong>A/c Payee</strong>
+                            </p>
+                        </div>
+                        <div style="padding-left:220mm;letter-spacing:20px;">
+                            <p>
+                                <strong>
+                                    <span t-esc="o.cheque_date.strftime(' %d%m%Y')"/>
+                                </strong>
+                            </p>
+                        </div>
+                        <div style="padding-left:70mm;">
+                            <p>
+                                <strong>
+                                    <div style="font-family:'Times New Roman'; ">
+                                        <span t-field="o.cheque_name"/>
+                                    </div>
+                                </strong>
+                            </p>
+                        </div>
+                        <div style="padding-top:-1mm;margin-left:83mm;">
+                            <p>
+                                <strong>
+                                    <span t-field="o.amount_text"/>
+                                </strong>
+                            </p>
+                        </div>
+                        <div style="padding-left:245mm;">
+                            <p>
+                                <strong>**
+                                    <t t-esc="'{0:,.2f}'.format(o.total_amount)"/>
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

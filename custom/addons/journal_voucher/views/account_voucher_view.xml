@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Calendar -->
+        <record id="view_account_voucher_calendar" model="ir.ui.view">
+            <field name="name">account.voucher.calendar</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <calendar string="Account Voucher" mode="month" date_start="date" color="state">
+                    <field name="journal_id"/>
+                    <field name="account_id"/>
+                    <field name="type"/>
+                </calendar>
+            </field>
+        </record>
+
+        <!-- Graph -->
+        <record id="view_account_voucher_graph" model="ir.ui.view">
+            <field name="name">account.voucher.graph</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <graph string="Account Voucher" type="bar">
+                    <field name="date"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Pivot -->
+        <record id="view_account_voucher_pivot" model="ir.ui.view">
+            <field name="name">account.voucher.pivot</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <pivot string="Account Voucher">
+                    <field name="date" type="row"/>
+                    <field name="type" type="row"/>
+                    <field name="journal_id" type="row"/>
+                    <field name="voucher_amount" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Kanban -->
+        <record id="account_account_voucher_kanban" model="ir.ui.view">
+            <field name="name">account.voucher.kanban</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile">
+                    <field name="date"/>
+                    <field name="journal_id"/>
+                    <field name="state"/>
+                    <field name="voucher_amount"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.journal_id.value"/>
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <div class="col-xs-6 text-right">
+                                        <strong>
+                                            <i class="fa fa-clock-o"/>
+                                            <t t-esc="record.date.value"/>
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left text-muted">
+                                        <span>
+                                            <field name="voucher_amount" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state"
+                                               widget="label_selection"
+                                               options="{'classes': {'draft': 'default', 'cancel': 'danger', 'proforma': 'info', 'posted': 'success'}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- List View -->
+        <record id="view_voucher_list" model="ir.ui.view">
+            <field name="name">account.voucher.list.view</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <list string="Voucher Entries">
+                    <field name="date"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="journal_id"/>
+                    <!-- Keeping your original logic here -->
+                    <field name="type" invisible="context.get('visible', True)"/>
+                    <field name="voucher_amount" sum="Total Amount"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- CASH FORM -->
+        <record id="view_voucher_cash_form" model="ir.ui.view">
+            <field name="name">account.voucher.form</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <form string="Accounting Voucher">
+                    <header>
+                        <button name="action_move_line_create"
+                                string="Post"
+                                type="object"
+                                invisible="state != 'draft'"
+                                class="oe_highlight"/>
+                        <button name="cancel_voucher"
+                                string="Cancel Voucher"
+                                type="object"
+                                invisible="state != 'posted'"
+                                confirm="Are you sure you want to unreconcile this record?"/>
+                        <button name="cancel_voucher"
+                                string="Cancel Voucher"
+                                type="object"
+                                invisible="state not in ('draft', 'proforma')"/>
+                        <button name="action_cancel_draft"
+                                type="object"
+                                invisible="state != 'cancel'"
+                                string="Set to Draft"/>
+                        <field name="state"
+                               widget="statusbar"
+                               statusbar_visible="draft,posted"
+                               statusbar_colors='{"proforma": "blue"}'/>
+                    </header>
+
+                    <sheet string="Accounting Voucher">
+                        <div class="oe_title">
+                            <h1>
+                                <field name="number" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object"
+                                    string=" Journal Items"
+                                    name="action_view_journal"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    invisible="account_type == 'gl' or state != 'posted'"/>
+                            <button type="object"
+                                    string="Payments"
+                                    name="action_view_payment"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    invisible="state != 'posted'"/>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="date" readonly="state == 'posted'"/>
+                                <field name="type" readonly="1"/>
+                                <field name="journal_id"
+                                       domain="[('type','=','cash')]"
+                                       options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                <field name="currency_id"
+                                       groups="base.group_multi_currency"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="account_id"
+                                       readonly="0"
+                                       force_save="1"
+                                       invisible="0"
+                                       options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                <field name="move_id"
+                                       invisible="state == 'draft'"
+                                       readonly="1"/>
+                                <field name="payment_id"
+                                       invisible="state == 'draft'"
+                                       readonly="1"/>
+                            </group>
+
+                            <group>
+                                <field name="payment_mode"
+                                       invisible="not journal_id"
+                                       readonly="state == 'posted'"/>
+                                <field name="reference"
+                                       string="Chq/DD Ref No"
+                                       invisible="payment_mode == 'cash'"
+                                       readonly="state == 'posted'"/>
+                                <field name="bank_id"
+                                       readonly="state == 'posted'"
+                                       invisible="payment_mode not in ('cheque','demand_draft','debit_card','credit_card')"/>
+                                <field name="ref_date"/>
+                                <field name="in_favour_of"
+                                       force_save="1"
+                                       invisible="payment_mode not in ('cheque','demand_draft','neft','rtgs')"
+                                       readonly="state == 'posted'"/>
+                                <field name="imps_ref"
+                                       invisible="payment_mode != 'imps'"
+                                       readonly="state == 'posted'"/>
+                                <field name="card_name"
+                                       invisible="payment_mode not in ('debit_card','credit_card')"
+                                       readonly="state == 'posted'"/>
+                                <field name="card_type"
+                                       invisible="payment_mode not in ('debit_card','credit_card')"
+                                       readonly="state == 'posted'"/>
+                                <field name="branch_code"
+                                       invisible="payment_mode != 'cash'"
+                                       readonly="state == 'posted'"/>
+                                <field name="account_type" invisible="1"/>
+                                <field name="upload_file" widget="many2many_binary"/>
+                            </group>
+                        </group>
+
+                        <notebook colspan="4">
+                            <page string="Voucher Entry">
+                                <!-- The model used to carry readonly=True together
+                                     with states={'draft': [('readonly', False)]}.
+                                     Odoo 17 dropped the states attribute, so only the
+                                     readonly survived and the lines stayed locked in
+                                     every state, leaving no "Add a line" even on a new
+                                     voucher. The condition is expressed here now, the
+                                     same way the other fields on this form already do
+                                     it. -->
+                                <field name="line_ids" readonly="state != 'draft'"
+                                       context="{'journal_id': journal_id, 'type': type}">
+                                    <list string="Voucher Items" editable="bottom">
+                                        <field name="account_type" required="1"/>
+                                        <field name="partner_id"
+                                               required="account_type != 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                        <field name="account_id"
+                                               force_save="1"
+                                               readonly="account_type != 'gl'"
+                                               required="account_type == 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                        <field name="account_analytic_id"
+                                               required="0"
+                                               groups="analytic.group_analytic_accounting"
+                                               invisible="1"/>
+
+                                        <field name="amount" required="1" sum="Total Amount"/>
+                                        <field name="type" invisible="1"/>
+                                        <field name="paid_check" invisible="1"/>
+                                        <button name="payment_view"
+                                                string=""
+                                                type="object"
+                                                icon="fa-list"
+                                                class="oe_highlight"
+                                                invisible="account_type == 'gl'"/>
+                                    </list>
+                                </field>
+                                <group>
+                                    <field name="narration" required="1" nolabel="1" placeholder="Description"/>
+                                </group>
+                            </page>
+
+                            <page string="Journal Items" invisible="1">
+                                <field name="move_ids" readonly="1">
+                                    <list string="Journal Items">
+                                        <field name="account_id"/>
+                                        <field name="ref"/>
+
+                                        <field name="debit"/>
+                                        <field name="credit"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Other Information">
+                                <group>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="create_date" readonly="1"/>
+                                    <field name="write_date" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- BANK FORM -->
+        <record id="view_voucher_bank_form" model="ir.ui.view">
+            <field name="name">account.voucher.form</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <form string="Accounting Voucher">
+                    <header>
+                        <button name="action_move_line_create"
+                                string="Post"
+                                type="object"
+                                invisible="state != 'draft'"
+                                class="oe_highlight"/>
+                        <button name="cancel_voucher"
+                                string="Cancel Voucher"
+                                type="object"
+                                invisible="state != 'posted'"
+                                confirm="Are you sure you want to unreconcile this record?"/>
+                        <button name="cancel_voucher"
+                                string="Cancel Voucher"
+                                type="object"
+                                invisible="state not in ('draft', 'proforma')"/>
+                        <button name="action_cancel_draft"
+                                type="object"
+                                invisible="state != 'cancel'"
+                                string="Set to Draft"/>
+                        <field name="state"
+                               widget="statusbar"
+                               statusbar_visible="draft,posted"
+                               statusbar_colors='{"proforma": "blue"}'/>
+                    </header>
+
+                    <sheet string="Accounting Voucher">
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object"
+                                    string=" Journal Items"
+                                    name="action_view_journal"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    invisible="state != 'posted'"/>
+                            <button type="object"
+                                    string="Payments"
+                                    name="action_view_payment"
+                                    class="oe_stat_button"
+                                    icon="fa-bars"
+                                    invisible="state != 'posted'"/>
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="number" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="date" readonly="state == 'posted'"/>
+                                <field name="type" readonly="1"/>
+                                <field name="journal_id"
+                                       domain="[('type','=','bank')]"
+                                       options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                <field name="currency_id"
+                                       groups="base.group_multi_currency"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="account_id"
+                                       readonly="1"
+                                       force_save="1"
+                                       options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                <field name="move_id"
+                                       invisible="state == 'draft'"
+                                       readonly="1"/>
+                                <field name="payment_id"
+                                       invisible="state == 'draft'"
+                                       readonly="1"/>
+                                <field name="bank_id"
+                                       invisible="payment_mode not in ('cheque','demand_draft','debit_card','credit_card')"
+                                       readonly="1"/>
+                            </group>
+
+                            <group>
+                                <field name="payment_mode"
+                                       invisible="not journal_id"
+                                       readonly="state == 'posted'"/>
+                                <field name="reference"
+                                       string="Chq/DD Ref No"
+                                       required="1"
+                                       invisible="payment_mode == 'cash'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="bank"
+                                       invisible="type != 'receipt'"
+                                       readonly="state == 'posted'"/>
+
+                                <field name="ref_date"
+                                       readonly="state == 'posted'"
+                                       required="type == 'payment'"/>
+
+                                <!-- Previous version commented; now invisible only when type == 'receipt' -->
+                                <field name="in_favour_of"
+                                       force_save="1"
+                                       invisible="type == 'receipt'"
+                                       readonly="state == 'posted'"/>
+
+                                <!-- imps_ref commented out in your source, left as-is -->
+
+                                <field name="card_name"
+                                       invisible="payment_mode not in ('debit_card','credit_card')"
+                                       readonly="state == 'posted'"/>
+                                <field name="card_type"
+                                       invisible="payment_mode not in ('debit_card','credit_card')"
+                                       readonly="state == 'posted'"/>
+                                <field name="branch_code"
+                                       invisible="type == 'payment' or payment_mode != 'cash'"
+                                       readonly="state == 'posted'"/>
+                                <field name="account_type" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <notebook colspan="4">
+                            <page string="Voucher Entry">
+                                <!-- The model used to carry readonly=True together
+                                     with states={'draft': [('readonly', False)]}.
+                                     Odoo 17 dropped the states attribute, so only the
+                                     readonly survived and the lines stayed locked in
+                                     every state, leaving no "Add a line" even on a new
+                                     voucher. The condition is expressed here now, the
+                                     same way the other fields on this form already do
+                                     it. -->
+                                <field name="line_ids" readonly="state != 'draft'"
+                                       context="{'journal_id': journal_id, 'type': type}">
+                                    <list string="Voucher Items" editable="bottom">
+                                        <field name="account_type" required="1"/>
+                                        <field name="partner_id"
+                                               required="account_type != 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+                                        <field name="account_id"
+                                               force_save="1"
+                                               readonly="account_type != 'gl'"
+                                               required="account_type == 'gl'"
+                                               options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"/>
+
+                                        <!-- name field commented in your source -->
+
+                                        <field name="account_analytic_id"
+                                               required="1"
+                                               groups="analytic.group_analytic_accounting"/>
+
+                                        <field name="amount" required="1" sum="Total Amount"/>
+                                        <field name="type" invisible="1"/>
+                                        <field name="paid_check" invisible="1"/>
+
+                                        <!-- payment_view button commented in your source -->
+                                    </list>
+                                </field>
+                                <group>
+                                    <field name="narration" required="1" nolabel="1" placeholder="Description"/>
+                                </group>
+                            </page>
+
+                            <page string="Journal Items" invisible="1">
+                                <field name="move_ids" readonly="1">
+                                    <list string="Journal Items">
+                                        <field name="account_id"/>
+                                        <field name="ref"/>
+
+                                        <field name="debit"/>
+                                        <field name="credit"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Other Information">
+                                <group>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="create_date" readonly="1"/>
+                                    <field name="write_date" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_account_voucher_filter" model="ir.ui.view">
+            <field name="name">account.move.cash</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <search string="Account">
+                    <field name="number"/>
+                    <field name="account_id"/>
+                    <field name="journal_id"/>
+                    <separator/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Actions & Menus -->
+
+        <!-- Cash Receipt -->
+        <record id="action_voucher_list_cash_receipt" model="ir.actions.act_window">
+            <field name="name">Cash Receipt</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_mode">list,kanban,form,graph,pivot,calendar</field>
+            <field name="search_view_id" ref="view_account_voucher_filter"/>
+            <field name="context">{"journal_type": "cash", "default_type": "receipt", "default_payment_mode": "cash"}
+            </field>
+            <field name="domain">[('journal_id.type','=','cash'),('type','=','receipt')]</field>
+        </record>
+
+        <record id="action_move_journal_voucher_cash_receipt_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_voucher_list"/>
+            <field name="act_window_id" ref="action_voucher_list_cash_receipt"/>
+        </record>
+
+        <record id="action_move_journal_voucher_cash_receipt_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_voucher_cash_form"/>
+            <field name="act_window_id" ref="action_voucher_list_cash_receipt"/>
+        </record>
+
+        <menuitem name="Cash Receipt"
+                  id="menu_encode_entries_by_cash_recepit"
+                  action="action_voucher_list_cash_receipt"
+                  parent="account.account_transactions_menu"
+                  sequence="14"
+                  groups="account.group_account_user"/>
+
+        <!-- Cash Payment -->
+        <record id="action_voucher_list_cash_payment" model="ir.actions.act_window">
+            <field name="name">Cash Payment</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_mode">list,kanban,form,graph,pivot,calendar</field>
+            <field name="search_view_id" ref="view_account_voucher_filter"/>
+            <field name="context">{"journal_type": "cash", "default_type": "payment", "default_payment_mode": "cash"}
+            </field>
+            <field name="domain">[('journal_id.type','=','cash'),('type','=','payment')]</field>
+        </record>
+
+        <record id="action_move_journal_voucher_cash_payment_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_voucher_list"/>
+            <field name="act_window_id" ref="action_voucher_list_cash_payment"/>
+        </record>
+
+        <record id="action_move_journal_voucher_cash_payment_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_voucher_cash_form"/>
+            <field name="act_window_id" ref="action_voucher_list_cash_payment"/>
+        </record>
+
+        <menuitem name="Cash Payment"
+                  id="menu_encode_entries_by_cash_payment"
+                  action="action_voucher_list_cash_payment"
+                  parent="account.account_transactions_menu"
+                  sequence="13"
+                  groups="account.group_account_user"/>
+
+        <menuitem name="Cash Payment"
+                  id="menu_encode_entries_cash_payment"
+                  web_icon="journal_voucher,static/icon.png"
+                  action="action_voucher_list_cash_payment"
+                  sequence="13"
+                  groups="journal_voucher.group_cash_payment_access"/>
+
+        <menuitem id="menu_action_currency_form"
+                  parent="account.menu_finance_entries"
+                  action="base.action_currency_form"
+                  name="Currencies"
+                  sequence="4"
+                  groups="journal_voucher.group_currencies_access"/>
+
+        <!-- Bank Receipt -->
+        <record id="action_voucher_list_bank_recepit" model="ir.actions.act_window">
+            <field name="name">Bank Receipt</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_mode">list,kanban,form,graph,pivot,calendar</field>
+            <field name="search_view_id" ref="view_account_voucher_filter"/>
+            <field name="context">{"journal_type": "bank", "default_type": "receipt"}</field>
+            <field name="domain">[('journal_id.type','=','bank'),('type','=','receipt')]</field>
+        </record>
+
+        <record id="action_move_journal_voucher_bank_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_voucher_list"/>
+            <field name="act_window_id" ref="action_voucher_list_bank_recepit"/>
+        </record>
+
+        <record id="action_move_journal_voucher_bank_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_voucher_bank_form"/>
+            <field name="act_window_id" ref="action_voucher_list_bank_recepit"/>
+        </record>
+
+        <menuitem name="Bank Receipt"
+                  id="menu_encode_entries_by_bank_recepit"
+                  action="action_voucher_list_bank_recepit"
+                  parent="account.account_transactions_menu"
+                  sequence="12"
+                  groups="account.group_account_user"/>
+
+        <!-- Bank Payment -->
+        <record id="action_voucher_list_bank_payment" model="ir.actions.act_window">
+            <field name="name">Bank Payment</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_mode">list,kanban,form,graph,pivot,calendar</field>
+            <field name="search_view_id" ref="view_account_voucher_filter"/>
+            <field name="context">{"journal_type": "bank", "default_type": "payment"}</field>
+            <field name="domain">[('journal_id.type','=','bank'),('type','=','payment')]</field>
+        </record>
+
+        <record id="action_move_journal_voucher_bank_payment_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_voucher_list"/>
+            <field name="act_window_id" ref="action_voucher_list_bank_payment"/>
+        </record>
+
+        <record id="action_move_journal_voucher_bank_payment_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_voucher_bank_form"/>
+            <field name="act_window_id" ref="action_voucher_list_bank_payment"/>
+        </record>
+
+        <menuitem name="Bank Payment"
+                  id="menu_encode_entries_by_bank_payment"
+                  action="action_voucher_list_bank_payment"
+                  parent="account.account_transactions_menu"
+                  sequence="11"
+                  groups="account.group_account_user"/>
+
+
+    </data>
+</odoo>

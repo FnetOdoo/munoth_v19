@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <data noupdate="0">
+
+
+        <record id="email_account_payment_advice_email_template" model="mail.template">
+            <field name="name">Payment Receipt</field>
+            <field name="model_id" ref="payment_request.model_account_payment"/>
+            <field name="subject">{{ object.company_id.name }} Payment Advice (Ref {{ object.name or 'n/a' }})</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <table border="0" cellpadding="0" cellspacing="0" width="800"
+                       style="background-color: white; border-collapse: collapse; margin-left: 20px;">
+                    <tr>
+                        <td valign="top" style="padding: 0px 10px;">
+                            <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                                Dear Sir,
+                                <br/>
+                                <br/>
+                                Your payment has been initiated amounting to  <b> ₹
+                                        <span t-esc="'{0:,.2f}'.format(object.amount)"
+                                                              t-field-options="{&quot;widget&quot;: &quot;False&quot;}"/>
+                                    </b> from Futurenet Technologies (India) Pvt Ltd.
+                                <br/>
+                                <br/>
+                                Do not hesitate to contact us if you have any questions.
+                                <br/>
+                                <br/>
+                                <br/>
+                                Best Regards<br/>
+                                <br/>
+                                Thanks and regards,<br/>
+                                Futurenet Technologies (India) Pvt Ltd.
+                                <br/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </field>
+        </record>
+
+        <record id="email_payment_request_for_vendor_payment" model="mail.template">
+            <field name="name">Payment Request</field>
+            <field name="model_id" ref="payment_request.model_payment_request"/>
+            <field name="subject">Payment Request {{object.request_number}}</field>
+            <field name="email_to">{{ (object.email) }}</field>
+            <field name="email_cc">{{(user.email_formatted)}}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <table border="0" cellpadding="0" cellspacing="0" width="590"
+                       style="background-color: white; border-collapse: collapse; margin-left: 20px;">
+                    <tr>
+                        <td valign="top" style="padding: 0px 10px;">
+                            <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                                Dea Sir,
+                                <br/>
+                                <br/>
+                                Please find the attached document for your reference.
+                                <br/>
+                                <p>For the payment request
+                                    <b>
+                                        <t t-out="object.request_number"/>
+                                    </b>
+                                    total payable amount ₹
+                                    <b>
+                                        <span t-esc="'{0:,.2f}'.format(object.total_due_amount)"
+                                                              t-field-options="{&quot;widget&quot;: &quot;False&quot;}"/>
+                                    </b>
+                                </p>
+                                <br/>
+                                kindly approve,
+                                <div style="padding: 16px 8px 16px 8px;">
+                                    <a t-att-href="object.url_link"
+                                       style="background-color: #875a7b; text-decoration: none; color: #fff; padding: 8px 16px 8px 16px; border-radius: 5px;">
+                                        Payment Request
+                                    </a>
+                                </div>
+                                Thanks and regards,
+                                <br/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </field>
+        </record>
+
+        <record id="email_payment_request_state_changed_to_draft" model="mail.template">
+            <field name="name">Payment Request to Draft</field>
+            <field name="model_id" ref="payment_request.model_payment_request_cancel_reason"/>
+            <field name="subject">Payment Request State changed to Draft</field>
+            <field name="email_to">{{ (object.payment_request_id.email) }}</field>
+            <field name="email_cc">{{(user.email_formatted)}}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <table border="0" cellpadding="0" cellspacing="0" width="590"
+                       style="background-color: white; border-collapse: collapse; margin-left: 20px;">
+                    <tr>
+                        <td valign="top" style="padding: 0px 10px;">
+                            <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                                Dear Sir,
+                                <br/>
+                                <br/>
+                                Due to the reason of
+                                <b>
+                                    <t t-out="object.name"/>
+                                </b>
+                                payment request
+                                <b>
+                                    <t t-out="object.payment_request_id.request_number"/>
+                                </b>
+                                state has been changed to draft
+                                <br/>
+                                <br></br>
+                                Thanks
+                                <br/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </field>
+        </record>
+
+        <record id="email_payment_request_md_approved" model="mail.template">
+            <field name="name">Payment Request Approved</field>
+            <field name="model_id" ref="payment_request.model_payment_request"/>
+            <field name="subject">Payment Request Approved {{object.request_number}}</field>
+            <field name="email_to">dheepa.s@futurenet.in</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <table border="0" cellpadding="0" cellspacing="0" width="590"
+                       style="background-color: white; border-collapse: collapse; margin-left: 20px;">
+                    <tr>
+                        <td valign="top" style="padding: 0px 10px;">
+                            <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                                Dea Sir/Madam,
+                                <br/>
+                                <br/>
+                                Please initiate the payment of this request
+                                <b>
+                                    <t t-out="object.request_number"/>
+                                </b>
+                                <br/>
+                                <br></br>
+                                Thanks
+                                <br/>
+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </field>
+        </record>
+
+
+        <record id="report_partner_bills_details" model="ir.actions.report">
+            <field name="name">Partner_Bills.pdf</field>
+            <field name="model">payment.request</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">payment_request.report_vendor_bill_details</field>
+            <field name="report_file">payment_request.report_vendor_bill_details</field>
+            <field name="print_report_name">'Partner_Bills'</field>
+            <field name="binding_model_id" eval="False"/>
+        </record>
+
+        <template id="report_vendor_bill_details">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <div class="oe_structure"/>
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <table class="table table-condensed"
+                                           style="border: 4px solid black !important; width: 900px;margin-left: auto; margin-right: auto;">
+                                        <tr>
+                                        </tr>
+                                    </table>
+                                    <t t-if="o.request_number">
+
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <span>Payment Request Number :</span>
+                                                <b>
+                                                    <span t-field="o.request_number"/>
+                                                </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <span>Payment Request Date :</span>
+                                                <b>
+                                                    <span t-field="o.payment_request_date"/>
+                                                </b>
+                                            </div>
+                                        </div>
+                                        <br/>
+                                        <br/>
+                                        <br/>
+                                        <center>
+                                            <b>
+                                                <span>Partner Vendor Bills</span>
+                                            </b>
+                                        </center>
+                                        <table class="table table-sm o_main_table" name="Vendor Bills">
+                                            <thead>
+                                                <tr>
+                                                    <th name="th_partner_name" class="text-left">
+                                                        <span>Partner Name</span>
+                                                    </th>
+                                                    <th name="th_invoice_date" class="text-left">
+                                                        <span>Bill Date</span>
+                                                    </th>
+                                                    <th name="th_bill_number" class="text-left">
+                                                        <span>Bil Number</span>
+                                                    </th>
+                                                    <th name="th_due_date" class="text-left">
+                                                        <span>Due Date</span>
+                                                    </th>
+                                                    <th name="th_payment_status" class="text-left">
+                                                        <span>Payment Status</span>
+                                                    </th>
+                                                    <th name="th_amount_due" class="text-right">
+                                                        <span>Due Amount  ₹</span>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <!--                                 <t t-set="admission_count" t-value="0"/> -->
+                                            <t t-foreach="o.account_move_ids" t-as="line">
+                                                <!--                                     <t t-set="appointment_count" t-value="appointment_count + 1"/> -->
+                                                <tr>
+                                                    <td>
+                                                        <span t-field="line.partner_id.name"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.invoice_date"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.name"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.invoice_date_due"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.payment_state"/>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <span t-esc="'{0:,.2f}'.format(line.amount_residual_signed)"
+                                                              t-field-options="{&quot;widget&quot;: &quot;False&quot;}"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+
+                                        </table>
+                                        <br></br>
+                                        <div style="border-top:1px solid black;border-bottom:1px solid black;">
+                                            <span style="margin-left:650px">
+                                                Total Due Amount :
+                                            </span><b>
+                                            <span t-field="o.total_due_amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></b>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

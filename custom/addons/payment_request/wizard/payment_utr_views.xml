@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="form_utr_number_update" model="ir.ui.view">
+        <field name="name">utr.form</field>
+        <field name="model">account.payment.utr.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="utr_number" invisible="0"/>
+                    </group>
+                    <footer>
+                        <button name="action_action_update_utr" type="object" string="Update" class="btn-primary"/>
+                        <button string="Cancel" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payment_update_utr_number" model="ir.actions.act_window">
+        <field name="name">Utr Number</field>
+        <field name="res_model">account.payment.utr.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="form_utr_number_update"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

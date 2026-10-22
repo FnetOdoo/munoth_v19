@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <template id="template_vendor_payment_receipt_report" inherit_id="account.report_payment_receipt_document">
+        <xpath expr="//table[@name='invoices']" position="before">
+            <div class="row">
+                <div class="col-6" t-if="o.cheque_reference">
+                    Cheque Number:
+                    <span t-field="o.cheque_reference"/>
+                </div>
+                <div class="col-6" t-if="o.bank_reference">
+                    Utr Number:
+                    <span t-field="o.bank_reference"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

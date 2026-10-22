@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+
+    <record id="action_report_vendor_payment_receipt" model="ir.actions.report">
+        <field name="name">Payment Receipt Email</field>
+        <field name="model">account.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">payment_request.vendor_report_payment_receipt</field>
+        <field name="report_file">payment_request.vendor_report_payment_receipt</field>
+        <field name="binding_model_id" ref="model_account_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="vendor_report_payment_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o.partner_id.lang or o.company_id.partner_id.lang"/>
+                <t t-call="payment_request.report_payment_vendor_receipt_document" t-lang="lang"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="custom_1_layout">
+        <t t-if="not o" t-set="o" t-value="doc"/>
+        <div class="header">
+
+        </div>
+        <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+             t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-out="0"/>
+        </div>
+    </template>
+
+    <template id="report_payment_vendor_receipt_document">
+        <t t-call="payment_request.custom_1_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            <div class="page">
+                <strong>
+                    <div t-field="o.company_id.name" style="text-align: center;"/>
+                </strong>
+                <div t-field="o.company_id.street2" style="text-align: center;"/>
+                <div t-field="o.company_id.city" style="text-align:center;"/>
+
+
+                <center>
+                    <p style="text-decoration: underline;">
+                        <strong>Payment Advice</strong>
+                    </p>
+                </center>
+                <br/>
+                <br/>
+                <br/>
+                <div class="row">
+                    <div class="col-8">
+                        <span width="50%">
+                            <strong>
+                                <div t-field="o.partner_id.name"/>
+                            </strong>
+                            <div t-field="o.partner_id.street"
+                                 style="margin-bottom:0px; padding-bottom:0px;white-space:nowrap;"/>
+                            <div t-field="o.partner_id.street2"
+                                 style="margin-bottom:0px; padding-bottom:0px;white-space:nowrap;"/>
+                            <div style="margin-bottom:0px; padding-bottom:0px;white-space:nowrap;">
+                                <span t-field="o.partner_id.city"/>
+                                -
+                                <span t-field="o.partner_id.zip"/>
+                            </div>
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <span>Date :</span>
+                        <strong>
+                            <span t-esc="o.payment_advice_date()"/>
+                        </strong>
+                    </div>
+                </div>
+                <br/>
+                <br/>
+                <br/>
+                <strong>
+                    Dear Sir/Madam,
+                </strong>
+                <div/>
+                <br/>
+                <p style="text-align: justify;">
+                    We are initiated your payment through RTGS to the Bank on
+                    <strong>
+                        <span t-field="o.date"/>
+                    </strong>
+                    for an amount Rs.
+                    <strong>
+                        <span t-field="o.amount"/>
+                        ( Rupees
+                        <span t-esc="o.amount_in_text()"/>
+                        )
+                    </strong>
+                    and send to your account no.
+                    <!-- The account the payment actually went to, when the payment
+                         names one. Reading bank_ids[0] with no guard, the way this
+                         did, crashes the receipt for any vendor with no bank account
+                         on file. -->
+                    <span t-esc="(o.partner_bank_id or o.partner_id.bank_ids[:1]).acc_number or ''"/>
+                    (<strong>UTR No.</strong>:<span t-field="o.bank_reference"/>).
+                </p>
+                <p>Details are given below :</p>
+                <table class="table table-sm" style="border: 1px solid black;">
+                    <thead class="text-center" style="background-color: Red; border: 1px solid black; ">
+                        <tr style="border: 1px solid black;">
+
+                            <th style="border: 1px solid black;">
+                                <span>Bill Date</span>
+                            </th>
+                            <th style="border: 1px solid black;">
+                                <span>Bill No.</span>
+                            </th>
+                            <th style="border: 1px solid black;">
+                                <span>Total Amount</span>
+                            </th>
+                            <th style="border: 1px solid black;">
+                                <span>Tax Reduced</span>
+                            </th>
+                            <th style="border: 1px solid black;">
+                                <span>Debit Note</span>
+                            </th>
+                            <th style="border: 1px solid black; ">
+                                <span>Amount Paid</span>
+                            </th>
+                            <th style="border: 1px solid black">
+                                <span>Balance</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <!--
+                        _get_reconciled_invoices_partials returns TWO things in v19:
+
+                            return invoice_partials, exchange_diff_moves
+
+                        so looping over the call itself walks those two, not the
+                        partials. The first turn hands over the whole list of
+                        partials, where rec[2] is the third partial rather than an
+                        invoice line, and the second hands over the exchange
+                        difference moves, which is normally empty, and rec[0] on an
+                        empty list is the IndexError this report was raising when the
+                        payment receipt was mailed. Core's own payment receipt takes
+                        [0] before looping, and so does this now.
+
+                        Each rec is then (partial, amount, invoice_line), which is
+                        what the rows below already expect.
+                    -->
+                    <t t-foreach="o.move_id._get_reconciled_invoices_partials()[0]" t-as="rec">
+                        <!-- MOVE -->
+
+                        <t t-set="inv" t-value="rec[2].move_id"/>
+                        <t t-set="currency" t-value="rec[0]"/>
+                        <t t-if="inv.move_type != 'entry'">
+                            <tbody style="border: 1px solid black;">
+                                <tr style="border: 1px solid black;">
+                                    <td style="border: 1px solid black;">
+                                        <span t-field="inv.invoice_date"/>
+                                    </td>
+                                    <td style="border: 1px solid black;">
+                                        <span t-field="inv.ref"/>
+                                    </td>
+
+                                    <t t-value="inv.un_tax_amount()" t-set="tax"/>
+
+                                    <td class="text-right" style="border: 1px solid black;">
+                                        <t t-esc="tax['total_amount']"
+                                           t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid black;">
+                                        <t t-esc="tax['tax_reduced']"
+                                           t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid black;">
+                                        <t t-esc="tax['debit_amount']"
+                                           t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid black;">
+                                        <span t-esc="float(currency.amount)"
+                                              t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+<!--                                    <t t-foreach="inv._get_reconciled_invoices_partials()" t-as="par">-->
+<!--                                        <t t-set="amount" t-value="par[1]"/>-->
+<!--                                        <t t-set="payment" t-value="par[2].move_id"/>-->
+<!--                                        <td class="text-right" style="border: 1px solid black;">-->
+<!--                                            <span t-esc="amount" t-options='{"widget": "float", "precision": 2}'-->
+<!--                                            />-->
+<!--                                        </td>-->
+<!--                                    </t>-->
+
+                                    <td class="text-right" style="border: 1px solid black;">
+                                        <span t-esc="float(inv.amount_residual)"
+                                              t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </t>
+                    </t>
+                    <tr style="border: 1px solid black; ">
+                        <td/>
+                        <td/>
+                        <td/>
+                        <td/>
+                        <td class="text-center" style="border: 1px solid black; ">
+                            <strong>Total Paid</strong>
+                        </td>
+
+                        <td class="text-right" style="border: 1px solid black;">
+                            <strong>
+                                <span t-field="o.amount" widget="monetary"/>
+                            </strong>
+                        </td>
+                        <td/>
+                    </tr>
+                </table>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <center>
+                    <p style="font-size:13px;">-------*** Actual Credit in your account depends on Bank working hour
+                        ***------
+                    </p>
+                    <p style="font-size:13px;">-------*** System Generated Mail. Please do not reply ***-------</p>
+                </center>
+            </div>
+        </t>
+    </template>
+</odoo>

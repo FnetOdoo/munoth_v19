@@ -2122,6 +2122,64 @@ class ProductionProcess(models.Model):
     def clear_serial_numbers(self):
         self.lot_ids = False
 
+    def _sql_create_component_moves(self, lines):
+        """Create done stock.move / stock.move.line for component lines with raw SQL
+        (no ORM create / _action_done) and update stock_quant directly."""
+        self.ensure_one()
+        if not lines:
+            return
+        cr = self.env.cr
+        self.env.flush_all()
+        now = fields.Datetime.now()
+        uid = self.env.uid
+        company_id = self.company_id.id or self.env.company.id
+        dest_loc = self.production_location_id.id
+        for line in lines:
+            product = line.product_id
+            uom = line.product_uom_id or product.uom_id
+            qty = line.product_qty
+            product_qty = uom._compute_quantity(qty, product.uom_id)
+            src_loc = line.location_src_id.id
+            lot_id = line.lot_id.id or None
+            cr.execute("""
+                INSERT INTO stock_move (
+                    inventory_name, reference, product_id, product_tmpl_id, product_uom,
+                    product_uom_qty, product_qty, quantity, location_id, location_dest_id,
+                    location_final_id, company_id, state, date, procure_method, picked,
+                    manufacturing_process_id, create_uid, create_date, write_uid, write_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, %s, 'done', %s,
+                        'make_to_stock', TRUE, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (self.name, self.name, product.id, product.product_tmpl_id.id, uom.id,
+                  qty, product_qty, qty, src_loc, dest_loc, company_id, now,
+                  self.id, uid, now, uid, now))
+            move_id = cr.fetchone()[0]
+            cr.execute("""
+                INSERT INTO stock_move_line (
+                    move_id, product_id, product_uom_id, quantity, quantity_product_uom,
+                    location_id, location_dest_id, company_id, lot_id, state, date, picked,
+                    manufacturing_process_id, create_uid, create_date, write_uid, write_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'done', %s, TRUE, %s, %s, %s, %s, %s)
+            """, (move_id, product.id, uom.id, qty, product_qty, src_loc, dest_loc,
+                  company_id, lot_id, now, self.id, uid, now, uid, now))
+            # quants: source -qty, destination +qty
+            for loc, delta in ((src_loc, -product_qty), (dest_loc, product_qty)):
+                cr.execute("""
+                    UPDATE stock_quant SET quantity = quantity + %s, write_date = %s, write_uid = %s
+                    WHERE id = (SELECT id FROM stock_quant
+                                WHERE product_id = %s AND location_id = %s
+                                  AND lot_id IS NOT DISTINCT FROM %s
+                                  AND package_id IS NULL AND owner_id IS NULL
+                                ORDER BY id LIMIT 1)
+                """, (delta, now, uid, product.id, loc, lot_id))
+                if not cr.rowcount:
+                    cr.execute("""
+                        INSERT INTO stock_quant (product_id, location_id, lot_id, company_id, quantity,
+                            reserved_quantity, in_date, create_uid, create_date, write_uid, write_date)
+                        VALUES (%s, %s, %s, %s, %s, 0, %s, %s, %s, %s, %s)
+                    """, (product.id, loc, lot_id, company_id, delta, now, uid, now, uid, now))
+        self.env.invalidate_all()
+
     def check_available_stock(self):
         for rec in self:
             rec.need_material_request = False
@@ -2394,53 +2452,7 @@ class ProductionProcess(models.Model):
                 other_component_lines = rec.component_ids.filtered(
                     lambda l: l.product_id != rec.product_id
                 )
-                stock_moves = []
-                for line in other_component_lines:
-                    stock_move_vals = {
-                        'inventory_name': rec.name,
-                        'product_id': line.product_id.id,
-                        'product_uom': line.product_uom_id.id,
-                        'product_uom_qty': line.product_qty,
-                        'location_id': line.location_src_id.id,
-                        'location_dest_id': rec.production_location_id.id,
-                        'manufacturing_process_id': rec.id,
-                        'move_line_ids': [(0, 0, {
-                            'product_id': line.product_id.id,
-                            'product_uom_id': line.product_id.uom_id.id,
-                            'quantity': line.product_qty,
-                            'location_id': line.location_src_id.id,
-                            'location_dest_id': rec.production_location_id.id,
-                            'company_id': rec.company_id.id,
-                            'lot_id': line.lot_id.id if line.lot_id else False,
-                            'manufacturing_process_id': rec.id,
-                        })],
-                    }
-                    stock_moves.append(stock_move_vals)
-                if stock_moves:
-                    created_stock_moves = self.env['stock.move'].create(stock_moves)
-                    created_stock_moves._action_confirm()
-                    created_stock_moves._action_assign()
-                    for move, line in zip(created_stock_moves, other_component_lines):
-                        if move.move_line_ids:
-                            move.move_line_ids.write({
-                                'quantity': line.product_qty,
-                                'lot_id': line.lot_id.id if line.lot_id else False,
-                                'manufacturing_process_id': rec.id,
-                            })
-                        else:
-                            self.env['stock.move.line'].create({
-                                'move_id': move.id,
-                                'product_id': line.product_id.id,
-                                'product_uom_id': line.product_uom_id.id,
-                                'quantity': line.product_qty,
-                                'location_id': line.location_src_id.id,
-                                'location_dest_id': rec.production_location_id.id,
-                                'company_id': rec.company_id.id,
-                                'lot_id': line.lot_id.id if line.lot_id else False,
-                                'manufacturing_process_id': rec.id,
-                            })
-                        move.move_line_ids.picked = True
-                    created_stock_moves._action_done()
+                rec._sql_create_component_moves(other_component_lines)
 
             # ── Process 2: Move self.product_id from location_src_id → production_location_id ──
             # Use sudo() + direct state write to bypass Odoo's lot/serial validation.
@@ -2480,52 +2492,7 @@ class ProductionProcess(models.Model):
             # ══════════════════════════════════════════════════════════════
             for rec in self:
                 rec.check_available_stock()
-                stock_moves = []
-                for line in rec.component_ids:
-                    stock_move_vals = {
-                        'inventory_name': rec.name,
-                        'product_id': line.product_id.id,
-                        'product_uom': line.product_uom_id.id,
-                        'product_uom_qty': line.product_qty,
-                        'location_id': line.location_src_id.id,
-                        'location_dest_id': rec.production_location_id.id,
-                        'manufacturing_process_id': rec.id,
-                        'move_line_ids': [(0, 0, {
-                            'product_id': line.product_id.id,
-                            'product_uom_id': line.product_id.uom_id.id,
-                            'quantity': line.product_qty,
-                            'location_id': line.location_src_id.id,
-                            'location_dest_id': rec.production_location_id.id,
-                            'company_id': rec.company_id.id,
-                            'lot_id': line.lot_id.id if line.lot_id else False,
-                            'manufacturing_process_id': rec.id,
-                        })],
-                    }
-                    stock_moves.append(stock_move_vals)
-                created_stock_moves = self.env['stock.move'].create(stock_moves)
-                created_stock_moves._action_confirm()
-                created_stock_moves._action_assign()
-                for move, line in zip(created_stock_moves, rec.component_ids):
-                    if move.move_line_ids:
-                        move.move_line_ids.write({
-                            'quantity': line.product_qty,
-                            'lot_id': line.lot_id.id if line.lot_id else False,
-                            'manufacturing_process_id': rec.id,
-                        })
-                    else:
-                        self.env['stock.move.line'].create({
-                            'move_id': move.id,
-                            'product_id': line.product_id.id,
-                            'product_uom_id': line.product_uom_id.id,
-                            'quantity': line.product_qty,
-                            'location_id': line.location_src_id.id,
-                            'location_dest_id': rec.production_location_id.id,
-                            'company_id': rec.company_id.id,
-                            'lot_id': line.lot_id.id if line.lot_id else False,
-                            'manufacturing_process_id': rec.id,
-                        })
-                    move.move_line_ids.picked = True
-                created_stock_moves._action_done()
+                rec._sql_create_component_moves(rec.component_ids)
             if self.allow_lot_create:
                 self.product_id.write({'tracking': 'serial'})
             else:

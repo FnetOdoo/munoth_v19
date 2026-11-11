@@ -5,4 +5,9 @@
         <field name="sequence">10</field>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
+
+    <!-- admin_access_auto: Settings administrators automatically get this module's access -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_renewal_user'))]"/>
+    </record>
 </odoo>

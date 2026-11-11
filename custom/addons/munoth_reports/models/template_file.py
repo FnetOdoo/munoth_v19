@@ -843,7 +843,8 @@ class HrEmployee(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            vals['employee_id'] = self.env['ir.sequence'].next_by_code('hr.employee')
+            if not vals.get('employee_id'):
+                vals['employee_id'] = self.env['ir.sequence'].next_by_code('hr.employee')
         return super(HrEmployee, self).create(vals_list)
 
 class SaleOrder(models.Model):

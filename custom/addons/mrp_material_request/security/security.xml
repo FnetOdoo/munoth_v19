@@ -46,5 +46,10 @@
                 (4, ref('group_material_request_po_manager'))
             ]"/>
         </record>
-<!--    </data>-->
+<!--    
+</data>-->
+    <!-- admin_access_auto: Settings administrators automatically get this module's access -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_material_request_administrator')), (4, ref('group_material_request_manager')), (4, ref('group_material_request_po_manager')), (4, ref('group_material_request_store_user'))]"/>
+    </record>
 </odoo>

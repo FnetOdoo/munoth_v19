@@ -83,5 +83,10 @@
             <field name="name">Stock Inspection Manager Approve</field>
         </record>
 
-    </data>
+    
+    <!-- admin_access_auto: Settings administrators automatically get this module's access -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_manager')), (4, ref('group_cell_design_approver')), (4, ref('group_mrp_quality_manager')), (4, ref('group_stock_inspection_approve'))]"/>
+    </record>
+</data>
 </odoo>

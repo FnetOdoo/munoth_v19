@@ -21,6 +21,7 @@
         # 'security/security.xml',
         'security/ir.model.access.csv',
         'datas/sequence.xml',
+        'datas/maintenance_stage.xml',
         'datas/crons.xml',
         'views/views.xml',
         'views/res_config_settings.xml',

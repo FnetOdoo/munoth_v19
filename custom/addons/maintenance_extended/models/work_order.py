@@ -1,3 +1,4 @@
+from .models import get_stage, STAGE_PROGRESS, STAGE_DONE, STAGE_CANCEL
 from odoo import models, api, fields, _
 from odoo.exceptions import UserError
 
@@ -77,10 +78,9 @@ class WorkOrder(models.Model):
         """Capture actual_start_date on the maintenance request only once —
         the first time any work order under it gets a start date."""
         if self.maintenance_id and not self.maintenance_id.actual_start_date and self.date_start:
-            done_stage = self.env['maintenance.stage'].search([('is_progress_state', '=', True)], limit=1)
             self.maintenance_id.write({
                 'actual_start_date': self.date_start,
-                'stage_id': done_stage.id,
+                'stage_id': get_stage(self.env, STAGE_PROGRESS).id,
             })
 
     def _check_and_mark_maintenance_done(self):
@@ -92,13 +92,12 @@ class WorkOrder(models.Model):
         # Case 1: every work order is cancelled (no active ones left)
         if all_work_orders and not active_work_orders:
             self.maintenance_id.write({
-                'is_cancel_done': True,
+                'stage_id': get_stage(self.env, STAGE_CANCEL).id,
             })
             return
         # Case 2: all remaining (non-cancelled) work orders are done
         if active_work_orders and all(wo.state == 'done' for wo in active_work_orders):
-            done_stage = self.env['maintenance.stage'].search(
-                [('done', '=', True)], limit=1)
+            done_stage = get_stage(self.env, STAGE_DONE)
             if done_stage:
                 end_dates = active_work_orders.filtered(lambda wo: wo.date_end).mapped('date_end')
                 last_end_date = max(end_dates) if end_dates else fields.Datetime.now()

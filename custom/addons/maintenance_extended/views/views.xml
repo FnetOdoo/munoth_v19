@@ -249,10 +249,6 @@
         <field name="arch" type="xml">
             <field name="done" position="after">
                 <field name="enable_approval"/>
-                <field name="is_draft_state" widget="boolean_toggle"/>
-                <field name="is_progress_state" widget="boolean_toggle"/>
-                <field name="is_calibration_done" widget="boolean_toggle"/>
-                <field name="is_cancel_done" widget="boolean_toggle"/>
                 <!--                <field name="user_ids" widget="many2many_tags" readonly="enable_approval != True"-->
                 <!--                       required="enable_approval == True"/>-->
             </field>

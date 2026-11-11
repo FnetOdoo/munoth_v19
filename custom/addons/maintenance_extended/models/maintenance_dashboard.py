@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from .models import STAGE_PROGRESS, STAGE_DONE
 from odoo import api, fields, models
 
 # ----------------------------------------------------------------------
@@ -31,8 +32,8 @@ class MaintenanceRequest(models.Model):
             # static: every request in the window (all start as draft),
             # so the count does NOT drop when draft moves to in-progress/done
             'open': [],
-            'progress': [('stage_id.is_progress_state', '=', True)],
-            'done': [('stage_id.done', '=', True)],
+            'progress': [('stage_id', '=', self.env.ref(STAGE_PROGRESS).id)],
+            'done': [('stage_id', '=', self.env.ref(STAGE_DONE).id)],
         }
     @api.model
     def _dashboard_date_domain(self, start_field, end_field,
@@ -110,7 +111,7 @@ class MaintenanceRequest(models.Model):
             DONE_DATE_START_FIELD, DONE_DATE_END_FIELD,
             done_start, done_end)
 
-        # ---- NEW: In Progress (stage_id.is_progress_state) -------------
+        # ---- In Progress (stage maintenance.stage_1) -------------
         # Uses the same date range as the open filter (on create_date).
         progress_domain = base['progress'] + self._dashboard_date_domain(
             OPEN_DATE_FIELD, OPEN_DATE_FIELD, open_start, open_end)

@@ -2,6 +2,7 @@
 import base64
 import io
 
+from ..models.models import STAGE_DRAFT, STAGE_PROGRESS, STAGE_DONE, STAGE_CANCEL
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
@@ -135,14 +136,11 @@ class MaintenanceReportWizard(models.TransientModel):
         return ''
 
     def _request_state_key(self, request):
-        if getattr(request, 'is_cancel_state', False):
-            return 'cancel'
-        if getattr(request, 'done', False):
-            return 'done'
-        if getattr(request, 'is_progress_state', False):
-            return 'progress'
-        if getattr(request, 'is_draft_state', False):
-            return 'draft'
+        stage = request.stage_id
+        for xmlid, key in ((STAGE_CANCEL, 'cancel'), (STAGE_DONE, 'done'),
+                           (STAGE_PROGRESS, 'progress'), (STAGE_DRAFT, 'draft')):
+            if stage and stage == self.env.ref(xmlid, raise_if_not_found=False):
+                return key
         return 'other'
 
     # ------------------------------------------------------------------

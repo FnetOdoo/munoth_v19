@@ -3,6 +3,22 @@ from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
 
 
+
+# Maintenance stages are identified by their XML ids (maintenance/data/maintenance_data.xml,
+# names set in maintenance_extended/datas/maintenance_stage.xml) - no boolean flags on the stage.
+STAGE_DRAFT = 'maintenance.stage_0'        # New Request
+STAGE_PROGRESS = 'maintenance.stage_1'     # In Progress
+STAGE_DONE = 'maintenance.stage_3'         # Calibration Done
+STAGE_CANCEL = 'maintenance.stage_4'       # Cancel
+
+
+def get_stage(env, xmlid):
+    stage = env.ref(xmlid, raise_if_not_found=False)
+    if not stage:
+        raise UserError(_("Maintenance stage %s is missing. Please update the Maintenance Extended module.", xmlid))
+    return stage
+
+
 class Picking(models.Model):
     _inherit = 'stock.picking'
     
@@ -102,26 +118,20 @@ class MaintenanceEquipment(models.Model):
         self.ensure_one()
         if not self.completed_date:
             raise UserError(_("Please select the Calibration Completed Date."))
-        done_stage = self.env['maintenance.stage'].search(
-            [('is_calibration_done', '=', True)], limit=1)
-        if not done_stage:
-            raise UserError(_("No maintenance stage is marked as 'Calibration Done'. "
-                              "Please configure one in Maintenance Stages."))
-        self.write({'stage_id': done_stage.id})
+        self.write({'stage_id': get_stage(self.env, STAGE_DONE).id})
 
 
     def action_cancel(self):
-        cancel_stage = self.env['maintenance.stage'].search([('is_cancel_done', '=', True)], limit=1)
-        self.write({
-            'stage_id': cancel_stage.id,
-        })
-    @api.depends('stage_id','stage_id.is_draft_state', 'stage_id.is_progress_state', 'stage_id.is_calibration_done','stage_id.is_cancel_done')
+        self.write({'stage_id': get_stage(self.env, STAGE_CANCEL).id})
+    @api.depends('stage_id')
     def _compute_state(self):
+        ref = lambda x: self.env.ref(x, raise_if_not_found=False)
+        draft, progress, done, cancel = ref(STAGE_DRAFT), ref(STAGE_PROGRESS), ref(STAGE_DONE), ref(STAGE_CANCEL)
         for rec in self:
-            rec.is_progress_state = rec.stage_id.is_progress_state
-            rec.is_draft_state = rec.stage_id.is_draft_state
-            rec.is_calibration_done = rec.stage_id.is_calibration_done
-            rec.is_cancel_done = rec.stage_id.is_cancel_done
+            rec.is_draft_state = bool(draft) and rec.stage_id == draft
+            rec.is_progress_state = bool(progress) and rec.stage_id == progress
+            rec.is_calibration_done = bool(done) and rec.stage_id == done
+            rec.is_cancel_done = bool(cancel) and rec.stage_id == cancel
 
     @api.depends('order_ids.duration')
     def _compute_duration(self):
@@ -340,10 +350,6 @@ class MaintenanceStage(models.Model):
 
     enable_approval = fields.Boolean("Enable Approval")
     user_ids = fields.Many2many('res.users', string="Responsible")
-    is_progress_state = fields.Boolean("Progress State")
-    is_draft_state = fields.Boolean("Draft State")
-    is_calibration_done = fields.Boolean("Calibration Done State")
-    is_cancel_done = fields.Boolean("Cancel State")
 
 class MaintenancePlan(models.Model):
     _inherit = "maintenance.plan"

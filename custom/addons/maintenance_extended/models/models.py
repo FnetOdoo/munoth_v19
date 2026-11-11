@@ -348,6 +348,15 @@ class MaintenanceEquipment(models.Model):
 class MaintenanceStage(models.Model):
     _inherit = 'maintenance.stage'
 
+    @api.ondelete(at_uninstall=False)
+    def _unlink_except_system_stage(self):
+        """New Request / In Progress / Calibration Done / Cancel are used by the code (STAGE_* XML ids)."""
+        protected = {self.env.ref(x, raise_if_not_found=False) for x in (STAGE_DRAFT, STAGE_PROGRESS, STAGE_DONE, STAGE_CANCEL)}
+        blocked = self.filtered(lambda st: st in protected)
+        if blocked:
+            raise UserError(_("You cannot delete the stage(s) %s: they are required by the maintenance workflow. "
+                              "You can rename them instead.", ", ".join(blocked.mapped('name'))))
+
     enable_approval = fields.Boolean("Enable Approval")
     user_ids = fields.Many2many('res.users', string="Responsible")
 

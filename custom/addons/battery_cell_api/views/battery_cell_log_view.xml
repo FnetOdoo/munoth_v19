@@ -1,6 +1,6 @@
 <odoo>
-    <record id="view_battery_cell_log_list" model="ir.ui.view">
-        <field name="name">battery.cell.log.list</field>
+    <record id="view_battery_cell_log_tree" model="ir.ui.view">
+        <field name="name">battery.cell.log.tree</field>
         <field name="model">battery.cell.log</field>
         <field name="arch" type="xml">
             <list>
@@ -85,35 +85,51 @@
     <menuitem id="menu_battery_cell_log" name="Battery Logs" parent="menu_battery_cell_root"
               action="action_battery_cell_log" sequence="1" groups="base.group_no_one"/>
 
-    <record id="view_injection_cell_log_list" model="ir.ui.view">
-        <field name="name">injection.cell.log.list</field>
+    <record id="view_injection_cell_log_tree" model="ir.ui.view">
+        <field name="name">injection.cell.log.tree</field>
         <field name="model">injection.cell.log</field>
         <field name="arch" type="xml">
             <list>
-                <field name="time"/>
-                <field name="id_device"/>
-                <field name="work_order_no"/>
+                <field name="serial_number"/>
+                <field name="creation_time"/>
+                <field name="model"/>
+                <field name="battery_serial_number"/>
+                <field name="battery_serial_pass_ng"/>
+                <field name="scan_workstation_number"/>
+                <field name="weight_before_injection"/>
+                <field name="weight_before_pass_ng"/>
+                <field name="front_scale_position"/>
+                <field name="back_weighing_time"/>
+                <field name="weight_after_injection"/>
+                <field name="weight_after_pass_ng"/>
+                <field name="back_scale_position"/>
+                <field name="injection_volume"/>
+                <field name="injection_volume_pass_ng"/>
+                <field name="injection_needle_number"/>
+                <field name="injection_cavity_vacuum"/>
+                <field name="injection_cavity_pressure_time"/>
+                <field name="electrolyte_batch_number"/>
+                <field name="standing_vacuum_seg1"/>
+                <field name="standing_pressure_time_seg1"/>
+                <field name="standing_vacuum_seg2"/>
+                <field name="standing_pressure_time_seg2"/>
+                <field name="standing_vacuum_seg3"/>
+                <field name="standing_pressure_time_seg3"/>
+                <field name="sealing_station_number"/>
+                <field name="sealing_left_temperature"/>
+                <field name="sealing_right_temperature"/>
+                <field name="sealing_pressure"/>
+                <field name="sealing_time"/>
+                <field name="sealing_vacuum"/>
+                <field name="sealing_pressure_holding_time"/>
+                <field name="material_tray_position"/>
+                <field name="material_tray_code"/>
+                <field name="work_order"/>
                 <field name="shift"/>
-                <field name="product_no"/>
-                <field name="cell_barcode"/>
-                <field name="before_weight"/>
-                <field name="after_weight"/>
-                <field name="volume"/>
-                <field name="ok_ng"/>
-                <field name="injection_needle"/>
-                <field name="lot_no"/>
-                <field name="number"/>
+                <field name="equipment_number"/>
                 <field name="operator"/>
-                <field name="vacuum"/>
-                <field name="temperature"/>
-                <field name="injection_cavity"/>
-                <field name="seal_pressure"/>
-                <field name="sealing"/>
-                <field name="pressure"/>
-                <field name="pressure_holding_time"/>
-                <field name="pre_sealed_vacuum"/>
-                <field name="seal_pressure_time"/>
-                <field name="pressure_holding_time_inj"/>
+                <field name="overall_judgment_result"/>
+                <field name="ng_description"/>
             </list>
         </field>
     </record>
@@ -124,31 +140,61 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <group>
-                        <field name="time"/>
-                        <field name="id_device"/>
-                        <field name="work_order_no"/>
+                    <group string="Identity">
+                        <field name="serial_number"/>
+                        <field name="creation_time"/>
+                        <field name="model"/>
+                        <field name="battery_serial_number"/>
+                        <field name="battery_serial_pass_ng"/>
+                        <field name="scan_workstation_number"/>
+                    </group>
+                    <group string="Pre-Injection Weight">
+                        <field name="weight_before_injection"/>
+                        <field name="weight_before_pass_ng"/>
+                        <field name="front_scale_position"/>
+                    </group>
+                    <group string="Post-Injection Weight">
+                        <field name="back_weighing_time"/>
+                        <field name="weight_after_injection"/>
+                        <field name="weight_after_pass_ng"/>
+                        <field name="back_scale_position"/>
+                    </group>
+                    <group string="Injection Volume">
+                        <field name="injection_volume"/>
+                        <field name="injection_volume_pass_ng"/>
+                        <field name="injection_needle_number"/>
+                        <field name="injection_cavity_vacuum"/>
+                        <field name="injection_cavity_pressure_time"/>
+                        <field name="electrolyte_batch_number"/>
+                    </group>
+                    <group string="Standing Segments">
+                        <field name="standing_vacuum_seg1"/>
+                        <field name="standing_pressure_time_seg1"/>
+                        <field name="standing_vacuum_seg2"/>
+                        <field name="standing_pressure_time_seg2"/>
+                        <field name="standing_vacuum_seg3"/>
+                        <field name="standing_pressure_time_seg3"/>
+                    </group>
+                    <group string="Sealing">
+                        <field name="sealing_station_number"/>
+                        <field name="sealing_left_temperature"/>
+                        <field name="sealing_right_temperature"/>
+                        <field name="sealing_pressure"/>
+                        <field name="sealing_time"/>
+                        <field name="sealing_vacuum"/>
+                        <field name="sealing_pressure_holding_time"/>
+                    </group>
+                    <group string="Work Info">
+                        <field name="material_tray_position"/>
+                        <field name="material_tray_code"/>
+                        <field name="work_order"/>
                         <field name="shift"/>
-                        <field name="product_no"/>
-                        <field name="cell_barcode"/>
-                        <field name="before_weight"/>
-                        <field name="after_weight"/>
-                        <field name="volume"/>
-                        <field name="ok_ng"/>
-                        <field name="injection_needle"/>
-                        <field name="lot_no"/>
-                        <field name="number"/>
+                        <field name="equipment_number"/>
                         <field name="operator"/>
-                        <field name="vacuum"/>
-                        <field name="temperature"/>
-                        <field name="injection_cavity"/>
-                        <field name="seal_pressure"/>
-                        <field name="sealing"/>
-                        <field name="pressure"/>
-                        <field name="pressure_holding_time"/>
-                        <field name="pre_sealed_vacuum"/>
-                        <field name="seal_pressure_time"/>
-                        <field name="pressure_holding_time_inj"/>
+                    </group>
+                    <group string="Result">
+                        <field name="overall_judgment_result"/>
+                        <field name="ng_description"/>
                     </group>
                 </sheet>
             </form>
@@ -168,14 +214,25 @@
               groups="base.group_no_one"/>
 
 
-    <record id="view_cell_clamp_baking_log_list" model="ir.ui.view">
-        <field name="name">cell.clamp.baking.log.list</field>
+    <record id="view_cell_clamp_baking_log_tree" model="ir.ui.view">
+        <field name="name">cell.clamp.baking.log.tree</field>
         <field name="model">cell.clamp.baking.log</field>
         <field name="arch" type="xml">
             <list>
-                <field name="unit"/>
+                <field name="equipment_code"/>
+                <field name="employee_no"/>
+                <field name="schedule_start_time"/>
+                <field name="schedule_end_time"/>
+                <field name="jig_num"/>
+                <field name="slot_id"/>
+                <field name="barcode"/>
+                <field name="pass_flag"/>
                 <field name="step_no"/>
                 <field name="step_status"/>
+                <field name="step_time"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="alarm"/>
                 <field name="start_voltage"/>
                 <field name="end_voltage"/>
                 <field name="start_current"/>
@@ -184,16 +241,9 @@
                 <field name="end_capacity"/>
                 <field name="start_energy"/>
                 <field name="end_energy"/>
-                <field name="mean_voltage"/>
-                <field name="avg_voltage"/>
-                <field name="cc_time"/>
-                <field name="cc_capacity"/>
-                <field name="cv_time"/>
-                <field name="cv_capacity"/>
-                <field name="cc_percent"/>
-                <field name="barcode"/>
-                <field name="condition_end"/>
-                <field name="cycle_no"/>
+                <field name="start_temp"/>
+                <field name="end_temp"/>
+                <field name="end_position"/>
             </list>
         </field>
     </record>
@@ -204,10 +254,27 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <group>
-                        <field name="unit"/>
+                    <group string="Session">
+                        <field name="equipment_code"/>
+                        <field name="employee_no"/>
+                        <field name="schedule_start_time"/>
+                        <field name="schedule_end_time"/>
+                        <field name="jig_num"/>
+                    </group>
+                    <group string="Cell Info">
+                        <field name="slot_id"/>
+                        <field name="barcode"/>
+                        <field name="pass_flag"/>
+                    </group>
+                    <group string="Step Info">
                         <field name="step_no"/>
                         <field name="step_status"/>
+                        <field name="step_time"/>
+                        <field name="start_time"/>
+                        <field name="end_time"/>
+                        <field name="alarm"/>
+                    </group>
+                    <group string="Electrical">
                         <field name="start_voltage"/>
                         <field name="end_voltage"/>
                         <field name="start_current"/>
@@ -216,16 +283,9 @@
                         <field name="end_capacity"/>
                         <field name="start_energy"/>
                         <field name="end_energy"/>
-                        <field name="mean_voltage"/>
-                        <field name="avg_voltage"/>
-                        <field name="cc_time"/>
-                        <field name="cc_capacity"/>
-                        <field name="cv_time"/>
-                        <field name="cv_capacity"/>
-                        <field name="cc_percent"/>
-                        <field name="barcode"/>
-                        <field name="condition_end"/>
-                        <field name="cycle_no"/>
+                        <field name="start_temp"/>
+                        <field name="end_temp"/>
+                        <field name="end_position"/>
                     </group>
                 </sheet>
             </form>
@@ -241,5 +301,661 @@
     <menuitem id="menu_cell_clamp_baking_log" name="Baking Logs"
               parent="menu_battery_cell_root" action="action_cell_clamp_baking_log" sequence="2"
               groups="base.group_user"/>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--         DRYING OVEN (ELECTRODE & CELL)                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <record id="view_drying_oven_log_tree" model="ir.ui.view">
+        <field name="name">drying.oven.log.tree</field>
+        <field name="model">drying.oven.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="oven_type"/>
+                <field name="product_barcode"/>
+                <field name="baking_start_time"/>
+                <field name="baking_end_time"/>
+                <field name="baking_result_moisture"/>
+                <field name="tray_no"/>
+                <field name="oven_shelf_no"/>
+                <field name="tray_position"/>
+                <field name="oven_id"/>
+                <field name="scheduled_baking_duration"/>
+                <field name="baking_serial_no"/>
+                <field name="oven_realtime_temp"/>
+                <field name="current_process_stage"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_drying_oven_log_form" model="ir.ui.view">
+        <field name="name">drying.oven.log.form</field>
+        <field name="model">drying.oven.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group string="Baking Info">
+                        <field name="oven_type"/>
+                        <field name="product_barcode"/>
+                        <field name="baking_serial_no"/>
+                        <field name="baking_start_time"/>
+                        <field name="baking_end_time"/>
+                        <field name="scheduled_baking_duration"/>
+                        <field name="baking_result_moisture"/>
+                    </group>
+                    <group string="Oven / Tray">
+                        <field name="oven_id"/>
+                        <field name="oven_shelf_no"/>
+                        <field name="tray_no"/>
+                        <field name="tray_position"/>
+                        <field name="oven_realtime_temp"/>
+                        <field name="current_process_stage"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_drying_oven_log" model="ir.actions.act_window">
+        <field name="name">Drying Oven Logs</field>
+        <field name="res_model">drying.oven.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_drying_oven_log" name="Drying Oven Logs"
+              parent="menu_battery_cell_root" action="action_drying_oven_log"
+              sequence="8" groups="base.group_no_one"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--                  WINDING MACHINE                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <record id="view_winding_machine_log_tree" model="ir.ui.view">
+        <field name="name">winding.machine.log.tree</field>
+        <field name="model">winding.machine.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="record_type"/>
+                <field name="SFC"/>
+                <field name="SFC_1"/>
+                <field name="MODEL"/>
+                <field name="BATCH"/>
+                <field name="result"/>
+                <field name="user_name"/>
+                <field name="test_time"/>
+                <field name="create_time"/>
+                <field name="NG_CODE"/>
+                <field name="DATA01"/>
+                <field name="DATA02"/>
+                <field name="DATA03"/>
+                <field name="DATA04"/>
+                <field name="DATA05"/>
+                <field name="DATA06"/>
+                <field name="DATA07"/>
+                <field name="DATA08"/>
+                <field name="DATA09"/>
+                <field name="DATA10"/>
+                <field name="DATA11"/>
+                <field name="DATA12"/>
+                <field name="DATA12"/>
+                <field name="DATA13"/>
+                <field name="DATA14"/>
+                <field name="DATA15"/>
+                <field name="DATA16"/>
+                <field name="DATA17"/>
+                <field name="DATA18"/>
+                <field name="DATA19"/>
+                <field name="DATA20"/>
+                <field name="DATA22"/>
+                <field name="DATA23"/>
+                <field name="DATA24"/>
+                <field name="DATA25"/>
+                <field name="DATA26"/>
+                <field name="DATA27"/>
+                <field name="DATA28"/>
+                <field name="DATA29"/>
+                <field name="DATA30"/>
+                <field name="DATA31"/>
+                <field name="DATA32"/>
+                <field name="DATA33"/>
+                <field name="DATA34"/>
+                <field name="DATA35"/>
+                <field name="DATA36"/>
+                <field name="DATA37"/>
+                <field name="DATA38"/>
+                <field name="DATA39"/>
+                <field name="DATA40"/>
+                <field name="DATA41"/>
+                <field name="DATA42"/>
+                <field name="DATA43"/>
+                <field name="DATA44"/>
+                <field name="DATA45"/>
+                <field name="DATA46"/>
+                <field name="DATA47"/>
+                <field name="DATA48"/>
+                <field name="DATA49"/>
+                <field name="DATA50"/>
+                <field name="DATA51"/>
+                <field name="DATA52"/>
+                <field name="DATA53"/>
+                <field name="DATA56"/>
+                <field name="DATA57"/>
+                <field name="DATA58"/>
+                <field name="DATA59"/>
+                <field name="DATA60"/>
+                <field name="DATA61"/>
+                <field name="DATA62"/>
+                <field name="DATA64"/>
+                <field name="DATA65"/>
+                <field name="DATA66"/>
+                <field name="DATA67"/>
+                <field name="DATA68"/>
+                <field name="DATA69"/>
+                <field name="DATA70"/>
+                <field name="DATA71"/>
+                <field name="DATA72"/>
+                <field name="DATA73"/>
+                <field name="DATA74"/>
+                <field name="DATA75"/>
+                <field name="DATA76"/>
+                <field name="DATA77"/>
+                <field name="DATA78"/>
+                <field name="DATA79"/>
+                <field name="DATA80"/>
+                <field name="DATA81"/>
+                <field name="DATA82"/>
+                <field name="DATA83"/>
+                <field name="DATA84"/>
+                <field name="DATA85"/>
+                <field name="DATA86"/>
+                <field name="DATA87"/>
+                <field name="DATA88"/>
+                <field name="DATA89"/>
+                <field name="DATA90"/>
+                <field name="DATA91"/>
+                <field name="DATA92"/>
+                <field name="DATA93"/>
+                <field name="DATA94"/>
+                <field name="DATA95"/>
+                <field name="DATA96"/>
+                <field name="DATA97"/>
+                <field name="DATA98"/>
+                <field name="DATA99"/>
+                <field name="DATA100"/>
+                <field name="DATA101"/>
+                <field name="DATA102"/>
+                <field name="DATA103"/>
+                <field name="DATA104"/>
+                <field name="DATA105"/>
+                <field name="DATA106"/>
+                <field name="DATA107"/>
+                <field name="DATA108"/>
+                <field name="DATA109"/>
+                <field name="DATA110"/>
+                <field name="DATA111"/>
+                <field name="DATA112"/>
+                <field name="DATA113"/>
+                <field name="DATA114"/>
+                <field name="DATA115"/>
+                <field name="DATA116"/>
+                <field name="DATA117"/>
+                <field name="DATA118"/>
+                <field name="DATA119"/>
+                <field name="DATA120"/>
+                <field name="DATA121"/>
+                <field name="DATA122"/>
+                <field name="DATA123"/>
+                <field name="DATA124"/>
+                <field name="DATA125"/>
+                <field name="DATA126"/>
+                <field name="DATA127"/>
+                <field name="DATA128"/>
+                <field name="DATA129"/>
+                <field name="DATA130"/>
+                <field name="DATA131"/>
+                <field name="DATA132"/>
+                <field name="DATA133"/>
+                <field name="DATA134"/>
+                <field name="DATA135"/>
+                <field name="DATA136"/>
+                <field name="DATA137"/>
+                <field name="DATA138"/>
+                <field name="DATA139"/>
+                <field name="DATA140"/>
+                <field name="DATA141"/>
+                <field name="DATA142"/>
+                <field name="DATA143"/>
+                <field name="DATA144"/>
+                <field name="DATA145"/>
+                <field name="DATA146"/>
+                <field name="DATA147"/>
+                <field name="DATA148"/>
+                <field name="DATA149"/>
+                <field name="DATA150"/>
+                <field name="DATA151"/>
+                <field name="DATA152"/>
+                <field name="DATA153"/>
+                <field name="DATA154"/>
+                <field name="DATA155"/>
+                <field name="DATA156"/>
+                <field name="DATA157"/>
+                <field name="DATA158"/>
+                <field name="DATA159"/>
+                <field name="DATA160"/>
+                <field name="DATA161"/>
+                <field name="DATA162"/>
+                <field name="DATA163"/>
+                <field name="DATA164"/>
+                <field name="DATA165"/>
+                <field name="DATA166"/>
+                <field name="DATA167"/>
+                <field name="DATA168"/>
+                <field name="DATA169"/>
+                <field name="DATA170"/>
+                <field name="DATA171"/>
+                <field name="DATA172"/>
+                <field name="DATA173"/>
+                <field name="DATA174"/>
+                <field name="DATA175"/>
+                <field name="DATA176"/>
+                <field name="DATA177"/>
+                <field name="DATA178"/>
+                <field name="DATA179"/>
+                <field name="DATA180"/>
+                <field name="DATA181"/>
+                <field name="DATA182"/>
+                <field name="DATA183"/>
+                <field name="DATA184"/>
+                <field name="DATA185"/>
+                <field name="DATA186"/>
+                <field name="DATA187"/>
+                <field name="DATA189"/>
+                <field name="DATA191"/>
+                <field name="DATA193"/>
+                <field name="DATA194"/>
+                <field name="DATA195"/>
+                <field name="DATA198"/>
+                <field name="DATA199"/>
+                <field name="DATA200"/>
+                <field name="DATA201"/>
+                <field name="DATA202"/>
+                <field name="DATA203"/>
+                <field name="DATA204"/>
+                <field name="DATA205"/>
+                <field name="DATA206"/>
+                <field name="DATA207"/>
+                <field name="DATA208"/>
+                <field name="DATA209"/>
+                <field name="DATA210"/>
+                <field name="DATA211"/>
+                <field name="DATA212"/>
+                <field name="DATA213"/>
+                <field name="DATA214"/>
+                <field name="DATA215"/>
+                <field name="DATA216"/>
+                <field name="DATA217"/>
+                <field name="DATA218"/>
+                <field name="DATA219"/>
+                <field name="DATA220"/>
+                <field name="DATA221"/>
+                <field name="DATA222"/>
+                <field name="DATA223"/>
+                <field name="DATA251"/>
+                <field name="DATA256"/>
+                <field name="DATA257"/>
+                <field name="DATA258"/>
+                <field name="DATA259"/>
+                <field name="DATA260"/>
+                <field name="DATA261"/>
+                <field name="DATA262"/>
+                <field name="DATA263"/>
+                <field name="DATA277"/>
+                <field name="DATA278"/>
+                <field name="DATA279"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_winding_machine_log_form" model="ir.ui.view">
+        <field name="name">winding.machine.log.form</field>
+        <field name="model">winding.machine.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group string="Record Info">
+                        <field name="record_type"/>
+                        <field name="SFC"/>
+                        <field name="SFC_1"/>
+                        <field name="MODEL"/>
+                        <field name="BATCH"/>
+                        <field name="result"/>
+                        <field name="user_name"/>
+                        <field name="test_time"/>
+                        <field name="create_time"/>
+                        <field name="NG_CODE"/>
+                    </group>
+                    <group string="BOM / Feeding Data (DATA01-DATA12)">
+                        <field name="DATA01"/>
+                        <field name="DATA02"/>
+                        <field name="DATA03"/>
+                        <field name="DATA04"/>
+                        <field name="DATA05"/>
+                        <field name="DATA06"/>
+                        <field name="DATA07"/>
+                        <field name="DATA08"/>
+                        <field name="DATA09"/>
+                        <field name="DATA10"/>
+                        <field name="DATA11"/>
+                        <field name="DATA12"/>
+                    </group>
+                    <group string="Neg Electrode Tab and Tape (DATA12-DATA20)">
+                        <field name="DATA12"/>
+                        <field name="DATA13"/>
+                        <field name="DATA14"/>
+                        <field name="DATA15"/>
+                        <field name="DATA16"/>
+                        <field name="DATA17"/>
+                        <field name="DATA18"/>
+                        <field name="DATA19"/>
+                        <field name="DATA20"/>
+                    </group>
+                    <group string="Pos Electrode Tab and Tape (DATA22-DATA40)">
+                        <field name="DATA22"/>
+                        <field name="DATA23"/>
+                        <field name="DATA24"/>
+                        <field name="DATA25"/>
+                        <field name="DATA26"/>
+                        <field name="DATA27"/>
+                        <field name="DATA28"/>
+                        <field name="DATA29"/>
+                        <field name="DATA30"/>
+                        <field name="DATA31"/>
+                        <field name="DATA32"/>
+                        <field name="DATA33"/>
+                        <field name="DATA34"/>
+                        <field name="DATA35"/>
+                        <field name="DATA36"/>
+                        <field name="DATA37"/>
+                        <field name="DATA38"/>
+                        <field name="DATA39"/>
+                        <field name="DATA40"/>
+                    </group>
+                    <group string="Uniformity and High Voltage">
+                        <field name="DATA41"/>
+                        <field name="DATA42"/>
+                        <field name="DATA43"/>
+                        <field name="DATA44"/>
+                        <field name="DATA45"/>
+                        <field name="DATA46"/>
+                        <field name="DATA47"/>
+                        <field name="DATA48"/>
+                        <field name="DATA49"/>
+                        <field name="DATA50"/>
+                        <field name="DATA51"/>
+                        <field name="DATA52"/>
+                        <field name="DATA53"/>
+                    </group>
+                    <group string="Electrode Core (DATA56-DATA62)">
+                        <field name="DATA56"/>
+                        <field name="DATA57"/>
+                        <field name="DATA58"/>
+                        <field name="DATA59"/>
+                        <field name="DATA60"/>
+                        <field name="DATA61"/>
+                        <field name="DATA62"/>
+                    </group>
+                    <group string="Pos to Separator Distances 1-30 (DATA64-DATA93)">
+                        <field name="DATA64"/>
+                        <field name="DATA65"/>
+                        <field name="DATA66"/>
+                        <field name="DATA67"/>
+                        <field name="DATA68"/>
+                        <field name="DATA69"/>
+                        <field name="DATA70"/>
+                        <field name="DATA71"/>
+                        <field name="DATA72"/>
+                        <field name="DATA73"/>
+                        <field name="DATA74"/>
+                        <field name="DATA75"/>
+                        <field name="DATA76"/>
+                        <field name="DATA77"/>
+                        <field name="DATA78"/>
+                        <field name="DATA79"/>
+                        <field name="DATA80"/>
+                        <field name="DATA81"/>
+                        <field name="DATA82"/>
+                        <field name="DATA83"/>
+                        <field name="DATA84"/>
+                        <field name="DATA85"/>
+                        <field name="DATA86"/>
+                        <field name="DATA87"/>
+                        <field name="DATA88"/>
+                        <field name="DATA89"/>
+                        <field name="DATA90"/>
+                        <field name="DATA91"/>
+                        <field name="DATA92"/>
+                        <field name="DATA93"/>
+                    </group>
+                    <group string="Neg to Separator Distances 1-30 (DATA94-DATA123)">
+                        <field name="DATA94"/>
+                        <field name="DATA95"/>
+                        <field name="DATA96"/>
+                        <field name="DATA97"/>
+                        <field name="DATA98"/>
+                        <field name="DATA99"/>
+                        <field name="DATA100"/>
+                        <field name="DATA101"/>
+                        <field name="DATA102"/>
+                        <field name="DATA103"/>
+                        <field name="DATA104"/>
+                        <field name="DATA105"/>
+                        <field name="DATA106"/>
+                        <field name="DATA107"/>
+                        <field name="DATA108"/>
+                        <field name="DATA109"/>
+                        <field name="DATA110"/>
+                        <field name="DATA111"/>
+                        <field name="DATA112"/>
+                        <field name="DATA113"/>
+                        <field name="DATA114"/>
+                        <field name="DATA115"/>
+                        <field name="DATA116"/>
+                        <field name="DATA117"/>
+                        <field name="DATA118"/>
+                        <field name="DATA119"/>
+                        <field name="DATA120"/>
+                        <field name="DATA121"/>
+                        <field name="DATA122"/>
+                        <field name="DATA123"/>
+                    </group>
+                    <group string="Neg to Pos Electrode Distances 1-30 (DATA124-DATA153)">
+                        <field name="DATA124"/>
+                        <field name="DATA125"/>
+                        <field name="DATA126"/>
+                        <field name="DATA127"/>
+                        <field name="DATA128"/>
+                        <field name="DATA129"/>
+                        <field name="DATA130"/>
+                        <field name="DATA131"/>
+                        <field name="DATA132"/>
+                        <field name="DATA133"/>
+                        <field name="DATA134"/>
+                        <field name="DATA135"/>
+                        <field name="DATA136"/>
+                        <field name="DATA137"/>
+                        <field name="DATA138"/>
+                        <field name="DATA139"/>
+                        <field name="DATA140"/>
+                        <field name="DATA141"/>
+                        <field name="DATA142"/>
+                        <field name="DATA143"/>
+                        <field name="DATA144"/>
+                        <field name="DATA145"/>
+                        <field name="DATA146"/>
+                        <field name="DATA147"/>
+                        <field name="DATA148"/>
+                        <field name="DATA149"/>
+                        <field name="DATA150"/>
+                        <field name="DATA151"/>
+                        <field name="DATA152"/>
+                        <field name="DATA153"/>
+                    </group>
+                    <group string="Process Parameters and Counts (DATA154-DATA279)">
+                        <field name="DATA154"/>
+                        <field name="DATA155"/>
+                        <field name="DATA156"/>
+                        <field name="DATA157"/>
+                        <field name="DATA158"/>
+                        <field name="DATA159"/>
+                        <field name="DATA160"/>
+                        <field name="DATA161"/>
+                        <field name="DATA162"/>
+                        <field name="DATA163"/>
+                        <field name="DATA164"/>
+                        <field name="DATA165"/>
+                        <field name="DATA166"/>
+                        <field name="DATA167"/>
+                        <field name="DATA168"/>
+                        <field name="DATA169"/>
+                        <field name="DATA170"/>
+                        <field name="DATA171"/>
+                        <field name="DATA172"/>
+                        <field name="DATA173"/>
+                        <field name="DATA174"/>
+                        <field name="DATA175"/>
+                        <field name="DATA176"/>
+                        <field name="DATA177"/>
+                        <field name="DATA178"/>
+                        <field name="DATA179"/>
+                        <field name="DATA180"/>
+                        <field name="DATA181"/>
+                        <field name="DATA182"/>
+                        <field name="DATA183"/>
+                        <field name="DATA184"/>
+                        <field name="DATA185"/>
+                        <field name="DATA186"/>
+                        <field name="DATA187"/>
+                        <field name="DATA189"/>
+                        <field name="DATA191"/>
+                        <field name="DATA193"/>
+                        <field name="DATA194"/>
+                        <field name="DATA195"/>
+                        <field name="DATA198"/>
+                        <field name="DATA199"/>
+                        <field name="DATA200"/>
+                        <field name="DATA201"/>
+                        <field name="DATA202"/>
+                        <field name="DATA203"/>
+                        <field name="DATA204"/>
+                        <field name="DATA205"/>
+                        <field name="DATA206"/>
+                        <field name="DATA207"/>
+                        <field name="DATA208"/>
+                        <field name="DATA209"/>
+                        <field name="DATA210"/>
+                        <field name="DATA211"/>
+                        <field name="DATA212"/>
+                        <field name="DATA213"/>
+                        <field name="DATA214"/>
+                        <field name="DATA215"/>
+                        <field name="DATA216"/>
+                        <field name="DATA217"/>
+                        <field name="DATA218"/>
+                        <field name="DATA219"/>
+                        <field name="DATA220"/>
+                        <field name="DATA221"/>
+                        <field name="DATA222"/>
+                        <field name="DATA223"/>
+                        <field name="DATA251"/>
+                        <field name="DATA256"/>
+                        <field name="DATA257"/>
+                        <field name="DATA258"/>
+                        <field name="DATA259"/>
+                        <field name="DATA260"/>
+                        <field name="DATA261"/>
+                        <field name="DATA262"/>
+                        <field name="DATA263"/>
+                        <field name="DATA277"/>
+                        <field name="DATA278"/>
+                        <field name="DATA279"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_winding_machine_log" model="ir.actions.act_window">
+        <field name="name">Winding Machine Logs</field>
+        <field name="res_model">winding.machine.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_winding_machine_log" name="Winding Machine Logs"
+              parent="menu_battery_cell_root" action="action_winding_machine_log"
+              sequence="9" groups="base.group_no_one"/>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--              OCV MES LOG (NEW FORMAT)                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <record id="view_ocv_mes_log_tree" model="ir.ui.view">
+        <field name="name">ocv.mes.log.tree</field>
+        <field name="model">ocv.mes.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="machine_id"/>
+                <field name="group_code"/>
+                <field name="test_result"/>
+                <field name="timestamp"/>
+                <field name="product_sn"/>
+                <field name="operator_id"/>
+                <field name="sn_type"/>
+                <field name="ng_code"/>
+                <field name="pallet"/>
+                <field name="card"/>
+                <field name="voltage"/>
+                <field name="actual_voltage"/>
+                <field name="resistance"/>
+                <field name="k_value"/>
+                <field name="temperature"/>
+                <field name="end_date_time"/>
+                <field name="test_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ocv_mes_log_form" model="ir.ui.view">
+        <field name="name">ocv.mes.log.form</field>
+        <field name="model">ocv.mes.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group string="Session Info">
+                        <field name="machine_id"/>
+                        <field name="group_code"/>
+                        <field name="test_result"/>
+                        <field name="timestamp"/>
+                        <field name="product_sn"/>
+                        <field name="operator_id"/>
+                        <field name="sn_type"/>
+                        <field name="ng_code"/>
+                    </group>
+                    <group string="Test Data">
+                        <field name="pallet"/>
+                        <field name="card"/>
+                        <field name="voltage"/>
+                        <field name="actual_voltage"/>
+                        <field name="resistance"/>
+                        <field name="k_value"/>
+                        <field name="temperature"/>
+                        <field name="end_date_time"/>
+                        <field name="test_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ocv_mes_log" model="ir.actions.act_window">
+        <field name="name">OCV MES Logs</field>
+        <field name="res_model">ocv.mes.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_ocv_mes_log" name="OCV MES Logs"
+              parent="menu_battery_cell_root" action="action_ocv_mes_log"
+              sequence="10" groups="base.group_no_one"/>
 
 </odoo>

@@ -2,3 +2,10 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_battery_cell_log_user,battery.cell.log,model_battery_cell_log,base.group_user,1,1,1,1
 access_injection_cell_log_user,injection.cell.log,model_injection_cell_log,base.group_user,1,1,1,1
 access_cell_clamp_baking_log_user,cell.clamp.baking.log,model_cell_clamp_baking_log,base.group_user,1,1,1,1
+access_degas_machine_log_user,degas.machine.log,model_degas_machine_log,base.group_user,1,1,1,1
+access_assembly_machine_log_user,assembly.machine.log,model_assembly_machine_log,base.group_user,1,1,1,1
+access_ocv_machine_log_user,ocv.machine.log,model_ocv_machine_log,base.group_user,1,1,1,1
+access_slitting_machine_log_user,slitting.machine.log,model_slitting_machine_log,base.group_user,1,1,1,1
+access_drying_oven_log_user,drying.oven.log,model_drying_oven_log,base.group_user,1,1,1,1
+access_winding_machine_log_user,winding.machine.log,model_winding_machine_log,base.group_user,1,1,1,1
+access_ocv_mes_log_user,ocv.mes.log,model_ocv_mes_log,base.group_user,1,1,1,1

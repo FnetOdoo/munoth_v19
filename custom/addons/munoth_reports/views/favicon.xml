@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Backend (and login) tab icon = Munoth favicon (website favicon), like Odoo 15 company favicon -->
+    <template id="layout_munoth_favicon" inherit_id="web.layout" name="Munoth favicon">
+        <xpath expr="//link[@rel='shortcut icon']" position="attributes">
+            <attribute name="t-att-href">x_icon or '/web/image/website/1/favicon'</attribute>
+        </xpath>
+    </template>
+</odoo>

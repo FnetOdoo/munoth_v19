@@ -18,6 +18,7 @@
         'data/data.xml',
         'security/ir.model.access.csv',
         'views/sale_order_inherit.xml',
+        'views/favicon.xml',
         'reports/sales_invoice.xml',
         'reports/sales_invoice_templates.xml',
         'reports/expenses_claim_form.xml',

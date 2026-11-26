@@ -150,13 +150,14 @@
                                         <t t-set="counter" t-value="counter+1"/>
                                     </td>
                                     <td style="padding-left:10px;border: 1px solid black;">
-                                        <span t-field="doc.name"/>
+                                        <t t-set="desc_lines" t-value="(doc.name or '').split('\n')"/>
+                                        <span t-esc="'\n'.join(desc_lines[1:]) if len(desc_lines) &gt; 1 and desc_lines[0].strip() == (doc.product_id.name or '').strip() else doc.name" style="white-space: pre-line;"/>
                                     </td>
                                     <td style="padding-left:10px;border: 1px solid black;">
                                         <span t-field="doc.product_id.l10n_in_hsn_code"/>
                                     </td>
                                     <td style="padding-left:10px;text-align:right;border: 1px solid black;">
-                                        <span t-esc="', '.join(map(lambda x: (x.description or x.name), doc.tax_ids))"/>
+                                        <span t-esc="', '.join(map(lambda x: (x.invoice_label or x.name), doc.tax_ids))"/>
                                     </td>
                                     <td style="padding-left:10px;text-align:right;border: 1px solid black;">
                                         <span t-esc="doc.product_uom_qty"/>

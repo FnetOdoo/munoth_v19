@@ -545,16 +545,20 @@ class AccountMove(models.Model):
         sgst = 0.0
         igst = 0.0
         if tax_totals and isinstance(tax_totals, dict):
-            groups = tax_totals.get('groups_by_subtotal', {}).get('Untaxed Amount', [])
+            # v19: subtotals[].tax_groups[] {group_name, tax_amount_currency}; v15: groups_by_subtotal
+            groups = [g for st in tax_totals.get('subtotals', []) for g in st.get('tax_groups', [])]
+            groups = groups or tax_totals.get('groups_by_subtotal', {}).get('Untaxed Amount', [])
         else:
             groups = []
         for tax in groups:
-            if tax['tax_group_name'] == 'CGST':
-                cgst += tax['tax_group_amount']
-            elif tax['tax_group_name'] == 'SGST':
-                sgst += tax['tax_group_amount']
-            elif tax['tax_group_name'] == 'IGST':
-                igst += tax['tax_group_amount']
+            name = tax.get('group_name') or tax.get('tax_group_name')
+            amount = tax.get('tax_amount_currency', tax.get('tax_group_amount', 0.0))
+            if name == 'CGST':
+                cgst += amount
+            elif name == 'SGST':
+                sgst += amount
+            elif name == 'IGST':
+                igst += amount
         values.append({'cgst': cgst, 'sgst': sgst, 'igst': igst})
         return values
 
@@ -874,15 +878,19 @@ class SaleOrder(models.Model):
         sgst = 0.0
         igst = 0.0
         if tax_totals and isinstance(tax_totals, dict):
-            groups = tax_totals.get('groups_by_subtotal', {}).get('Untaxed Amount', [])
+            # v19: subtotals[].tax_groups[] {group_name, tax_amount_currency}; v15: groups_by_subtotal
+            groups = [g for st in tax_totals.get('subtotals', []) for g in st.get('tax_groups', [])]
+            groups = groups or tax_totals.get('groups_by_subtotal', {}).get('Untaxed Amount', [])
         else:
             groups = []
         for tax in groups:
-            if tax['tax_group_name'] == 'CGST':
-                cgst += tax['tax_group_amount']
-            elif tax['tax_group_name'] == 'SGST':
-                sgst += tax['tax_group_amount']
-            elif tax['tax_group_name'] == 'IGST':
-                igst += tax['tax_group_amount']
+            name = tax.get('group_name') or tax.get('tax_group_name')
+            amount = tax.get('tax_amount_currency', tax.get('tax_group_amount', 0.0))
+            if name == 'CGST':
+                cgst += amount
+            elif name == 'SGST':
+                sgst += amount
+            elif name == 'IGST':
+                igst += amount
         values.append({'cgst': cgst, 'sgst': sgst, 'igst': igst})
         return values

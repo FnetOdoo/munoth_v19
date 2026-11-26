@@ -251,7 +251,7 @@
                             <!-- Migration v15→v19: tax_totals_json removed; tax_totals is now a dict -->
                             <!-- Migration v15→v19: tax_totals_json removed; tax_totals is now a dict -->
                             <t t-set="tax_totals" t-value="o.tax_totals or {}"/>
-                            <t t-if="tax_totals.get('groups_by_subtotal')">
+                            <t t-if="tax_totals.get('subtotals') or tax_totals.get('groups_by_subtotal')">
                                 <t t-if="o.get_tax_totals(o)[0]['igst'] > 0">
                                     <tr style="font-size:12px;background: white;line-height: 0.1;border: 1px solid black;">
                                         <td colspan="5" style="text-align:right;border-left: 1px solid black;border-bottom: 1px solid black;">

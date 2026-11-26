@@ -194,7 +194,7 @@
                                 </td>
                             </tr>
                             <t t-set="tax_totals" t-value="docs.tax_totals or {}"/>
-                            <t t-if="tax_totals.get('groups_by_subtotal')">
+                            <t t-if="tax_totals.get('subtotals') or tax_totals.get('groups_by_subtotal')">
                                 <t t-if="o.get_tax_totals(o)[0]['cgst'] > 0">
                                     <tr style="font-size:14px;background: white;line-height: 0.1;border: 1px solid black;">
                                         <td colspan="7" style="padding-left:10px;text-align:left;border: 1px solid black;">
